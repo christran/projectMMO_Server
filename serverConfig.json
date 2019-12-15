@@ -1,0 +1,13 @@
+{
+    "version": 0.01,
+    "loginServer": {
+        "port": 8484
+    },
+    "mainServer": {
+        "port": 7575
+    },
+    "mongoDB": {
+        "dbUrl": "mongodb://localhost:27017/",
+        "dbName": "testDB"
+    }
+}
