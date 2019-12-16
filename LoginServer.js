@@ -33,13 +33,22 @@ io.on('connection', function (socket) {
     socket.on('getCharacters', (data, callback) => {
         const arrayToObject = (arr, keyField) => Object.assign({}, ...arr.map(item => ({[item[keyField]]: item})));
 
-        Character.getCharacters(data.accountID, (character) => {
+        Account.getCharacters(data.accountID, (character) => {
             callback(arrayToObject(character, 'name'));
         });
 
-	});
-    
+    });
 
+    socket.on('selectCharacter', (data) => {
+        Character.getCharacterByID(data._id, (err, character) => {
+            if (character && !err) {
+                socket.emit('handoffToWorldServer', character);
+            } else {
+                console.log('IP: ' + socket.handshake.address + ' tried to select a character not tied to their account.');
+            }
+        });
+    });
+    
 	socket.on('disconnect', function () {
         console.log(chalk.yellow('[Login Server] ') + 'Disconnection | Socket: ' + util.inspect(socket.id) + ' | Total Connected: ' + clients.length);
 
@@ -155,32 +164,36 @@ function register (req, res) {
 function createChar (req, res) {
     let newChar =  new Character({
         accountID: req.body.accountID,
+        _id: new db.mongoose.Types.ObjectId().toHexString(),
         name: req.body.name,
-            female: false,
-            skin: 1,
-            hair: 1,
-            eyes: 1,
-            
-            mapID: 1,
-            mapPos: 0,
-            
-            stats: {
-                level: 1,
-                job: 100,
-                str: 5,
-                dex: 5,
-                int: 5,
-                luk: 5,
-                hp: 50,
-                mhp: 50,
-                mp: 100,
-                mmp: 100,
-            },
-            
-            inventory: {
-                mesos: 0,
-                maxSlots: [96, 96, 96, 96, 96]
-            }
+        female: false,
+        skin: 1,
+        hair: 1,
+        eyes: 1,
+        
+        mapID: 1,
+        position: {
+            translation: { x: 0, y: 0, z: 0 },
+            rotation: { w: 0, x: 0, y: 0, z: 0 }
+        },
+        
+        stats: {
+            level: 1,
+            job: 100,
+            str: 5,
+            dex: 5,
+            int: 5,
+            luk: 5,
+            hp: 50,
+            mhp: 50,
+            mp: 100,
+            mmp: 100,
+        },
+        
+        inventory: {
+            mesos: 0,
+            maxSlots: [96, 96, 96, 96, 96]
+        }
     });
 
     newChar.save(function (err, character) {

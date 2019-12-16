@@ -1,6 +1,7 @@
 var characterSchema = new db.mongoose.Schema(
     {
         accountID: { type: String, required: true},
+        _id: String,
         worldId: Number,
         name: { type: String, required: true, unique: true },
         female: Boolean,
@@ -9,8 +10,11 @@ var characterSchema = new db.mongoose.Schema(
         eyes: Number,
         
         mapID: { type: Number, default: 1 },
-        mapPos: Number,
-        
+        position: {
+            translation: { x: Number, y: Number, z: Number },
+            rotation: { w: Number, x: Number, y: Number, z: Number }
+        },
+
         stats: {
             level: { type: Number, default: 1 },
             job: Number,
@@ -38,14 +42,12 @@ var characterSchema = new db.mongoose.Schema(
     }
 );
 
-characterSchema.statics.getChar = function(name, callback) {
+characterSchema.statics.getCharacter = function(name, callback) {
     return this.model('characters').findOne({name: name}, callback);
 };
 
-characterSchema.statics.getCharacters = function(accountID, callback) {
-    this.model('characters').find({accountID: accountID}).sort({createdAt: 'asc'}).exec((err, character) => {
-        callback(character);
-    });
+characterSchema.statics.getCharacterByID = function(charID, callback) {
+    return this.model('characters').findOne({_id: charID}, callback);
 };
 
 Character = db.mongoose.model("characters", characterSchema);
