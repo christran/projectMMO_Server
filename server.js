@@ -5,19 +5,31 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 global.db = require("./db");
 
+const path = require('path');
+const fs = require('fs');
+const jsonfile = require('jsonfile');
 const chalk = require('chalk');
 
 const serverConfig = require('./serverConfig.json');
 const port = serverConfig.mainServer.port;
 
-let normalizedPath = require("path").join(__dirname, "models");
+global.Maps = {};
+global.clients = [];
 
 // Load All Models (Schema)
-require("fs").readdirSync(normalizedPath).forEach(function(file) {
+fs.readdirSync('models').forEach(function(file) {
   require("./models/" + file);
 });
 
-global.clients = [];
+// Load Maps into memory
+fs.readdirSync('game/maps/').forEach((file) => {
+	let mapID = path.basename(file, '.json');
+
+	Maps[mapID] = jsonfile.readFileSync('game/maps/' + file);
+	},
+
+	console.log('[Loaded]: Maps.wz')
+);
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());

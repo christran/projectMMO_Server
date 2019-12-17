@@ -75,57 +75,58 @@ module.exports = function(socket, io, clients) {
 		});
 	});
 
-	socket.on('player_UsePortal', (data, callback) => {		
+	socket.on('player_UsePortal', (data, callback) => {
 		/*
+		Portal Data Validation with @hapi/joi
 		Data = Object
 			portalName = String
 		*/
+		let currentPortal = Maps[socket.mapID].portals[data.portalName];
 
-		// Portal Data Validation
+		if (currentPortal) {
+			let targetPortal = Maps[currentPortal.toMapID];
 
-		if (socket.mapID) {
-			// Get current map and leave the socket room
-			socket.leave(socket.mapID);
-
-			// Update Character Map ID in MongoDB
-			// Send callback back to client with data such as all the players in the new map
-
-			// Portal Data of the portal the player used
-			portalData = jsonfile.readFileSync('game/maps/' + socket.mapID + '.json');
-
-			// Portal Data of the portal we want to go to
-			toPortalData = jsonfile.readFileSync('game/maps/' + portalData.portals[data.portalName].toMapID + '.json');
-
-			let newPosition = toPortalData.portals[portalData.portals[data.portalName].toPortalName].position
-			
-			if (newPosition) {
-				let response = {
-					mapID: portalData.portals[data.portalName].toMapID,
-					// Get Portal Data (SpawnLocation) given toMapId/toPortalName
-
-					position: {
-						translation: { 
-							x: newPosition.translation.x, 
-							y: newPosition.translation.y, 
-							z: newPosition.translation.z 
-						},
-						rotation: { 
-							x: newPosition.rotation.x, 
-							y: newPosition.rotation.y, 
-							z: newPosition.rotation.z 
-						},
+			if (socket.mapID) {
+				// Get current map and leave the socket room
+				socket.leave(socket.mapID);
+	
+				// Update Character Map ID in MongoDB
+				// Send callback back to client with data such as all the players in the new map
+	
+				let newPosition = targetPortal.portals[currentPortal.toPortalName].position;
+				
+				if (newPosition) {
+					let response = {
+						mapID: currentPortal.toMapID,
+						portal: true,
+						// Get Portal Data (SpawnLocation) given toMapId/toPortalName
+	
+						position: {
+							translation: { 
+								x: newPosition.translation.x, 
+								y: newPosition.translation.y, 
+								z: newPosition.translation.z 
+							},
+							rotation: { 
+								x: newPosition.rotation.x, 
+								y: newPosition.rotation.y, 
+								z: newPosition.rotation.z 
+							},
+						}
 					}
+	
+					Player.getPlayerDataBySocket(socket.id).mapID = currentPortal.toMapID;
+					socket.join(currentPortal.toMapID);
+	
+					socket.mapID = currentPortal.toMapID;
+					socket.emit('changePlayerMap', response);
+					console.log('[World Server] ' + socket.name + ' moved to Map: ' + targetPortal.mapInfo.mapName);
 				}
-
-				Player.getPlayerDataBySocket(socket.id).mapID = portalData.portals[data.portalName].toMapID;
-				socket.join(portalData.portals[data.portalName].toMapID);
-
-				socket.mapID = portalData.portals[data.portalName].toMapID;
-				socket.emit('changePlayerMap', response);
-				console.log('[World Server] ' + socket.name + ' moved to Map: ' + toPortalData.mapInfo.mapName);
+			} else {
+				console.log('[World Server] Player: ' + socket.name + ' doesn\'t have a mapID');
 			}
 		} else {
-			console.log('Portal Error: ' + socket.mapID, data)
+			console.log('[World Server] ' + socket.name + ' tried using ' + data.portalName + ' from ' + socket.mapID);
 		}
 	});
 
