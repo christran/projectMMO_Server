@@ -5,8 +5,12 @@ const jsonfile = require('jsonfile');
 module.exports = function(socket, io, clients) {
     // Movement
     socket.on('movementUpdate', function (transform) {
-		//console.log(socket.name + ' \n ' + JSON.stringify(transform));
-		//console.log(transform.translation.x)
+		
+		// Check if player fell off the map
+		if (transform.translation.z < -10000) {
+			socket.emit('player_ZLimit');
+		}
+
 		socket.position = {
 			translation: {
 				x: transform.translation.x,
@@ -78,11 +82,13 @@ module.exports = function(socket, io, clients) {
 	socket.on('player_UsePortal', (data, callback) => {
 		/*
 		Portal Data Validation with @hapi/joi
+		make sure the user doesn't send something like a  string
 		Data = Object
 			portalName = String
 		*/
 		let currentPortal = Maps[socket.mapID].portals[data.portalName];
 
+		// Check if the portal exists in the current player map
 		if (currentPortal) {
 			let targetPortal = Maps[currentPortal.toMapID];
 
