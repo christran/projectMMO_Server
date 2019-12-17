@@ -1,5 +1,5 @@
 {
-  "name": "mmoServer",
+  "name": "projectmmo",
   "version": "0.1.0",
   "description": "NodeJS/SocketIO MMO Server",
   "dependencies": {
