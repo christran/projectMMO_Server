@@ -1,0 +1,23 @@
+{
+    "mapInfo": {
+        "mapName": "Maple Road"
+    },
+    "portals": {
+        "map_1_portal_1" : {
+            "toMapID": 2,
+            "toPortalName": "map_2_portal_1",
+            "position": {
+                "translation": {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "rotation": { 
+                    "x": 0, 
+                    "y": 0, 
+                    "z": 0 
+                }
+            }
+        }
+    }
+}
