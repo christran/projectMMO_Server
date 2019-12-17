@@ -1,6 +1,6 @@
 //Player Handler
 const Player = require('../helpers/player-helper');
-const fs = require('fs');
+const jsonfile = require('jsonfile');
 
 module.exports = function(socket, io, clients) {
     // Movement
@@ -77,10 +77,10 @@ module.exports = function(socket, io, clients) {
 			// Send callback back to client with data such as all the players in the new map
 
 			// Portal Data of the portal the player used
-			portalData = JSON.parse(fs.readFileSync('game/maps/' + socket.mapID + '.json'))
+			portalData = jsonfile.readFileSync('game/maps/' + socket.mapID + '.json');
 
 			// Portal Data of the portal we want to go to
-			toPortalData = JSON.parse(fs.readFileSync('game/maps/' + portalData.portals[data.portalName].toMapID + '.json'))
+			toPortalData = jsonfile.readFileSync('game/maps/' + portalData.portals[data.portalName].toMapID + '.json');
 
 			let newPosition = toPortalData.portals[portalData.portals[data.portalName].toPortalName].position
 			
