@@ -1,5 +1,6 @@
 //Player Handler
 //require('../helpers/player-helper');
+fs = require('fs');
 
 function getPlayerDataByName (name) {
 	let playerObj = clients.find(searchFor => searchFor.name.toLowerCase() === name.toLowerCase());
@@ -20,10 +21,44 @@ function getPlayerDataBySocket (socket) {
 	}
 }
 
+function saveCharacter (socket) {
+	Character.getCharacter(socket.name, (err, character) => {
+		// Save Stats
+
+
+		// Save Translation/Rotation
+		character.position.translation.x = socket.position.translation.x;
+		character.position.translation.y = socket.position.translation.y;
+		character.position.translation.z = socket.position.translation.z;
+
+		character.position.rotation.x = socket.position.rotation.x;
+		character.position.rotation.y = socket.position.rotation.y;
+		character.position.rotation.z = socket.position.rotation.z;
+
+		// Save mapID
+		character.mapID = socket.mapID;
+		character.save();
+	});
+}
+
 module.exports = function(socket, io, clients) {
     // Movement
     socket.on('movementUpdate', function (transform) {
-		console.log(socket.name + ' \n ' + JSON.stringify(transform));
+		//console.log(socket.name + ' \n ' + JSON.stringify(transform));
+		//console.log(transform.translation.x)
+		socket.position = {
+			translation: {
+				x: transform.translation.x,
+				y: transform.translation.y,
+				z: transform.translation.z
+			},
+			rotation: {
+				x: transform.rotation.x,
+				y: transform.rotation.y,
+				z: transform.rotation.z
+			}
+		}
+	
 	});  
 
 	// Spawn Player after they select a character
@@ -51,9 +86,7 @@ module.exports = function(socket, io, clients) {
 							y: character.position.rotation.y, 
 							z: character.position.rotation.z 
 						}
-	
 					}
-
 				}
 
 				socket.name = playerData.name,
@@ -81,20 +114,44 @@ module.exports = function(socket, io, clients) {
 			// Get current map and leave the socket room
 			socket.leave(getPlayerDataBySocket(socket.id).mapID);
 			
-			getPlayerDataBySocket(socket.id).mapID = data.toMapId;
-			socket.join(data.toMapId);
 			// Update Character Map ID in MongoDB
 			// Send callback back to client with data such as all the players in the new map
-			let response = {
-				mapID: data.toMapId,
-				position: {
-					translation: { x: 0, y: 1000, z: 0 },
-					rotation: { w: 0, x: 0, y: 0, z: 0 },
 
+			// Portal Data of the portal the player used
+			portalData = JSON.parse(fs.readFileSync('game/maps/' + socket.mapID + '.json'))
+
+			// Portal Data of the portal we want to go to
+			toPortalData = JSON.parse(fs.readFileSync('game/maps/' + portalData.portals[data.portalName].toMapID + '.json'))
+
+			let newTranslation = toPortalData.portals[portalData.portals[data.portalName].toPortalName].position.translation
+			
+			if (newTranslation) {
+				let response = {
+					mapID: portalData.portals[data.portalName].toMapID,
+					// Get Portal Data (SpawnLocation) given toMapId/toPortalName
+
+					position: {
+						translation: { 
+							x: newTranslation.x, 
+							y: newTranslation.y, 
+							z: newTranslation.z 
+						},
+						rotation: { 
+							w: 0, 
+							x: 0, 
+							y: 0, 
+							z: 0 
+						},
+					}
 				}
+
+				getPlayerDataBySocket(socket.id).mapID = portalData.portals[data.portalName].toMapID;
+				socket.join(portalData.portals[data.portalName].toMapID);
+
+				socket.mapID = portalData.portals[data.portalName].toMapID;
+				socket.emit('changePlayerMap', response);
+				console.log('[World Server] ' + getPlayerDataBySocket(socket.id).name + ' moved to Map: ' + toPortalData.mapInfo.mapName);
 			}
-			socket.emit('changePlayerMap', response);
-			console.log('[World Server] ' + getPlayerDataBySocket(socket.id).name + ' moved to ' + data.toMapId);
 		}
 	});
 
@@ -114,7 +171,24 @@ module.exports = function(socket, io, clients) {
 	// Log Player Disconnection
 	socket.on('disconnect', function () {
 		// Save Player Data to Database on Log Out
-		// Client sends back playerData on Log Out
+		saveCharacter(socket);
+/* 		Character.getCharacter(socket.name, (err, character) => {
+
+			// Save Translation
+			character.position.translation.x = socket.position.translation.x;
+			character.position.translation.y = socket.position.translation.y;
+			character.position.translation.z = socket.position.translation.z;
+
+			// Save Rotation
+			character.position.rotation.x = socket.position.rotation.x;
+			character.position.rotation.y = socket.position.rotation.y;
+			character.position.rotation.z = socket.position.rotation.z;
+
+			// Save mapID
+			character.mapID = socket.mapID;
+			character.save();
+		}); */
+
 		let message = '[World Server] User: ' + socket.name + ' disconnected | Total Online: ' + clients.length;
 
 		socketIndex = clients.findIndex(item => item.socket === socket.id);
