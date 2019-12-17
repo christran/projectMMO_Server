@@ -1,45 +1,6 @@
 //Player Handler
-//require('../helpers/player-helper');
-fs = require('fs');
-
-function getPlayerDataByName (name) {
-	let playerObj = clients.find(searchFor => searchFor.name.toLowerCase() === name.toLowerCase());
-	if (playerObj != undefined) {
-		return playerObj;
-	} else {
-		return null;
-	}
-}
-
-function getPlayerDataBySocket (socket) {
-	let playerObj = clients.find(searchFor => searchFor.socket === socket);
-
-	if (playerObj != undefined) {
-		return playerObj;
-	} else {
-		return null;
-	}
-}
-
-function saveCharacter (socket) {
-	Character.getCharacter(socket.name, (err, character) => {
-		// Save Stats
-
-
-		// Save Translation/Rotation
-		character.position.translation.x = socket.position.translation.x;
-		character.position.translation.y = socket.position.translation.y;
-		character.position.translation.z = socket.position.translation.z;
-
-		character.position.rotation.x = socket.position.rotation.x;
-		character.position.rotation.y = socket.position.rotation.y;
-		character.position.rotation.z = socket.position.rotation.z;
-
-		// Save mapID
-		character.mapID = socket.mapID;
-		character.save();
-	});
-}
+const Player = require('../helpers/player-helper');
+const fs = require('fs');
 
 module.exports = function(socket, io, clients) {
     // Movement
@@ -104,16 +65,14 @@ module.exports = function(socket, io, clients) {
 		/*
 		Data = Object
 			portalName = String
-			toMapId = Int
-			toPortalName = String
 		*/
 
-		// Check if the Portal_Data sent from client matches what the Portal_Data stored on the server
+		// Portal Data Validation
 
-		if (getPlayerDataBySocket(socket.id)) {
+		if (socket.mapID) {
 			// Get current map and leave the socket room
-			socket.leave(getPlayerDataBySocket(socket.id).mapID);
-			
+			socket.leave(socket.mapID);
+
 			// Update Character Map ID in MongoDB
 			// Send callback back to client with data such as all the players in the new map
 
@@ -123,42 +82,43 @@ module.exports = function(socket, io, clients) {
 			// Portal Data of the portal we want to go to
 			toPortalData = JSON.parse(fs.readFileSync('game/maps/' + portalData.portals[data.portalName].toMapID + '.json'))
 
-			let newTranslation = toPortalData.portals[portalData.portals[data.portalName].toPortalName].position.translation
+			let newPosition = toPortalData.portals[portalData.portals[data.portalName].toPortalName].position
 			
-			if (newTranslation) {
+			if (newPosition) {
 				let response = {
 					mapID: portalData.portals[data.portalName].toMapID,
 					// Get Portal Data (SpawnLocation) given toMapId/toPortalName
 
 					position: {
 						translation: { 
-							x: newTranslation.x, 
-							y: newTranslation.y, 
-							z: newTranslation.z 
+							x: newPosition.translation.x, 
+							y: newPosition.translation.y, 
+							z: newPosition.translation.z 
 						},
 						rotation: { 
-							w: 0, 
-							x: 0, 
-							y: 0, 
-							z: 0 
+							x: newPosition.rotation.x, 
+							y: newPosition.rotation.y, 
+							z: newPosition.rotation.z 
 						},
 					}
 				}
 
-				getPlayerDataBySocket(socket.id).mapID = portalData.portals[data.portalName].toMapID;
+				Player.getPlayerDataBySocket(socket.id).mapID = portalData.portals[data.portalName].toMapID;
 				socket.join(portalData.portals[data.portalName].toMapID);
 
 				socket.mapID = portalData.portals[data.portalName].toMapID;
 				socket.emit('changePlayerMap', response);
-				console.log('[World Server] ' + getPlayerDataBySocket(socket.id).name + ' moved to Map: ' + toPortalData.mapInfo.mapName);
+				console.log('[World Server] ' + socket.name + ' moved to Map: ' + toPortalData.mapInfo.mapName);
 			}
+		} else {
+			console.log('Portal Error: ' + socket.mapID, data)
 		}
 	});
 
 	// Disconnect a player with given name
 	socket.on('player_DC', function (data) {
-		if (getPlayerDataByName(data.name)) {
-			let playerSocketID = getPlayerDataByName(data.name).socket
+		if (Player.getPlayerDataByName(data.name)) {
+			let playerSocketID = Player.getPlayerDataByName(data.name).socket
 
 			io.sockets.connected[playerSocketID].disconnect();
 			console.log('[World Server] ' + data.name + ' was dced by GM');
@@ -170,24 +130,8 @@ module.exports = function(socket, io, clients) {
 
 	// Log Player Disconnection
 	socket.on('disconnect', function () {
-		// Save Player Data to Database on Log Out
-		saveCharacter(socket);
-/* 		Character.getCharacter(socket.name, (err, character) => {
-
-			// Save Translation
-			character.position.translation.x = socket.position.translation.x;
-			character.position.translation.y = socket.position.translation.y;
-			character.position.translation.z = socket.position.translation.z;
-
-			// Save Rotation
-			character.position.rotation.x = socket.position.rotation.x;
-			character.position.rotation.y = socket.position.rotation.y;
-			character.position.rotation.z = socket.position.rotation.z;
-
-			// Save mapID
-			character.mapID = socket.mapID;
-			character.save();
-		}); */
+		// Save Character Data to Database on Disconnection
+		Player.saveCharacter(socket);
 
 		let message = '[World Server] User: ' + socket.name + ' disconnected | Total Online: ' + clients.length;
 
