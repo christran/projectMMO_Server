@@ -50,8 +50,22 @@ module.exports = function(socket, io, clients) {
 					}
 				}
 
+				// Update socket properties
 				socket.name = playerData.name,
 				socket.mapID = character.mapID;
+
+				socket.position = {
+					translation: {
+						x: character.position.translation.x,
+						y: character.position.translation.y,
+						z: character.position.translation.z
+					},
+					rotation: {
+						x: character.position.rotation.x, 
+						y: character.position.rotation.y, 
+						z: character.position.rotation.z 
+					}
+				}
 
 				socket.join(character.mapID);
 				socket.emit('changePlayerMap', response);
