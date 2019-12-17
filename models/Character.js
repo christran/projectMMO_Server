@@ -12,7 +12,7 @@ var characterSchema = new db.mongoose.Schema(
         mapID: { type: Number, default: 1 },
         position: {
             translation: { x: Number, y: Number, z: Number },
-            rotation: { w: Number, x: Number, y: Number, z: Number }
+            rotation: { x: Number, y: Number, z: Number }
         },
 
         stats: {

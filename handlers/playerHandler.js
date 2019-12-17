@@ -41,8 +41,16 @@ module.exports = function(socket, io, clients) {
 				let response = {
 					mapID: character.mapID,
 					position: {
-						translation: { x: 0, y: 1000, z: 0 },
-						rotation: { w: 0, x: 0, y: 0, z: 90 }
+						translation: { 
+							x: character.position.translation.x, 
+							y: character.position.translation.y, 
+							z: character.position.translation.z 
+						},
+						rotation: { 
+							x: character.position.rotation.x, 
+							y: character.position.rotation.y, 
+							z: character.position.rotation.z 
+						}
 	
 					}
 
