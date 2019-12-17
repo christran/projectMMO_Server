@@ -1,4 +1,4 @@
 # projectMMO Server
-## NodeJS
-## SocketIO
-## MongoDB (Mongoose)
+- NodeJS
+- SocketIO
+- MongoDB (Mongoose)
