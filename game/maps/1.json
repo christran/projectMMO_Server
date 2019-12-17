@@ -2,8 +2,29 @@
     "mapInfo": {
         "mapName": "Maple Road"
     },
+    "npcs": {
+        "Ms. Park": {
+            "scripts": "npcs/1.js"
+        }
+    },
+    "mobs": {
+        "1": {
+            "spawnLocation": [
+                {
+                    "x": 100,
+                    "y": 100,
+                    "z": 0
+                },
+                {
+                    "x": 100,
+                    "y": 150,
+                    "z": 0
+                }
+            ]
+        }
+    },
     "portals": {
-        "map_1_portal_1" : {
+        "map_1_portal_1": {
             "toMapID": 2,
             "toPortalName": "map_2_portal_1",
             "position": {
@@ -15,7 +36,7 @@
                 "rotation": { 
                     "x": 0, 
                     "y": 0, 
-                    "z": 0 
+                    "z": -90
                 }
             }
         }
