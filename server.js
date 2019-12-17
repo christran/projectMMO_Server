@@ -35,11 +35,10 @@ app.get('/serverStatus', function (req, res) {
 	res.send(response)
 });
 
-
 io.on('connection', function (socket) {
 	// Require all Handlers/Factorys
-	const playerHandler = require('./handlers/playerHandler')(socket, io, clients);
-	const chatHandler = require('./handlers/chatHandler')(socket, io);
+	const playerHandler = require('./handlers/player-handler')(socket, io, clients);
+	const chatHandler = require('./handlers/chat-handler')(socket, io);
 
 	// Send Client information about other clients in the same map
 	setInterval(() => {
