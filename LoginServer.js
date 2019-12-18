@@ -46,7 +46,6 @@ function login (req, res) {
                         let response =  {
                             'result': 'Handshaked',
                             'accountID': account._id,
-                            'username': account.username,
                             'lastLogin': account.lastLoginDate.toLocaleString()
                             }
                     

@@ -1,6 +1,5 @@
 //Player Handler
 const Player = require('../helpers/player-helper');
-const jsonfile = require('jsonfile');
 
 module.exports = function(socket, io, clients) {
     // Movement
@@ -132,7 +131,7 @@ module.exports = function(socket, io, clients) {
 				console.log('[World Server] Player: ' + socket.name + ' doesn\'t have a mapID');
 			}
 		} else {
-			console.log('[World Server] ' + socket.name + ' tried using ' + data.portalName + ' from ' + socket.mapID);
+			console.log('[World Server] ' + socket.name + ' tried using Portal: ' + data.portalName + ' from Map ID: ' + socket.mapID);
 		}
 	});
 
