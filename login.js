@@ -6,8 +6,8 @@ const io = require('socket.io')(http);
 global.db = require("./db");
 const bcrypt = require('bcrypt');
 const chalk = require('chalk');
-const serverConfig = require('./serverConfig.json');
-const port = serverConfig.loginServer.port;
+const _config = require('./_config.json');
+const port = _config.loginserver.port;
 
 require('./models/Account');
 require('./models/Character');
