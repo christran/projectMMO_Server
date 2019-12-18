@@ -11,8 +11,8 @@ const fs = require('fs');
 const jsonfile = require('jsonfile');
 const chalk = require('chalk');
 
-const serverConfig = require('./serverConfig.json');
-const port = serverConfig.mainServer.port;
+const _config = require('./_config.json');
+const port = _config.worldserver.port;
 
 global.Maps = {};
 global.clients = [];

@@ -1,7 +1,7 @@
-const serverConfig = require('./serverConfig.json');
+const _config = require('./_config.json');
 const mongoose = require('mongoose');
-const dbName = serverConfig.mongoDB.dbName;
-const url = serverConfig.mongoDB.dbUrl;
+const dbName = _config.mongoDB.dbName;
+const url = _config.mongoDB.dbUrl;
 const mongoOptions = { useNewUrlParser: true, useUnifiedTopology: true };
 
 const chalk = require('chalk');
@@ -17,4 +17,4 @@ mongoose.connect(url + dbName, mongoOptions, (err) => {
     }
 });
 
-module.exports = {mongoose}
+module.exports = {mongoose};

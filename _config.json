@@ -1,9 +1,9 @@
 {
     "version": 0.01,
-    "loginServer": {
+    "loginserver": {
         "port": 8484
     },
-    "mainServer": {
+    "worldserver": {
         "port": 7575
     },
     "mongoDB": {

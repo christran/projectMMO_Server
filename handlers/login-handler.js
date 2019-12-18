@@ -2,7 +2,7 @@
 const chalk = require('chalk');
 const util = require('util');
 const stuff = require('../utils/stuff');
-const serverConfig = require('../serverConfig.json');
+const _config = require('../_config.json');
 
 const clients = [];
 
@@ -17,7 +17,7 @@ module.exports = function(io) {
         
         // Check Client's Version
         socket.on('serverVersion', function (clientVersion, callback) {
-            callback(serverConfig.version);
+            callback(_config.version);
         });
 
         socket.on('getCharacters', (data, callback) => {
