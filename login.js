@@ -70,6 +70,8 @@ function login (req, res) {
                             };
                     
                         res.send(response);
+                        
+                        account.isOnline = true;
                         account.lastLoginDate = moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
                         account.ip = req.connection.remoteAddress;
                         account.save();

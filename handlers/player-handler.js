@@ -55,6 +55,7 @@ module.exports = function(socket, io, clients) {
 
 				// Update socket properties
 				socket.name = playerData.name;
+				socket.accountID = character.accountID;
 				socket.mapID = character.mapID;
 
 				socket.position = {
@@ -152,12 +153,16 @@ module.exports = function(socket, io, clients) {
 	socket.on('disconnect', function () {
 		// Save Character Data to Database on Disconnection
 		Player.saveCharacter(socket);
+		Account.getAccountByID(socket.accountID, (err, account) => {
+			account.isOnline = false;
+			account.save();
+		});
 
 		let message = '[World Server] User: ' + socket.name + ' disconnected | Total Online: ' + clients.length;
 
 		socketIndex = clients.findIndex(item => item.socket === socket.id);
 		clients.splice(socketIndex, 1);
-
+		
 		io.emit('chat', message);
 		console.log(message);
 	});
