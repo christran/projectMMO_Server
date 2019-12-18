@@ -192,5 +192,5 @@ function createChar (req, res) {
 
 //Start the Server
 http.listen(port, function () {
-	console.log(chalk.yellow('[Login Server] Starting Login Server...', port));
+	console.log(chalk.yellow('[Login Server] Starting Login Server... Port:', port));
 });

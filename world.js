@@ -64,5 +64,5 @@ io.on('connection', function (socket) {
 
 //Start the Server
 http.listen(port, function () {
-	console.log(chalk.greenBright('[World Server] Listening on port: ' + port));
+	console.log(chalk.greenBright('[World Server] Starting World Server... Port:', port));
 });
