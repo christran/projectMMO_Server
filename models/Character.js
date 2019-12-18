@@ -50,6 +50,11 @@ characterSchema.statics.getCharacterByID = function(charID, callback) {
     return this.model('characters').findOne({_id: charID}, callback);
 };
 
+characterSchema.statics.getAccountByID = function(accountID, callback) {
+    return this.model('accounts').findOne({_id: accountID}, callback);
+};
+
+
 Character = db.mongoose.model("characters", characterSchema);
 
 module.exports = Character;

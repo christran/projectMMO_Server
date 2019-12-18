@@ -45,6 +45,10 @@ accountSchema.statics.getAccount = function(username, callback) {
     return this.model('accounts').findOne({username: username}, callback);
 };
 
+accountSchema.statics.getAccountByID = function(accountID, callback) {
+    return this.model('accounts').findOne({_id: accountID}, callback);
+};
+
 accountSchema.statics.getCharacters = function(accountID, callback) {
     this.model('characters').find({accountID: accountID}).sort({createdAt: 'asc'}).exec((err, character) => {
         callback(character);
