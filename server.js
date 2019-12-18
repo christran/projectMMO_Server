@@ -1,10 +1,11 @@
 const express = require('express');
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 global.db = require("./db");
 
+const stuff = require('./utils/stuff');
 const path = require('path');
 const fs = require('fs');
 const jsonfile = require('jsonfile');
@@ -31,7 +32,7 @@ fs.readdirSync('game/maps/').forEach((file) => {
 	console.log('[Loaded]: Maps.wz')
 );
 
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 //Server Web Client
@@ -42,9 +43,9 @@ app.get('/', function (req, res) {
 app.get('/serverStatus', function (req, res) {
 	let response =  {
 		'result': 'Online'
-		}
+		};
 	
-	res.send(response)
+	res.send(response);
 });
 
 io.on('connection', function (socket) {
@@ -54,11 +55,9 @@ io.on('connection', function (socket) {
 
 	// Send Client information about other clients in the same map
 	setInterval(() => {
-		const arrayToObject = (arr, keyField) => Object.assign({}, ...arr.map(item => ({[item[keyField]]: item})));
-
 		let otherClientsInMap = [...clients].filter(searchFor => searchFor.socket != socket.id);
 
-		socket.emit('playersInMap', arrayToObject(otherClientsInMap.filter(searchFor => searchFor.mapID === parseInt(Object.keys(socket.rooms)[0])), 'name'));
+		socket.emit('playersInMap', stuff.arrayToObject(otherClientsInMap.filter(searchFor => searchFor.mapID === parseInt(Object.keys(socket.rooms)[0])), 'name'));
 	}, 1000);
 
 });

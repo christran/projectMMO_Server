@@ -37,4 +37,4 @@ module.exports = {
 			character.save();
 		});
 	}
-}
+};

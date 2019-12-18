@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 global.db = require("./db");
@@ -11,9 +11,9 @@ const port = serverConfig.loginServer.port;
 
 require('./models/Account');
 require('./models/Character');
-require('./handlers/login-handler')(io)
+require('./handlers/login-handler')(io);
 
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.post('/LoginServer/login', function(req, res) {
@@ -29,11 +29,11 @@ app.post('/LoginServer/createChar', function (req, res) {
 });
 
 app.post('/LoginServer/', function(req, res) {
-    res.status(403).end()
+    res.status(403).end();
 });
 
 app.get('/LoginServer/', function(req, res) {
-    res.status(403).end()
+    res.status(403).end();
 });
 
 function login (req, res) {
@@ -48,7 +48,7 @@ function login (req, res) {
                             'result': 'Banned',
                             'banType': account.ban.banType,
                             'reason': account.ban.banReason
-                            }
+                            };
 
                         console.log(chalk.yellow('[Login Server] ') + req.body.username + ' tried to log in but is banned. | IP: ' + req.connection.remoteAddress);
                         res.send(response);
@@ -57,7 +57,7 @@ function login (req, res) {
                         let response =  {
                             'result': 'Online',
                             'reason': "This account is already logged in."
-                            }
+                            };
 
                         console.log(chalk.yellow('[Login Server] ') + req.body.username + ' tried to log in but is banned. | IP: ' + req.connection.remoteAddress);
                         res.send(response);
@@ -66,7 +66,7 @@ function login (req, res) {
                             'result': 'Handshaked',
                             'accountID': account._id,
                             'lastLogin': account.lastLoginDate.toLocaleString()
-                            }
+                            };
                     
                         res.send(response);
                         account.lastLoginDate = Date();
@@ -78,7 +78,7 @@ function login (req, res) {
                     let response =  {
                         'result': 'InvalidPW',
                         'reason': 'Incorrect Password'
-                        }
+                        };
                     res.send(response);
                 }
             });
@@ -87,7 +87,7 @@ function login (req, res) {
             let response =  {
                 'result': 'Invalid',
                 'reason': 'Username not found'
-                }
+                };
 
                 res.statusCode = 401;
                 res.send(response);
@@ -113,16 +113,16 @@ function register (req, res) {
                 if (!err) {
                     let response =  {
                         'result': 'Account Created'
-                        }
+                        };
                     
-                    res.send(response)
+                    res.send(response);
                     console.log(chalk.yellow('[Login Server] New Account | Username: ' + account.username));
                 } else if (err.code == 11000) {
                     let response =  {
                         'result': 'Username Taken'
-                        }
+                        };
                     
-                    res.send(response)
+                    res.send(response);
                 } else {
                     console.log(err);
                     res.redirect(req.get('referer'));
@@ -171,17 +171,17 @@ function createChar (req, res) {
         if (!err) {
             let response =  {
                 'result': 'Character Created'
-                }
+                };
             
-            res.send(response)
+            res.send(response);
             console.log(chalk.yellow('[Login Server] ') + 'New Character | Name: ' + character.name);
         } else if (err.code == 11000) {
             let response =  {
                 'result': 'Username Taken',
                 'reason': 'Name is already taken'
-                }
+                };
             
-            res.send(response)
+            res.send(response);
         } else {
             console.log(err);
             res.redirect(req.get('referer'));

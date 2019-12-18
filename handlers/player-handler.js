@@ -21,7 +21,7 @@ module.exports = function(socket, io, clients) {
 				y: transform.rotation.y,
 				z: transform.rotation.z
 			}
-		}
+		};
 	
 	});  
 
@@ -51,10 +51,10 @@ module.exports = function(socket, io, clients) {
 							z: character.position.rotation.z 
 						}
 					}
-				}
+				};
 
 				// Update socket properties
-				socket.name = playerData.name,
+				socket.name = playerData.name;
 				socket.mapID = character.mapID;
 
 				socket.position = {
@@ -68,7 +68,7 @@ module.exports = function(socket, io, clients) {
 						y: character.position.rotation.y, 
 						z: character.position.rotation.z 
 					}
-				}
+				};
 
 				socket.join(character.mapID);
 				socket.emit('changePlayerMap', response);
@@ -118,7 +118,7 @@ module.exports = function(socket, io, clients) {
 								z: newPosition.rotation.z 
 							},
 						}
-					}
+					};
 	
 					Player.getPlayerDataBySocket(socket.id).mapID = currentPortal.toMapID;
 					socket.join(currentPortal.toMapID);
@@ -138,7 +138,7 @@ module.exports = function(socket, io, clients) {
 	// Disconnect a player with given name
 	socket.on('player_DC', function (data) {
 		if (Player.getPlayerDataByName(data.name)) {
-			let playerSocketID = Player.getPlayerDataByName(data.name).socket
+			let playerSocketID = Player.getPlayerDataByName(data.name).socket;
 
 			io.sockets.connected[playerSocketID].disconnect();
 			console.log('[World Server] ' + data.name + ' was dced by GM');
@@ -164,9 +164,9 @@ module.exports = function(socket, io, clients) {
 	
     // Get Player Mesos
     socket.on('getPlayerMesos', (user, callback) => {
-		let playerMesos = 1000000
+		let playerMesos = 1000000;
 
 		callback(playerMesos);
 		console.log('[Server] ' + user + ' has ' + playerMesos + ' mesos');
 	});
-}
+};

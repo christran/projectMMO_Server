@@ -9,8 +9,7 @@
     },
     "mobs": {
         "1": {
-            "spawnLocation": [
-                {
+            "spawnLocation": [{
                     "x": 100,
                     "y": 100,
                     "z": 0
@@ -33,9 +32,9 @@
                     "y": 0,
                     "z": 0
                 },
-                "rotation": { 
-                    "x": 0, 
-                    "y": 0, 
+                "rotation": {
+                    "x": 0,
+                    "y": 0,
                     "z": -90
                 }
             }

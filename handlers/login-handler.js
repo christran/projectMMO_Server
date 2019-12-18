@@ -1,6 +1,7 @@
 // Login Handler
 const chalk = require('chalk');
 const util = require('util');
+const stuff = require('../utils/stuff');
 const serverConfig = require('../serverConfig.json');
 
 const clients = [];
@@ -20,12 +21,10 @@ module.exports = function(io) {
         });
 
         socket.on('getCharacters', (data, callback) => {
-            const arrayToObject = (arr, keyField) => Object.assign({}, ...arr.map(item => ({[item[keyField]]: item})));
 
             Account.getCharacters(data.accountID, (character) => {
-                callback(arrayToObject(character, 'name'));
+                callback(stuff.arrayToObject(character, 'name'));
             });
-
         });
 
         socket.on('selectCharacter', (data) => {
@@ -43,6 +42,6 @@ module.exports = function(io) {
     
             socketIndex = clients.findIndex(item => item.socket === socket.id);
             clients.splice(socketIndex, 1);
-        })
+        });
     });
-}
+};
