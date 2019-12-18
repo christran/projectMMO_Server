@@ -5,6 +5,7 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 global.db = require("./db");
 const bcrypt = require('bcrypt');
+const moment = require('moment');
 const chalk = require('chalk');
 const _config = require('./_config.json');
 const port = _config.loginserver.port;
@@ -65,11 +66,11 @@ function login (req, res) {
                         let response =  {
                             'result': 'Handshaked',
                             'accountID': account._id,
-                            'lastLogin': account.lastLoginDate.toLocaleString()
+                            'lastLogin': moment(account.lastLoginDate, "YYYY-MM-DD HH:mm:ss").fromNow()
                             };
                     
                         res.send(response);
-                        account.lastLoginDate = Date();
+                        account.lastLoginDate = moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
                         account.ip = req.connection.remoteAddress;
                         account.save();
                         console.log(chalk.yellow('[Login Server] ') + req.body.username + ' has logged in. | IP: ' + req.connection.remoteAddress);
@@ -192,5 +193,5 @@ function createChar (req, res) {
 
 //Start the Server
 http.listen(port, function () {
-	console.log(chalk.yellow('[Login Server] Starting Login Server... Port:', port));
+    console.log(chalk.yellow('[Login Server] Starting Login Server... Port:', port));
 });

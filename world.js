@@ -37,7 +37,8 @@ app.use(bodyParser.json());
 
 //Server Web Client
 app.get('/', function (req, res) {
-	res.sendFile(__dirname + '/index.html');
+	// res.sendFile(__dirname + '/index.html');
+	res.status(403).end();
 });
 
 app.get('/serverStatus', function (req, res) {
