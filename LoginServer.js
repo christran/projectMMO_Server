@@ -42,7 +42,26 @@ function login (req, res) {
         if (account && !err) {
             bcrypt.compare(req.body.password, account.password, function(err, bcryptRes) {
                 if (bcryptRes && !err) {
-                    if (account.banType == 0) {
+                    if (account.ban.banType > 0) {
+                        // Account is banned
+                        let response =  {
+                            'result': 'Banned',
+                            'banType': account.ban.banType,
+                            'reason': account.ban.banReason
+                            }
+
+                        console.log(chalk.yellow('[Login Server] ') + req.body.username + ' tried to log in but is banned. | IP: ' + req.connection.remoteAddress);
+                        res.send(response);
+                    } else if (account.isOnline == true) {
+                        // Account is already online
+                        let response =  {
+                            'result': 'Online',
+                            'reason': "This account is already logged in."
+                            }
+
+                        console.log(chalk.yellow('[Login Server] ') + req.body.username + ' tried to log in but is banned. | IP: ' + req.connection.remoteAddress);
+                        res.send(response);
+                    } else {
                         let response =  {
                             'result': 'Handshaked',
                             'accountID': account._id,
@@ -54,15 +73,6 @@ function login (req, res) {
                         account.ip = req.connection.remoteAddress;
                         account.save();
                         console.log(chalk.yellow('[Login Server] ') + req.body.username + ' has logged in. | IP: ' + req.connection.remoteAddress);
-                    } else {
-                        // User is banned
-                        let response =  {
-                            'result': 'Banned',
-                            'banType': account.banType,
-                            'reason': account.banReason
-                            }
-                        console.log(chalk.yellow('[Login Server] ') + req.body.username + ' tried to log in but is banned. | IP: ' + req.connection.remoteAddress);
-                        res.send(response);
                     }
                 } else {
                     let response =  {
@@ -107,12 +117,15 @@ function register (req, res) {
                     
                     res.send(response)
                     console.log(chalk.yellow('[Login Server] New Account | Username: ' + account.username));
-                } else {
+                } else if (err.code == 11000) {
                     let response =  {
                         'result': 'Username Taken'
                         }
                     
                     res.send(response)
+                } else {
+                    console.log(err);
+                    res.redirect(req.get('referer'));
                 }
             });
         });
@@ -161,15 +174,17 @@ function createChar (req, res) {
                 }
             
             res.send(response)
-            console.log(chalk.yellow('[Login Server] New Character | Name: ' + character.name));
-        } else {
+            console.log(chalk.yellow('[Login Server] ') + 'New Character | Name: ' + character.name);
+        } else if (err.code == 11000) {
             let response =  {
                 'result': 'Username Taken',
                 'reason': 'Name is already taken'
                 }
             
             res.send(response)
-            console.log(err.errmsg);
+        } else {
+            console.log(err);
+            res.redirect(req.get('referer'));
         }
     });
 

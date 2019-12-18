@@ -13,19 +13,19 @@ const accountSchema = new db.mongoose.Schema(
         email: {
             type: String,
             // required: true,
-            default: null
+            default: ''
+        },
+        isOnline: {
+            type: Boolean,
+            default: false
         },
         isGM: {
             type: Boolean,
             default: false
         },
-        banType: {
-            type: Number,
-            default: 0
-        },
-        banReason: {
-            type: String,
-            default: null
+        ban: {
+            banType: { type: Number, default: 0 },
+            banReason: { type: String, default: '' }
         },
         lastLoginDate: {
             type: Date,
@@ -33,7 +33,7 @@ const accountSchema = new db.mongoose.Schema(
         },
         ip: {
             type: String,
-            default: null
+            default: ''
         }
     },
     {
