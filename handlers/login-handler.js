@@ -90,6 +90,63 @@ module.exports = function(io) {
             });
         });
 
+        socket.on('createCharacter', (data, callback) => {
+            let newChar =  new Character({
+                accountID: data.accountID,
+                _id: new db.mongoose.Types.ObjectId().toHexString(),
+                name: data.name,
+                female: false,
+                skin: 1,
+                hair: 1,
+                eyes: 1,
+                
+                mapID: 1,
+                position: {
+                    translation: { x: 0, y: 0, z: 0 },
+                    rotation: { w: 0, x: 0, y: 0, z: 0 }
+                },
+                
+                stats: {
+                    level: 1,
+                    job: 100,
+                    str: 5,
+                    dex: 5,
+                    int: 5,
+                    luk: 5,
+                    hp: 50,
+                    mhp: 50,
+                    mp: 100,
+                    mmp: 100,
+                },
+                
+                inventory: {
+                    mesos: 0,
+                    maxSlots: [96, 96, 96, 96, 96]
+                }
+            });
+        
+            newChar.save(function (err, character) {
+                if (!err) {
+                    let response =  {
+                        'result': 'Character Created'
+                        };
+                    
+                    callback(response);
+                    console.log(chalk.yellow('[Login Server] ') + 'New Character | Name: ' + character.name);
+                } else if (err.code == 11000) {
+                    let response =  {
+                        'result': 'Username Taken',
+                        'reason': 'Name is already taken'
+                        };
+                    
+                    callback(response);
+                } else {
+                    console.log(err);
+                    // res.redirect(req.get('referer'));
+                }
+            });
+        });
+
         socket.on('getCharacters', (data, callback) => {
             Account.getCharacters(data.accountID, (character) => {
                 callback(stuff.arrayToObject(character, 'name'));
