@@ -58,7 +58,7 @@ module.exports = function(io) {
                                 
                                 socket.username = account.username;
 
-                                account.isOnline = true;
+                                //account.isOnline = true;
                                 account.lastLoginDate = moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
                                 account.ip = socket.handshake.address;
                                 account.save();
@@ -102,8 +102,8 @@ module.exports = function(io) {
                 
                 mapID: 1,
                 position: {
-                    translation: { x: 0, y: 0, z: 0 },
-                    rotation: { w: 0, x: 0, y: 0, z: 0 }
+                    location: { x: 0, y: 0, z: 0 },
+                    rotation: { roll: 0, pitch: 0, yaw: 0 }
                 },
                 
                 stats: {
@@ -174,7 +174,6 @@ module.exports = function(io) {
 
                 console.log(chalk.yellow('[Login Server] ') + 'Disconnection | User: ' + socket.username + ' | Total Connected: ' + clients.length);
             } else {
-                console.log(socket.username);
                 console.log(chalk.yellow('[Login Server] ') + 'Disconnection | Socket: ' + socket.id + ' | Total Connected: ' + clients.length);
             }
     

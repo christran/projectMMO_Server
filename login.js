@@ -25,9 +25,11 @@ app.post('/LoginServer/register', function(req, res) {
     register(req, res);
 });
 
+/*
 app.post('/LoginServer/createChar', function (req, res) {
     createChar(req, res);
 });
+*/
 
 app.post('/LoginServer/', function(req, res) {
     res.status(403).end();
