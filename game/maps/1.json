@@ -27,15 +27,15 @@
             "toMapID": 2,
             "toPortalName": "map_2_portal_1",
             "position": {
-                "translation": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
+                "location": {
+                    "x": -20,
+                    "y": 600,
+                    "z": 140
                 },
                 "rotation": {
-                    "x": 0,
-                    "y": 0,
-                    "z": -90
+                    "roll": 0,
+                    "pitch": 0,
+                    "yaw": -90
                 }
             }
         }

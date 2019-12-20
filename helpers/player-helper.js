@@ -24,13 +24,13 @@ module.exports = {
 	
 	
 			// Save Translation/Rotation
-			character.position.translation.x = socket.position.translation.x;
-			character.position.translation.y = socket.position.translation.y;
-			character.position.translation.z = socket.position.translation.z;
+			character.position.location.x = socket.position.location.x;
+			character.position.location.y = socket.position.location.y;
+			character.position.location.z = socket.position.location.z;
 	
-			character.position.rotation.x = socket.position.rotation.x;
-			character.position.rotation.y = socket.position.rotation.y;
-			character.position.rotation.z = socket.position.rotation.z;
+			character.position.rotation.roll = socket.position.rotation.roll;
+			character.position.rotation.pitch = socket.position.rotation.pitch;
+			character.position.rotation.yaw = socket.position.rotation.yaw;
 	
 			// Save mapID
 			character.mapID = socket.mapID;
