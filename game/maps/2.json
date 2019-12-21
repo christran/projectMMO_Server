@@ -1,6 +1,9 @@
 {
     "mapInfo": {
-        "mapName": "Leaving Maple Road"
+        "mapName": "Leaving Maple Road",
+        "version": 1,
+        "town": 1,
+        "returnMapId": 1
     },
     "portals": {
         "map_2_portal_1": {

@@ -1,6 +1,9 @@
 {
     "mapInfo": {
-        "mapName": "Maple Road"
+        "mapName": "Maple Road",
+        "version": 1,
+        "town": 1,
+        "returnMapId": 1
     },
     "npcs": {
         "Ms. Park": {
