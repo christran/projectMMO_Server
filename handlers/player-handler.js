@@ -2,7 +2,7 @@
 const Player = require('../helpers/player-helper');
 
 module.exports = function(socket, io, clients) {
-    // Movement
+    // Client currently only sends movement when the player's velocity > 0
     socket.on('movementUpdate', function (position) {
  		// Check if player fell off the map
 		if (position.location.z < -10000) {
@@ -21,35 +21,31 @@ module.exports = function(socket, io, clients) {
 				yaw: position.rotation.yaw
 			} 
 		};
-
-	socket.to(socket.mapID).emit('playerMovement', {
-			playerName: socket.name,
-			position: socket.position
-	});	  
-	
 	});
 	
-	socket.on('requestOtherPlayersInMap', (data, callback) => {
+	// When a plyer enters a map (GameInstance_MMO) will emit this event
+	socket.on('getAllPlayersInMap', (data, callback) => {
 		// Send client any other players in the map
 		if (io.sockets.adapter.rooms[socket.mapID]) {
-			socketsinMap = [];
-
-			socketIndex = socketsinMap.findIndex(item => item.socket === socket.id);
+			let socketsinMap = [];
 
 			for (var socketID in io.sockets.adapter.rooms[socket.mapID].sockets) {
 				socketsinMap.push(socketID);
 			}
 
-			socketsinMap.splice(socketIndex, 1);
-			socketsinMap.forEach(socketID => {
-				callback(
-					{
-						[io.sockets.connected[socketID].name]: {
+			result = [];
+
+			new Promise((resolve, reject) => {
+				socketsinMap.forEach(socketID => {
+					result.push(
+						{
+							playerName: io.sockets.connected[socketID].name,
 							position: io.sockets.connected[socketID].position
 						}
-					}
-				); 
-			});
+					); 
+				});
+			})
+			.then(callback(result));
 		} else {
 			// No other players in the map, don't do anything
 			// console.log('No other players in map to know about');
@@ -249,12 +245,5 @@ module.exports = function(socket, io, clients) {
 		io.emit('chat', message);
 		console.log(message);
 	});
-	
-    // Get Player Mesos
-    socket.on('getPlayerMesos', (user, callback) => {
-		let playerMesos = 1000000;
 
-		callback(playerMesos);
-		console.log('[Server] ' + user + ' has ' + playerMesos + ' mesos');
-	});
 };
