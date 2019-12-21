@@ -22,7 +22,7 @@ fs.readdirSync('models').forEach(function(file) {
   require("./models/" + file);
 });
 
-// Load Maps into memory
+// Load Maps.wz into memory
 fs.readdirSync('game/maps/').forEach((file) => {
 	let mapID = path.basename(file, '.json');
 
