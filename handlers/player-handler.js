@@ -33,19 +33,18 @@ module.exports = function(socket, io, clients) {
 				socketsinMap.push(socketID);
 			}
 
-			result = [];
+			playersInMap = [];
 
-			new Promise((resolve, reject) => {
-				socketsinMap.forEach(socketID => {
-					result.push(
-						{
-							playerName: io.sockets.connected[socketID].name,
-							position: io.sockets.connected[socketID].position
-						}
-					); 
-				});
-			})
-			.then(callback(result));
+			socketsinMap.forEach(socketID => {
+				playersInMap.push(
+					{
+						playerName: io.sockets.connected[socketID].name,
+						position: io.sockets.connected[socketID].position
+					}
+				); 
+			});
+			
+			callback(playersInMap);
 		} else {
 			// No other players in the map, don't do anything
 			// console.log('No other players in map to know about');
