@@ -1,2 +1,2 @@
 @echo off
-node LoginServer
+node login
