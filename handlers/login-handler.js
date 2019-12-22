@@ -40,7 +40,8 @@ module.exports = function(io) {
 
                                 console.log(chalk.yellow('[Login Server] ') + socket.id + ' tried to log in but is banned. | IP: ' + socket.handshake.address);
                                 callback(response);
-                            } else if (account.isOnline == true || _.find(clients, {username: account.username})) {
+                            } else if (account.isOnline == true) {
+                            // } else if (account.isOnline == true || _.find(clients, {username: account.username})) {
                                 // Account is already online
                                 let response =  {
                                     'result': 'Online',
@@ -64,7 +65,7 @@ module.exports = function(io) {
                                 
                                 socket.username = account.username;
 
-                                account.isOnline = true;
+                                //account.isOnline = true;
                                 account.lastLoginDate = moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
                                 account.ip = socket.handshake.address;
                                 account.save();
@@ -87,9 +88,8 @@ module.exports = function(io) {
                         'reason': 'Username not found'
                         };
 
-                        res.statusCode = 401;
                         callback(response);
-                        console.log(chalk.yellow('[Login Server] Failed Login Attempt | ') + 'Username: ' + req.body.username.replace(/\r?\n|\r/g, "") + ' | IP: ' + socket.handshake.address);
+                        console.log(chalk.yellow('[Login Server] Failed Login Attempt | ') + 'Username: ' + data.username + ' | IP: ' + socket.handshake.address);
                 }
 
                 if (err) {

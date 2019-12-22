@@ -191,6 +191,8 @@ module.exports = function(socket, io, clients) {
 					};
 					socket.mapID = currentPortal.toMapID;
 					socket.emit('changePlayerMap', response);
+					
+					Player.saveCharacter(socket);
 
 					// Send to other players in the map
 					socket.to(socket.mapID).emit('addPlayerToMap', {
