@@ -1,5 +1,6 @@
 // Login Handler
 const bcrypt = require('bcrypt');
+const _ = require('lodash');
 const moment = require('moment');
 const chalk = require('chalk');
 const util = require('util');
@@ -10,12 +11,13 @@ const clients = [];
 
 module.exports = function(io) {
     io.on('connection', function (socket) {
-    
-        clients.push({
+        
+        console.log(chalk.yellow('[Login Server] ') + 'Connection | IP: ' + socket.handshake.address);
+/*         clients.push({
             socket: socket.id,
             ip: socket.handshake.address
         });
-        console.log(chalk.yellow('[Login Server] ') + 'Connection | IP: ' + socket.handshake.address + ' | Total Connected: ' + clients.length);
+        console.log(chalk.yellow('[Login Server] ') + 'Connection | IP: ' + socket.handshake.address + ' | Total Connected: ' + clients.length); */
         
         // Check Client's Version
         socket.on('serverVersion', (clientVersion, callback) => {
@@ -38,7 +40,7 @@ module.exports = function(io) {
 
                                 console.log(chalk.yellow('[Login Server] ') + socket.id + ' tried to log in but is banned. | IP: ' + socket.handshake.address);
                                 callback(response);
-                            } else if (account.isOnline == true) {
+                            } else if (account.isOnline == true || _.find(clients, {username: account.username})) {
                                 // Account is already online
                                 let response =  {
                                     'result': 'Online',
@@ -53,15 +55,21 @@ module.exports = function(io) {
                                     'accountID': account._id,
                                     'lastLogin': moment(account.lastLoginDate, "YYYY-MM-DD HH:mm:ss").fromNow()
                                     };
-                            
-                                callback(response);
+                                
+                                clients.push({
+                                    username: account.username,
+                                    socket: socket.id,
+                                    ip: socket.handshake.address
+                                });
                                 
                                 socket.username = account.username;
 
-                                //account.isOnline = true;
+                                account.isOnline = true;
                                 account.lastLoginDate = moment(new Date()).format("YYYY-MM-DD HH:mm:ss");
                                 account.ip = socket.handshake.address;
                                 account.save();
+
+                                callback(response);
                                 console.log(chalk.yellow('[Login Server] ') + account.username + ' has logged in. | IP: ' + socket.handshake.address);
                             }
                         } else {
@@ -164,7 +172,7 @@ module.exports = function(io) {
             });
         });
 
-        socket.on('disconnect', function () {
+        socket.on('disconnect', () => {
             // Check if user was logged in and set isOnline to false.
             if (!socket.handoffToWorldServer && socket.username) {
                 Account.getAccount(socket.username, (err, account) => {
@@ -174,7 +182,7 @@ module.exports = function(io) {
 
                 console.log(chalk.yellow('[Login Server] ') + 'Disconnection | User: ' + socket.username + ' | Total Connected: ' + clients.length);
             } else {
-                console.log(chalk.yellow('[Login Server] ') + 'Disconnection | Socket: ' + socket.id + ' | Total Connected: ' + clients.length);
+                console.log(chalk.yellow('[Login Server] ') + 'Disconnection | IP: ' + socket.handshake.address + ' | Total Connected: ' + clients.length);
             }
     
             socketIndex = clients.findIndex(item => item.socket === socket.id);

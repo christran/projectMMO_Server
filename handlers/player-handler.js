@@ -226,6 +226,8 @@ module.exports = function(socket, io, clients) {
 	socket.on('disconnect', function () {
 		// Save Character Data to Database on Disconnection
 		Player.saveCharacter(socket);
+
+		// isOnline = false
 		Account.getAccountByID(socket.accountID, (err, account) => {
 			account.isOnline = false;
 			account.save();
