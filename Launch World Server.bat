@@ -1,2 +1,2 @@
 @echo off
-node server
+node world
