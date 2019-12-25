@@ -19,21 +19,8 @@ module.exports = {
 	},
 		
 	saveCharacter: function (socket) {
-		Character.getCharacter(socket.name, (err, character) => {
-			// Save Stats
-	
-	
-			// Save Translation/Rotation
-			character.position.location.x = socket.position.location.x;
-			character.position.location.y = socket.position.location.y;
-			character.position.location.z = socket.position.location.z;
-	
-			character.position.rotation.roll = socket.position.rotation.roll;
-			character.position.rotation.pitch = socket.position.rotation.pitch;
-			character.position.rotation.yaw = socket.position.rotation.yaw;
-	
-			// Save mapID
-			character.mapID = socket.mapID;
+		Character.getCharacter(socket.character.name, (err, character) => {
+			character = socket.character;
 			character.save();
 		});
 	}

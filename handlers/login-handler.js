@@ -11,13 +11,7 @@ const clients = [];
 
 module.exports = function(io) {
     io.on('connection', function (socket) {
-        
-        console.log(chalk.yellow('[Login Server] ') + 'Connection | IP: ' + socket.handshake.address);
-/*         clients.push({
-            socket: socket.id,
-            ip: socket.handshake.address
-        });
-        console.log(chalk.yellow('[Login Server] ') + 'Connection | IP: ' + socket.handshake.address + ' | Total Connected: ' + clients.length); */
+        console.log(chalk.yellow('[Login Server]'), `Connection | IP: ${socket.handshake.address}`);
         
         // Check Client's Version
         socket.on('serverVersion', (clientVersion, callback) => {
@@ -38,7 +32,7 @@ module.exports = function(io) {
                                     'reason': account.ban.banReason
                                     };
 
-                                console.log(chalk.yellow('[Login Server] ') + socket.id + ' tried to log in but is banned. | IP: ' + socket.handshake.address);
+                                console.log(chalk.yellow('[Login Server]'), `${socket.id} tried to log in but is banned. | IP: ${socket.handshake.address}`);
                                 callback(response);
                             } else if (account.isOnline == true) {
                             // } else if (account.isOnline == true || _.find(clients, {username: account.username})) {
@@ -48,7 +42,7 @@ module.exports = function(io) {
                                     'reason': "This account is already logged in."
                                     };
 
-                                console.log(chalk.yellow('[Login Server] ') + socket.id + ' tried to login into an account that is already online. | IP: ' + socket.handshake.address);
+                                console.log(chalk.yellow('[Login Server]'), `${socket.id} tried to login into an account that is already online. | IP: ${socket.handshake.address}`);
                                 callback(response);
                             } else {
                                 let response =  {
@@ -71,7 +65,7 @@ module.exports = function(io) {
                                 account.save();
 
                                 callback(response);
-                                console.log(chalk.yellow('[Login Server] ') + account.username + ' has logged in. | IP: ' + socket.handshake.address);
+                                console.log(chalk.yellow('[Login Server]'), `${account.username} has logged in. | IP: ${socket.handshake.address}`);
                             }
                         } else {
                             let response =  {
@@ -89,7 +83,7 @@ module.exports = function(io) {
                         };
 
                         callback(response);
-                        console.log(chalk.yellow('[Login Server] Failed Login Attempt | ') + 'Username: ' + data.username + ' | IP: ' + socket.handshake.address);
+                        console.log(chalk.yellow('[Login Server]'), `Failed Login Attempt | Username: ${data.username} | IP: ${socket.handshake.address}`);
                 }
 
                 if (err) {
@@ -140,7 +134,7 @@ module.exports = function(io) {
                         };
                     
                     callback(response);
-                    console.log(chalk.yellow('[Login Server] ') + 'New Character | Name: ' + character.name);
+                    console.log(chalk.yellow('[Login Server]'), `New Character | Name: ${character.name}`);
                 } else if (err.code == 11000) {
                     let response =  {
                         'result': 'Username Taken',
@@ -167,7 +161,7 @@ module.exports = function(io) {
                     socket.handoffToWorldServer = true;
                     socket.emit('handoffToWorldServer', character);
                 } else {
-                    console.log('IP: ' + socket.handshake.address + ' tried to select a character not tied to their account.');
+                    console.log(`IP: ${socket.handshake.address} tried to select a character not tied to their account.`);
                 }
             });
         });
@@ -180,9 +174,9 @@ module.exports = function(io) {
                     account.save();
                 });
 
-                console.log(chalk.yellow('[Login Server] ') + 'Disconnection | User: ' + socket.username + ' | Total Connected: ' + clients.length);
+                console.log(chalk.yellow('[Login Server]'), `Disconnection | User: ${socket.username} | Total Connected: ${clients.length}`);
             } else {
-                console.log(chalk.yellow('[Login Server] ') + 'Disconnection | IP: ' + socket.handshake.address + ' | Total Connected: ' + clients.length);
+                console.log(chalk.yellow('[Login Server]'), `Disconnection | IP: ${socket.handshake.address} | Total Connected: ${clients.length}`);
             }
     
             socketIndex = clients.findIndex(item => item.socket === socket.id);

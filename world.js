@@ -86,13 +86,14 @@ io.on('connection', function (socket) {
 		let activeMaps = Object.keys(io.sockets.adapter.rooms).filter(Number);
 
 		// Send update to only maps with players in them (SocketIO Rooms)
+		// Sent to (GameState_MMO)
 		if (activeMaps.length > 0) {
 			activeMaps.forEach((mapId) => {
 				for (let socketId in io.sockets.adapter.rooms[mapId].sockets) {
 					if (io.sockets.adapter.rooms[mapId]) {
 						io.to(mapId).emit('update', {
-							[io.sockets.connected[socketId].name]: {
-								position: io.sockets.connected[socketId].position,
+							[io.sockets.connected[socketId].character.name]: {
+								position: io.sockets.connected[socketId].character.position,
 							}
 						});	
 					}
@@ -110,5 +111,5 @@ io.on('connection', function (socket) {
 
 //Start the Server
 http.listen(port, function () {
-	console.log(chalk.greenBright('[World Server] Starting World Server... Port:', port));
+	console.log(chalk.greenBright(`[World Server] Starting World Server... Port: ${port}`));
 });
