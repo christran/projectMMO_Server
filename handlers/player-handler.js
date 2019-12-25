@@ -18,7 +18,6 @@ function formatBytes(bytes, decimals = 2) {
 }
 
 module.exports = function(socket, io, clients, tick) {
-    // Client currently only sends movement when the player's velocity > 0
     socket.on('player_Movement', function (position) {
  		// Check if player fell off the map
 		if (position.location.z < -10000) {
@@ -27,30 +26,27 @@ module.exports = function(socket, io, clients, tick) {
 
 		switch(position.direction) {
 			case 'Left':
-				socket.position.location.y = position.location.y - position.velocity * position.deltaTime;
-				socket.position.rotation.yaw = _.clamp(position.rotation.yaw - 1000.0 * position.deltaTime, -90, 90);
-				socket.position.location.z = position.location.z;
+				socket.character.position.location.y = position.location.y - position.velocity * position.deltaTime;
+				socket.character.position.rotation.yaw = _.clamp(position.rotation.yaw - 1000.0 * position.deltaTime, -90, 90);
+				socket.character.position.location.z = position.location.z;
 				break;
 			case 'Right':
-				socket.position.location.y = position.location.y + position.velocity * position.deltaTime;
-				socket.position.rotation.yaw = _.clamp(position.rotation.yaw + 1000.0 * position.deltaTime, -90, 90);
-				socket.position.location.z = position.location.z;
+				socket.character.position.location.y = position.location.y + position.velocity * position.deltaTime;
+				socket.character.position.rotation.yaw = _.clamp(position.rotation.yaw + 1000.0 * position.deltaTime, -90, 90);
+				socket.character.position.location.z = position.location.z;
 				break;
 			case 'Up':
-				socket.position.location.x = position.location.x + position.velocity * position.deltaTime;
-				socket.position.rotation.yaw = _.clamp(position.rotation.yaw + 1000.0 * position.deltaTime, -180, 180);
-				socket.position.location.z = position.location.z;
+				socket.character.position.location.x = position.location.x + position.velocity * position.deltaTime;
+				socket.character.position.rotation.yaw = _.clamp(position.rotation.yaw + 1000.0 * position.deltaTime, -180, 180);
+				socket.character.position.location.z = position.location.z;
 				break;
 			case 'Down':
-				socket.position.location.x = position.location.x - position.velocity * position.deltaTime;
-				socket.position.rotation.yaw = _.clamp(position.rotation.yaw - 1000.0 * position.deltaTime, -180, 180);
-				socket.position.location.z = position.location.z;
+				socket.character.position.location.x = position.location.x - position.velocity * position.deltaTime;
+				socket.character.position.rotation.yaw = _.clamp(position.rotation.yaw - 1000.0 * position.deltaTime, -180, 180);
+				socket.character.position.location.z = position.location.z;
 				break;
 
 		}
-
-
-		// console.log('Client:', position.location, position.tick, position.direction);
 
 		// console.log(formatBytes(totalRecv));
 	});
@@ -58,10 +54,10 @@ module.exports = function(socket, io, clients, tick) {
 	// When a plyer enters a map (GameInstance_MMO) will emit this event
 	socket.on('getAllPlayersInMap', (data, callback) => {
 		// Send client any other players in the map
-		if (io.sockets.adapter.rooms[socket.mapID]) {
+		if (io.sockets.adapter.rooms[socket.character.mapID]) {
 			let socketsinMap = [];
 
-			for (var socketID in io.sockets.adapter.rooms[socket.mapID].sockets) {
+			for (let socketID in io.sockets.adapter.rooms[socket.character.mapID].sockets) {
 				socketsinMap.push(socketID);
 			}
 
@@ -70,8 +66,8 @@ module.exports = function(socket, io, clients, tick) {
 			socketsinMap.forEach(socketID => {
 				playersInMap.push(
 					{
-						playerName: io.sockets.connected[socketID].name,
-						position: io.sockets.connected[socketID].position
+						playerName: io.sockets.connected[socketID].character.name,
+						position: io.sockets.connected[socketID].character.position
 					}
 				); 
 			});
@@ -87,9 +83,10 @@ module.exports = function(socket, io, clients, tick) {
 	socket.on('spawnPlayer', function(playerData) {
 		// Get Character MapID and Transform from DB
 		Character.getCharacter(playerData.name, (err, character) => {
+				socket.character = character;
 				clients.push(
 					{
-						name: playerData.name,
+						name: character.name,
 						socket: socket.id,
 						mapID: character.mapID
 					}
@@ -111,24 +108,6 @@ module.exports = function(socket, io, clients, tick) {
 					}
 				};
 
-				// Update socket properties
-				socket.name = playerData.name;
-				socket.accountID = character.accountID;
-				socket.mapID = character.mapID;
-
-				socket.position = {
-					location: {
-						x: character.position.location.x,
-						y: character.position.location.y,
-						z: character.position.location.z
-					},
-					rotation: {
-						roll: character.position.rotation.roll,
-						pitch: character.position.rotation.pitch,
-						yaw: character.position.rotation.yaw
-					}
-				};
-
 				// Add player to map and spawn them in the map
 				socket.join(character.mapID);
 				
@@ -138,13 +117,12 @@ module.exports = function(socket, io, clients, tick) {
 
 				// Send to other players in the map
 				socket.to(character.mapID).emit('addPlayerToMap', {
-					[socket.name]: {
-						position: socket.position
+					[socket.character.name]: {
+						position: socket.character.position
 					}
 				});
 
-				let message = '[World Server] User: ' + playerData.name + ' | Map ID: ' + character.mapID + ' | Total Online: ' + clients.length;
-				console.log(message);
+				console.log(`[World Server] User: ${playerData.name} | Map ID: ${character.mapID} | Total Online: ${clients.length}`);
 		});
 	});
 
@@ -155,20 +133,20 @@ module.exports = function(socket, io, clients, tick) {
 		Data = Object
 			portalName = String
 		*/
-		let currentPortal = Maps[socket.mapID].portals[data.portalName];
-
+		let currentPortal = Maps[socket.character.mapID].portals[data.portalName];
+		
 		// Check if the portal exists in the current player map
 		if (currentPortal) {
 			let targetPortal = Maps[currentPortal.toMapID];
 
-			if (socket.mapID) {
+			if (socket.character.mapID) {
 				// Tell all players in the map to remove the player that disconnected.
-				socket.to(socket.mapID).emit('removePlayerFromMap', {
-					playerName: socket.name
+				socket.to(socket.character.mapID).emit('removePlayerFromMap', {
+					playerName: socket.character.name
 				});
 
 				// Get current map and leave the socket room
-				socket.leave(socket.mapID);
+				socket.leave(socket.character.mapID);
 	
 				// Update Character Map ID in MongoDB
 				// Send callback back to client with data such as all the players in the new map
@@ -199,8 +177,8 @@ module.exports = function(socket, io, clients, tick) {
 					if (io.nsps['/'].adapter.rooms[currentPortal.toMapID]) {
 						for (let socketID in io.nsps['/'].adapter.rooms[currentPortal.toMapID].sockets) {
 							socket.emit('addPlayerToMap', {
-								[io.sockets.connected[socketID].name]: {
-									position: io.sockets.connected[socketID].position
+								[io.sockets.connected[socketID].character.name]: {
+									position: io.sockets.connected[socketID].character.position
 								}
 							});
 						}
@@ -212,7 +190,7 @@ module.exports = function(socket, io, clients, tick) {
 					Player.getPlayerDataBySocket(socket.id).mapID = currentPortal.toMapID;
 					socket.join(currentPortal.toMapID);
 	
-					socket.position = {
+					socket.character.position = {
 						location: { 
 							x: newPosition.location.x, 
 							y: newPosition.location.y, 
@@ -224,25 +202,25 @@ module.exports = function(socket, io, clients, tick) {
 							yaw: newPosition.rotation.yaw 
 						}
 					};
-					socket.mapID = currentPortal.toMapID;
+					socket.character.mapID = currentPortal.toMapID;
 					socket.emit('changePlayerMap', response);
 					
 					Player.saveCharacter(socket);
 
 					// Send to other players in the map
-					socket.to(socket.mapID).emit('addPlayerToMap', {
-						[socket.name]: {
-							position: socket.position
+					socket.to(socket.character.mapID).emit('addPlayerToMap', {
+						[socket.character.name]: {
+							position: socket.character.position
 						}
 					});
 
-					console.log('[World Server] ' + socket.name + ' moved to Map: ' + targetPortal.mapInfo.mapName);
+					console.log(`[World Server] ${socket.character.name} moved to Map: ${targetPortal.mapInfo.mapName}`);
 				}
 			} else {
-				console.log('[World Server] Player: ' + socket.name + ' doesn\'t have a mapID');
+				console.log(`[World Server] Player: ${socket.character.name} doesn\'t have a mapID`);
 			}
 		} else {
-			console.log('[World Server] ' + socket.name + ' tried using Portal: ' + data.portalName + ' from Map ID: ' + socket.mapID);
+			console.log(`[World Server] ${socket.character.name} tried using Portal: ${data.portalName} from Map ID: ${socket.character.mapID}`);
 		}
 	});
 
@@ -252,9 +230,9 @@ module.exports = function(socket, io, clients, tick) {
 			let playerSocketID = Player.getPlayerDataByName(data.name).socket;
 
 			io.sockets.connected[playerSocketID].disconnect();
-			console.log('[World Server] ' + data.name + ' was dced by GM');
+			console.log(`[World Server] ${data.name} was dced by GM`);
 		} else {
-			console.log('[World Server] Can\'t find player: ' + data.name);
+			console.log(`[World Server] Can\'t find player:  + ${data.name}`);
 		}
 
 	});
@@ -262,26 +240,25 @@ module.exports = function(socket, io, clients, tick) {
 	// Log Player Disconnection
 	socket.on('disconnect', function () {
 		// Save Character Data to Database on Disconnection
-		Player.saveCharacter(socket);
+		if (socket.character) {
+			Player.saveCharacter(socket);
 
-		// isOnline = false
-		Account.getAccountByID(socket.accountID, (err, account) => {
-			account.isOnline = false;
-			account.save();
-		});
+			// isOnline = false
+			Account.getAccountByID(socket.character.accountID, (err, account) => {
+				account.isOnline = false;
+				account.save();
+			});
 
-		// Tell all players in the map to remove the player that disconnected.
-		socket.to(socket.mapID).emit('removePlayerFromMap', {
-			playerName: socket.name
-		});
-
-		let message = '[World Server] User: ' + socket.name + ' disconnected | Total Online: ' + clients.length;
+			// Tell all players in the map to remove the player that disconnected.
+			socket.to(socket.character.mapID).emit('removePlayerFromMap', {
+				playerName: socket.character.name
+			});
+		}
 
 		socketIndex = clients.findIndex(item => item.socket === socket.id);
 		clients.splice(socketIndex, 1);
-
-		io.emit('chat', message);
-		console.log(message);
+		
+		console.log(`[World Server] User: ${socket.character.name} disconnected | Total Online: ${clients.length}`);
 	});
 
 };
