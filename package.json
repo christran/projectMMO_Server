@@ -11,6 +11,8 @@
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "mongoose": "^5.7.14",
+    "msgpack-lite": "^0.1.26",
+    "object-sizeof": "^1.5.2",
     "path": "^0.12.7",
     "socket.io": "^2.0.0"
   },
