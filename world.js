@@ -11,7 +11,9 @@ const fs = require('fs');
 const jsonfile = require('jsonfile');
 const chalk = require('chalk');
 
-const tickrate = 10;
+const TICK_RATE = 10; // 0.1sec or 100ms
+let tick = 0;
+
 const _config = require('./_config.json');
 const port = _config.worldserver.port;
 
@@ -51,30 +53,60 @@ app.get('/serverStatus', function (req, res) {
 
 io.on('connection', function (socket) {
 	// Require all Handlers/Factorys
-	const playerHandler = require('./handlers/player-handler')(socket, io, clients);
+	const playerHandler = require('./handlers/player-handler')(socket, io, clients, tick);
 	const chatHandler = require('./handlers/chat-handler')(socket, io);
 });
 
 	// Send Client information about other clients in the same map
-	// Tick = 10hz
-	setInterval(update, 1000 / tickrate);
+	function hrtimeMs () {
+		let time = process.hrtime();
 	
-	function update () {
-		let activeMaps = Object.keys(io.sockets.adapter.rooms).filter(Number);
-		
-		// Send update to only maps with players in them (SocketIO Rooms)
-		activeMaps.forEach((mapId) => {
-			for (let socketId in io.sockets.adapter.rooms[mapId].sockets) {
-				if (io.sockets.adapter.rooms[mapId]) {
-					io.to(mapId).emit('update', {
-						[io.sockets.connected[socketId].name]: {
-							position: io.sockets.connected[socketId].position
-						}
-					});	
-				}
-			}
-		});
+		return time[0] * 1000 + time[1] / 1000000;
 	}
+	
+	//let tick = 0;
+	let previous = hrtimeMs();
+	let tickLengthMs = 1000 / TICK_RATE;
+	
+	function gameLoop () {
+		setTimeout(gameLoop, tickLengthMs);
+		let now = hrtimeMs();
+		let delta = (now - previous) / 1000;
+		
+		// console.log(delta, tick);
+
+		// Game Logic
+		update(delta, tick);
+		previous = now;
+		tick++;
+	}
+
+	// Game Logic
+	function update (delta, tick) {
+		let activeMaps = Object.keys(io.sockets.adapter.rooms).filter(Number);
+
+		// Send update to only maps with players in them (SocketIO Rooms)
+		if (activeMaps.length > 0) {
+			activeMaps.forEach((mapId) => {
+				for (let socketId in io.sockets.adapter.rooms[mapId].sockets) {
+					if (io.sockets.adapter.rooms[mapId]) {
+						io.to(mapId).emit('update', {
+							[io.sockets.connected[socketId].name]: {
+								position: io.sockets.connected[socketId].position,
+							}
+						});	
+					}
+				}
+			});
+		} else {
+			// No players in any maps so don't emit anything
+			// console.log('No active maps');
+		}
+
+		// io.emit('setCurrentTick', tick);
+	}
+
+	gameLoop();
 
 //Start the Server
 http.listen(port, function () {

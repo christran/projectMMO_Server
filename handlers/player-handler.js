@@ -1,26 +1,58 @@
 //Player Handler
 const Player = require('../helpers/player-helper');
+const sizeof = require('object-sizeof');
+const _ = require('lodash');
 
-module.exports = function(socket, io, clients) {
+let totalRecv = 0;
+
+function formatBytes(bytes, decimals = 2) {
+    if (bytes === 0) return '0 Bytes';
+
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+module.exports = function(socket, io, clients, tick) {
     // Client currently only sends movement when the player's velocity > 0
-    socket.on('movementUpdate', function (position) {
+    socket.on('player_Movement', function (position) {
  		// Check if player fell off the map
 		if (position.location.z < -10000) {
 			socket.emit('player_ZLimit');
 		}
 
-		socket.position = {
-			location: {
-				x: position.location.x,
-				y: position.location.y,
-				z: position.location.z
-			},
-			rotation: {
-				roll: position.rotation.roll,
-				pitch: position.rotation.pitch,
-				yaw: position.rotation.yaw
-			} 
-		};
+		switch(position.direction) {
+			case 'Left':
+				socket.position.location.y = position.location.y - position.velocity * position.deltaTime;
+				socket.position.rotation.yaw = _.clamp(position.rotation.yaw - 1000.0 * position.deltaTime, -90, 90);
+				socket.position.location.z = position.location.z;
+				break;
+			case 'Right':
+				socket.position.location.y = position.location.y + position.velocity * position.deltaTime;
+				socket.position.rotation.yaw = _.clamp(position.rotation.yaw + 1000.0 * position.deltaTime, -90, 90);
+				socket.position.location.z = position.location.z;
+				break;
+			case 'Up':
+				socket.position.location.x = position.location.x + position.velocity * position.deltaTime;
+				socket.position.rotation.yaw = _.clamp(position.rotation.yaw + 1000.0 * position.deltaTime, -180, 180);
+				socket.position.location.z = position.location.z;
+				break;
+			case 'Down':
+				socket.position.location.x = position.location.x - position.velocity * position.deltaTime;
+				socket.position.rotation.yaw = _.clamp(position.rotation.yaw - 1000.0 * position.deltaTime, -180, 180);
+				socket.position.location.z = position.location.z;
+				break;
+
+		}
+
+
+		// console.log('Client:', position.location, position.tick, position.direction);
+
+		// console.log(formatBytes(totalRecv));
 	});
 	
 	// When a plyer enters a map (GameInstance_MMO) will emit this event
@@ -99,6 +131,9 @@ module.exports = function(socket, io, clients) {
 
 				// Add player to map and spawn them in the map
 				socket.join(character.mapID);
+				
+				// Send client the current tick of the server
+				socket.emit('setCurrentTick', tick);
 				socket.emit('changePlayerMap', response);
 
 				// Send to other players in the map
