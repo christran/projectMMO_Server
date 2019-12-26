@@ -1,6 +1,21 @@
+const _ = require('lodash');
+
 module.exports = {
-	getPlayerDataByName: function (name) {
-		let playerObj = clients.find(searchFor => searchFor.name.toLowerCase() === name.toLowerCase());
+	getSocketByName: function (name) {
+		let player = _.find(clients, () => {
+			return name.toLowerCase() === name.toLowerCase();
+		});
+
+		if (player) {
+			return io.sockets.connected[player.socketID];
+		} else {
+			return null;
+		}
+	},
+
+	getSocketID: function (socketID) {		
+		let playerObj = _.find(clients, { 'socketID': socketID });
+
 		if (playerObj != undefined) {
 			return playerObj;
 		} else {
@@ -8,20 +23,29 @@ module.exports = {
 		}
 	},
 
-	getPlayerDataBySocket: function (socket) {
-		let playerObj = clients.find(searchFor => searchFor.socket === socket);
-	
-		if (playerObj != undefined) {
-			return playerObj;
-		} else {
-			return null;
+	// Move this into another file
+	getAllPlayersInMap: function (mapID) {
+		if ((io.sockets.adapter.rooms[mapID])) {
+		let socketsinMap = [];
+
+		for (let socketID in io.sockets.adapter.rooms[mapID].sockets) {
+			socketsinMap.push(socketID);
 		}
-	},
-		
-	saveCharacter: function (socket) {
-		Character.getCharacter(socket.character.name, (err, character) => {
-			character = socket.character;
-			character.save();
+
+		playersInMap = [];
+
+		socketsinMap.forEach(socketID => {
+			playersInMap.push({
+					[io.sockets.connected[socketID].character.name]: io.sockets.connected[socketID].character
+			}); 
 		});
+
+		return playersInMap;
+		
+		//console.log(_.find(playersInMap, 'Tiger'));
+
+		} else {
+			console.log(`Map: ${mapID} is empty`);
+		}
 	}
 };

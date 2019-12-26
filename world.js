@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
 const http = require('http').Server(app);
-const io = require('socket.io')(http);
+global.io = require('socket.io')(http);
 global.db = require("./db");
 
 const stuff = require('./utils/stuff');
@@ -53,8 +53,8 @@ app.get('/serverStatus', function (req, res) {
 
 io.on('connection', function (socket) {
 	// Require all Handlers/Factorys
-	const playerHandler = require('./handlers/player-handler')(socket, io, clients, tick);
-	const chatHandler = require('./handlers/chat-handler')(socket, io);
+	const player_handler = require('./handlers/player-handler')(socket, io, clients, tick);
+	const chat_handler = require('./handlers/chat-handler')(socket, io);
 });
 
 	// Send Client information about other clients in the same map

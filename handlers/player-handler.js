@@ -80,18 +80,18 @@ module.exports = function(socket, io, clients, tick) {
 	});
 
 	// Spawn Player after they select a character
-	socket.on('spawnPlayer', function(playerData) {
-		// Get Character MapID and Transform from DB
-		Character.getCharacter(playerData.name, (err, character) => {
+	socket.on('spawnPlayer', function(data) {
+		Character.getCharacter(data.name, (err, character) => {
+			if (!character || err) {
+				console.log(`[Player Handler] Error while spawning character: ${err}`);
+			} else {
 				socket.character = character;
-				clients.push(
-					{
-						name: character.name,
-						socket: socket.id,
-						mapID: character.mapID
-					}
-				);
-				
+
+				clients.push({ 
+					name: character.name,
+					socketID: socket.id
+				});
+		
 				let response = {
 					mapID: character.mapID,
 					position: {
@@ -122,7 +122,8 @@ module.exports = function(socket, io, clients, tick) {
 					}
 				});
 
-				console.log(`[World Server] User: ${playerData.name} | Map ID: ${character.mapID} | Total Online: ${clients.length}`);
+				console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${clients.length}`);
+			}
 		});
 	});
 
@@ -134,7 +135,7 @@ module.exports = function(socket, io, clients, tick) {
 			portalName = String
 		*/
 		let currentPortal = Maps[socket.character.mapID].portals[data.portalName];
-		
+
 		// Check if the portal exists in the current player map
 		if (currentPortal) {
 			let targetPortal = Maps[currentPortal.toMapID];
@@ -186,8 +187,8 @@ module.exports = function(socket, io, clients, tick) {
 						// No other players in the map, don't do anything
 						// console.log('No other players in map to know about');
 					}
-
-					Player.getPlayerDataBySocket(socket.id).mapID = currentPortal.toMapID;
+					// console.log(Player.getPlayerDataByName('FangBlade'))
+					// Player.getPlayerDataBySocket(socket.id).character.mapID = currentPortal.toMapID;
 					socket.join(currentPortal.toMapID);
 	
 					socket.character.position = {
@@ -205,7 +206,7 @@ module.exports = function(socket, io, clients, tick) {
 					socket.character.mapID = currentPortal.toMapID;
 					socket.emit('changePlayerMap', response);
 					
-					Player.saveCharacter(socket);
+					Character.saveCharacter(socket);
 
 					// Send to other players in the map
 					socket.to(socket.character.mapID).emit('addPlayerToMap', {
@@ -226,10 +227,9 @@ module.exports = function(socket, io, clients, tick) {
 
 	// Disconnect a player with given name
 	socket.on('player_DC', function (data) {
-		if (Player.getPlayerDataByName(data.name)) {
-			let playerSocketID = Player.getPlayerDataByName(data.name).socket;
+		if (Player.getSocketByName(data.name)) {
 
-			io.sockets.connected[playerSocketID].disconnect();
+			Player.getSocketByName(data.name).disconnect();
 			console.log(`[World Server] ${data.name} was dced by GM`);
 		} else {
 			console.log(`[World Server] Can\'t find player:  + ${data.name}`);
@@ -241,7 +241,7 @@ module.exports = function(socket, io, clients, tick) {
 	socket.on('disconnect', function () {
 		// Save Character Data to Database on Disconnection
 		if (socket.character) {
-			Player.saveCharacter(socket);
+			Character.saveCharacter(socket);
 
 			// isOnline = false
 			Account.getAccountByID(socket.character.accountID, (err, account) => {
