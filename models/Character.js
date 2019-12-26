@@ -54,6 +54,16 @@ characterSchema.statics.getAccountByID = function(accountID, callback) {
     return this.model('accounts').findOne({_id: accountID}, callback);
 };
 
+characterSchema.statics.saveCharacter = function(socket) {
+    this.getCharacter(socket.character.name, (err, character) => {
+        if (!character || err) {
+            console.log(`[Character] Saving Character | Error: ${err}`);
+        } else {
+            character = socket.character;
+            character.save();
+        }
+    });
+};
 
 Character = db.mongoose.model("characters", characterSchema);
 
