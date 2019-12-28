@@ -94,6 +94,7 @@ io.on('connection', function (socket) {
 						io.to(mapId).emit('update', {
 							[io.sockets.connected[socketId].character.name]: {
 								position: io.sockets.connected[socketId].character.position,
+								tick: tick
 							}
 						});	
 					}

@@ -50,10 +50,6 @@ characterSchema.statics.getCharacterByID = function(charID, callback) {
     return this.model('characters').findOne({_id: charID}, callback);
 };
 
-characterSchema.statics.getAccountByID = function(accountID, callback) {
-    return this.model('accounts').findOne({_id: accountID}, callback);
-};
-
 characterSchema.statics.saveCharacter = function(socket) {
     this.getCharacter(socket.character.name, (err, character) => {
         if (!character || err) {

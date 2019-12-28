@@ -18,34 +18,46 @@ function formatBytes(bytes, decimals = 2) {
 }
 
 module.exports = function(socket, io, clients, tick) {
-    socket.on('player_Movement', function (position) {
- 		// Check if player fell off the map
-		if (position.location.z < -10000) {
-			socket.emit('player_ZLimit');
-		}
-
-		switch(position.direction) {
-			case 'Left':
-				socket.character.position.location.y = position.location.y - position.velocity * position.deltaTime;
-				socket.character.position.rotation.yaw = _.clamp(position.rotation.yaw - 1000.0 * position.deltaTime, -90, 90);
-				socket.character.position.location.z = position.location.z;
-				break;
-			case 'Right':
-				socket.character.position.location.y = position.location.y + position.velocity * position.deltaTime;
-				socket.character.position.rotation.yaw = _.clamp(position.rotation.yaw + 1000.0 * position.deltaTime, -90, 90);
-				socket.character.position.location.z = position.location.z;
-				break;
-			case 'Up':
-				socket.character.position.location.x = position.location.x + position.velocity * position.deltaTime;
-				socket.character.position.rotation.yaw = _.clamp(position.rotation.yaw + 1000.0 * position.deltaTime, -180, 180);
-				socket.character.position.location.z = position.location.z;
-				break;
-			case 'Down':
-				socket.character.position.location.x = position.location.x - position.velocity * position.deltaTime;
-				socket.character.position.rotation.yaw = _.clamp(position.rotation.yaw - 1000.0 * position.deltaTime, -180, 180);
-				socket.character.position.location.z = position.location.z;
-				break;
-
+    socket.on('player_Movement', function (data) {
+		if (data.movementSnapshot) {
+			let snapshotArray = data.movementSnapshot;
+			snapshotArray.forEach((snapshot) => {
+				
+				// Check if player's velocity is > than the max walk speed + any speed enhancing skills
+				// if (Math.round(snapshot.velocity) > 1500) {
+				// 	console.log(`${socket.character.name} is hacking. Velocity: ${Math.round(snapshot.velocity)}`);
+				// 	socket.disconnect();
+				// }
+				
+				// Check if player fell off the map
+				if (snapshot.location.z < -10000) {
+					socket.emit('player_ZLimit');
+				} else {
+					switch(snapshot.direction) {
+						case 'Left':
+							socket.character.position.location.y = snapshot.location.y - snapshot.velocity * snapshot.deltaTime;
+							socket.character.position.rotation.yaw = _.clamp(snapshot.rotation.yaw - 1000.0 * snapshot.deltaTime, -90, 90);
+							socket.character.position.location.z = snapshot.location.z;
+							break;
+						case 'Right':
+							socket.character.position.location.y = snapshot.location.y + snapshot.velocity * snapshot.deltaTime;
+							socket.character.position.rotation.yaw = _.clamp(snapshot.rotation.yaw + 1000.0 * snapshot.deltaTime, -90, 90);
+							socket.character.position.location.z = snapshot.location.z;
+							break;
+						case 'Up':
+							socket.character.position.location.x = snapshot.location.x + snapshot.velocity * snapshot.deltaTime;
+							socket.character.position.rotation.yaw = _.clamp(snapshot.rotation.yaw + 1000.0 * snapshot.deltaTime, -180, 180);
+							socket.character.position.location.z = snapshot.location.z;
+							break;
+						case 'Down':
+							socket.character.position.location.x = snapshot.location.x - snapshot.velocity * snapshot.deltaTime;
+							socket.character.position.rotation.yaw = _.clamp(snapshot.rotation.yaw - 1000.0 * snapshot.deltaTime, -180, 180);
+							socket.character.position.location.z = snapshot.location.z;
+							break;
+							
+					}
+				}
+			});
 		}
 
 		// console.log(formatBytes(totalRecv));
