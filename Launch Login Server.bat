@@ -1,2 +1,2 @@
 @echo off
-node login
+nodemon login
