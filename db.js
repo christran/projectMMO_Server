@@ -7,14 +7,14 @@ const mongoOptions = { useNewUrlParser: true, useUnifiedTopology: true };
 const chalk = require('chalk');
 
 mongoose.set('useCreateIndex', true);
-mongoose.Promise = global.Promise;
 
-mongoose.connect(url + dbName, mongoOptions, (err) => {
-    if (err) {
-        console.log(chalk.blue("[Database] Error: " + err));
-    } else {
-        console.log(chalk.blue("[Database] Connected to Database"));
-    }
-});
+mongoose.connect(url + dbName, mongoOptions)
+  .then(() => {
+    console.log(chalk.blueBright("[Database] Connected to Database"));
+  })
+  .catch((err) => {
+    console.log(chalk.blueBright("[Database] Error: " + err));
+    process.exit();
+  });
 
 module.exports = {mongoose};
