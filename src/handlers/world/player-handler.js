@@ -1,23 +1,9 @@
-//Player Handler
-const Player = require('../helpers/player-helper');
-const sizeof = require('object-sizeof');
 const _ = require('lodash');
 
-let totalRecv = 0;
+module.exports = function(io, socket, clients, tick) {
+	const Player = require('../../helpers/player-helper');
+	const Map = require('../../world/Map')(io);
 
-function formatBytes(bytes, decimals = 2) {
-    if (bytes === 0) return '0 Bytes';
-
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-}
-
-module.exports = function(socket, io, clients, tick) {
     socket.on('player_Movement', function (data) {
 		if (data.movementSnapshot) {
 			let snapshotArray = data.movementSnapshot;
@@ -28,7 +14,10 @@ module.exports = function(socket, io, clients, tick) {
 				// 	console.log(`${socket.character.name} is hacking. Velocity: ${Math.round(snapshot.velocity)}`);
 				// 	socket.disconnect();
 				// }
-				
+
+				// Set to the same as what the client has UE4 (BP_Character)
+				let rotationSpeed = 1000.0;
+
 				// Check if player fell off the map
 				if (snapshot.location.z < -10000) {
 					socket.emit('player_ZLimit');
@@ -36,22 +25,22 @@ module.exports = function(socket, io, clients, tick) {
 					switch(snapshot.direction) {
 						case 'Left':
 							socket.character.position.location.y = snapshot.location.y - snapshot.velocity * snapshot.deltaTime;
-							socket.character.position.rotation.yaw = _.clamp(snapshot.rotation.yaw - 1000.0 * snapshot.deltaTime, -90, 90);
+							socket.character.position.rotation.yaw = _.clamp(snapshot.rotation.yaw - rotationSpeed * snapshot.deltaTime, -90, 90);
 							socket.character.position.location.z = snapshot.location.z;
 							break;
 						case 'Right':
 							socket.character.position.location.y = snapshot.location.y + snapshot.velocity * snapshot.deltaTime;
-							socket.character.position.rotation.yaw = _.clamp(snapshot.rotation.yaw + 1000.0 * snapshot.deltaTime, -90, 90);
+							socket.character.position.rotation.yaw = _.clamp(snapshot.rotation.yaw + rotationSpeed * snapshot.deltaTime, -90, 90);
 							socket.character.position.location.z = snapshot.location.z;
 							break;
 						case 'Up':
 							socket.character.position.location.x = snapshot.location.x + snapshot.velocity * snapshot.deltaTime;
-							socket.character.position.rotation.yaw = _.clamp(snapshot.rotation.yaw + 1000.0 * snapshot.deltaTime, -180, 180);
+							socket.character.position.rotation.yaw = _.clamp(snapshot.rotation.yaw + rotationSpeed * snapshot.deltaTime, -180, 180);
 							socket.character.position.location.z = snapshot.location.z;
 							break;
 						case 'Down':
 							socket.character.position.location.x = snapshot.location.x - snapshot.velocity * snapshot.deltaTime;
-							socket.character.position.rotation.yaw = _.clamp(snapshot.rotation.yaw - 1000.0 * snapshot.deltaTime, -180, 180);
+							socket.character.position.rotation.yaw = _.clamp(snapshot.rotation.yaw - rotationSpeed * snapshot.deltaTime, -180, 180);
 							socket.character.position.location.z = snapshot.location.z;
 							break;
 							
@@ -140,17 +129,11 @@ module.exports = function(socket, io, clients, tick) {
 	});
 
 	socket.on('player_UsePortal', (data, callback) => {
-		/*
-		Portal Data Validation with @hapi/joi
-		make sure the user doesn't send something like a  string
-		Data = Object
-			portalName = String
-		*/
-		let currentPortal = Maps[socket.character.mapID].portals[data.portalName];
-
+		let currentPortal = Map.getMap(socket.character.mapID).getPortalByName(data.portalName);
+		
 		// Check if the portal exists in the current player map
 		if (currentPortal) {
-			let targetPortal = Maps[currentPortal.toMapID];
+			let targetPortal = Map.getMap(currentPortal.toMapID);
 
 			if (socket.character.mapID) {
 				// Tell all players in the map to remove the player that disconnected.
@@ -199,8 +182,6 @@ module.exports = function(socket, io, clients, tick) {
 						// No other players in the map, don't do anything
 						// console.log('No other players in map to know about');
 					}
-					// console.log(Player.getPlayerDataByName('FangBlade'))
-					// Player.getPlayerDataBySocket(socket.id).character.mapID = currentPortal.toMapID;
 					socket.join(currentPortal.toMapID);
 	
 					socket.character.position = {
@@ -227,7 +208,7 @@ module.exports = function(socket, io, clients, tick) {
 						}
 					});
 
-					console.log(`[World Server] ${socket.character.name} moved to Map: ${targetPortal.mapInfo.mapName}`);
+					console.log(`[World Server] ${socket.character.name} moved to Map: ${targetPortal.mapName}`);
 				}
 			} else {
 				console.log(`[World Server] Player: ${socket.character.name} doesn\'t have a mapID`);
@@ -249,7 +230,7 @@ module.exports = function(socket, io, clients, tick) {
 
 	});
 
-	// Log Player Disconnection
+	// Player Disconnection
 	socket.on('disconnect', function () {
 		// Save Character Data to Database on Disconnection
 		if (socket.character) {

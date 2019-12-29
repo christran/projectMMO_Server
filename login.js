@@ -10,9 +10,8 @@ const chalk = require('chalk');
 const _config = require('./_config.json');
 const port = _config.loginserver.port;
 
-require('./models/Account');
-require('./models/Character');
-require('./handlers/login-handler')(io);
+require('./src/models/Account');
+require('./src/models/Character');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -194,6 +193,19 @@ function createChar (req, res) {
     });
 
 }
+
+io.on('connection', function (socket) {
+    require('./src/handlers/login/login-handler')(io, socket);
+
+    console.log(chalk.yellow('[Login Server]'), `Connection | IP: ${socket.handshake.address}`);
+    
+    // Check Client's Version
+    socket.on('serverVersion', (clientVersion, callback) => {
+        callback(_config.version);
+    });
+});
+
+
 
 //Start the Server
 http.listen(port, function () {

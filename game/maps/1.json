@@ -3,7 +3,7 @@
         "mapName": "Maple Road",
         "version": 1,
         "town": 1,
-        "returnMapId": 1
+        "returnMapID": 1
     },
     "npcs": {
         "Ms. Park": {
@@ -11,35 +11,22 @@
         }
     },
     "mobs": {
-        "1": {
-            "spawnLocation": [{
-                    "x": 100,
-                    "y": 100,
-                    "z": 0
-                },
-                {
-                    "x": 100,
-                    "y": 150,
-                    "z": 0
-                }
+        "100100": {
+            "spawnLocation": 
+            [
+                { "x": 100, "y": 100, "z": 0 },
+                { "x": 100, "y": 150, "z": 0 }
             ]
         }
     },
     "portals": {
         "map_1_portal_1": {
+            "id": 1,
             "toMapID": 2,
             "toPortalName": "map_2_portal_1",
             "position": {
-                "location": {
-                    "x": -20,
-                    "y": 600,
-                    "z": 140
-                },
-                "rotation": {
-                    "roll": 0,
-                    "pitch": 0,
-                    "yaw": -90
-                }
+                "location": { "x": -20, "y": 600, "z": 140 },
+                "rotation": { "roll": 0, "pitch": 0, "yaw": -90 }
             }
         }
     }
