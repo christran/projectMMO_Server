@@ -4,11 +4,14 @@ const bodyParser = require('body-parser');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 global.db = require("./db");
+
 const bcrypt = require('bcrypt');
 const moment = require('moment');
 const chalk = require('chalk');
 const _config = require('./_config.json');
 const port = _config.loginserver.port;
+
+let clients = [];
 
 require('./src/models/Account');
 require('./src/models/Character');
@@ -195,7 +198,7 @@ function createChar (req, res) {
 }
 
 io.on('connection', function (socket) {
-    require('./src/handlers/login/login-handler')(io, socket);
+    require('./src/handlers/login/login-handler')(io, socket, clients);
 
     console.log(chalk.yellow('[Login Server]'), `Connection | IP: ${socket.handshake.address}`);
     

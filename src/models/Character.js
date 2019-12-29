@@ -42,22 +42,22 @@ var characterSchema = new db.mongoose.Schema(
     }
 );
 
-characterSchema.statics.getCharacter = function(name, callback) {
-    return this.model('characters').findOne({name: name}, callback);
+characterSchema.statics.getCharacter = function(name) {
+    return this.model('characters').findOne({name: name}).exec();
 };
 
-characterSchema.statics.getCharacterByID = function(charID, callback) {
-    return this.model('characters').findOne({_id: charID}, callback);
+characterSchema.statics.getCharacterByID = function(charID) {
+    return this.model('characters').findOne({_id: charID}).exec();
 };
 
 characterSchema.statics.saveCharacter = function(socket) {
-    this.getCharacter(socket.character.name, (err, character) => {
-        if (!character || err) {
-            console.log(`[Character] Saving Character | Error: ${err}`);
-        } else {
-            character = socket.character;
-            character.save();
-        }
+    this.getCharacter(socket.character.name)
+    .then((character) => {
+        character = socket.character;
+        character.save();
+    })
+    .catch((err) => {
+        console.log(`[World Server] Saving Character | Error: ${err}`);
     });
 };
 

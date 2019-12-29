@@ -1,3 +1,6 @@
+const stuff = require('../../utils/stuff');
+const _ = require('lodash');
+
 const accountSchema = new db.mongoose.Schema(
     {
         username: {
@@ -41,18 +44,16 @@ const accountSchema = new db.mongoose.Schema(
     }
 );
 
-accountSchema.statics.getAccount = function(username, callback) {
-    return this.model('accounts').findOne({username: username}, callback);
+accountSchema.statics.getAccount = function(username) {
+    return this.model('accounts').findOne({username: username}).exec();
 };
 
-accountSchema.statics.getAccountByID = function(accountID, callback) {
-    return this.model('accounts').findOne({_id: accountID}, callback);
+accountSchema.statics.getAccountByID = function(accountID) {
+    return this.model('accounts').findOne({_id: accountID}).exec();
 };
 
-accountSchema.statics.getCharacters = function(accountID, callback) {
-    this.model('characters').find({accountID: accountID}).sort({createdAt: 'asc'}).exec((err, character) => {
-        callback(character);
-    });
+accountSchema.statics.getCharacters = function(accountID) {
+    return this.model('characters').find({accountID: accountID}).sort({createdAt: 'asc'}).exec();
 };
 
 Account = db.mongoose.model("accounts", accountSchema);

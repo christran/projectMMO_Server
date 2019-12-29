@@ -1,19 +1,14 @@
-// Login Handler
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
 const moment = require('moment');
 const chalk = require('chalk');
-const util = require('util');
-const stuff = require('../../../utils/stuff');
-const _config = require('../../../_config.json');
 
-const clients = [];
-
-module.exports = function(io, socket) {
+module.exports = function(io, socket, clients) {
     socket.on('login', (data, callback) => {
-        Account.getAccount(data.username, (err, account) => {
+        Account.getAccount(data.username)
+        .then((account) => {
             // Find Username
-            if (account && !err) {
+            if (account) {
                 bcrypt.compare(data.password, account.password, function(err, bcryptRes) {
                     if (bcryptRes && !err) {
                         if (account.ban.banType > 0) {
@@ -76,12 +71,12 @@ module.exports = function(io, socket) {
 
                     callback(response);
                     console.log(chalk.yellow('[Login Server]'), `Failed Login Attempt | Username: ${data.username} | IP: ${socket.handshake.address}`);
-            }
-
-            if (err) {
-                console.log(err);
-            }
+            }            
+        })
+        .catch((err) => {
+            console.log(err);
         });
+
     });
 
     socket.on('createCharacter', (data, callback) => {
@@ -119,15 +114,18 @@ module.exports = function(io, socket) {
             }
         });
     
-        newChar.save(function (err, character) {
-            if (!err) {
-                let response =  {
-                    'result': 'Character Created'
-                    };
-                
-                callback(response);
-                console.log(chalk.yellow('[Login Server]'), `New Character | Name: ${character.name}`);
-            } else if (err.code == 11000) {
+        newChar.save()
+        .then((character) => {
+            let response =  {
+                'result': 'Character Created'
+                };
+            
+            callback(response);
+            console.log(chalk.yellow('[Login Server]'), `New Character | Name: ${character.name}`);
+        })
+        .catch((err) => {
+            if (err.code == 11000) {
+                // Name taken
                 let response =  {
                     'result': 'Username Taken',
                     'reason': 'Name is already taken'
@@ -135,35 +133,47 @@ module.exports = function(io, socket) {
                 
                 callback(response);
             } else {
-                console.log(err);
-                // res.redirect(req.get('referer'));
+                console.log(`[Login Server] createCharacter | Error: ${err}`);
             }
         });
     });
 
     socket.on('getCharacters', (data, callback) => {
-        Account.getCharacters(data.accountID, (character) => {
-            callback(stuff.arrayToObject(character, 'name'));
+        Account.getCharacters(data.accountID)
+        .then((characters) => {
+            callback(_.keyBy(characters, 'name'));
+            }
+        )
+        .catch((err) => {
+            console.log(`[Login Server] getCharacters | Error: ${err}`);
         });
     });
 
     socket.on('selectCharacter', (data) => {
-        Character.getCharacterByID(data._id, (err, character) => {
-            if (character && !err) {
+        Character.getCharacterByID(data._id)
+        .then((character) => {
+            if (character) {
                 socket.handoffToWorldServer = true;
                 socket.emit('handoffToWorldServer', character);
             } else {
-                console.log(`IP: ${socket.handshake.address} tried to select a character not tied to their account.`);
+                console.log(`[Login Server] IP: ${socket.handshake.address} tried to select a character not tied to their account.`);
             }
+        })
+        .catch((err) => {
+            console.log(`[Login Server] ${err}`);
         });
     });
 
     socket.on('disconnect', () => {
         // Check if user was logged in and set isOnline to false.
         if (!socket.handoffToWorldServer && socket.username) {
-            Account.getAccount(socket.username, (err, account) => {
+            Account.getAccount(socket.username)
+            .then((account) => {
                 account.isOnline = false;
                 account.save();
+            })
+            .catch((err) => {
+                console.log(`[Login Server] ${err}`);
             });
 
             console.log(chalk.yellow('[Login Server]'), `Disconnection | User: ${socket.username} | Total Connected: ${clients.length}`);

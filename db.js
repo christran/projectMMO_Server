@@ -7,6 +7,7 @@ const mongoOptions = { useNewUrlParser: true, useUnifiedTopology: true };
 const chalk = require('chalk');
 
 mongoose.set('useCreateIndex', true);
+mongoose.Promise = Promise;
 
 mongoose.connect(url + dbName, mongoOptions)
   .then(() => {
