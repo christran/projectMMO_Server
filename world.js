@@ -14,7 +14,7 @@ let tick = 0;
 const _config = require('./_config.json');
 const port = _config.worldserver.port;
 
-clients = [];
+let clients = [];
 
 // Load All Models (Schema)
 fs.readdirSync('./src/models').forEach(function(file) {
