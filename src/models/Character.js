@@ -47,7 +47,7 @@ const characterSchema = new db.mongoose.Schema(
 characterSchema.plugin(uniqueValidator);
 
 characterSchema.statics.getCharacter = async function(name) {
-    return await this.model('characters').findOne({name: name});
+    return await this.model('characters').findOne({name: new RegExp(`^${name}$`, 'i')});
 };
 
 characterSchema.statics.getCharacterByID = async function(charID) {
