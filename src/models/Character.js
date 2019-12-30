@@ -47,18 +47,19 @@ const characterSchema = new db.mongoose.Schema(
 characterSchema.plugin(uniqueValidator);
 
 characterSchema.statics.getCharacter = async function(name) {
-    return await this.model('characters').findOne({name: new RegExp(`^${name}$`, 'i')});
+    return this.model('characters').findOne({name: new RegExp(`^${name}$`, 'i')});
 };
 
 characterSchema.statics.getCharacterByID = async function(charID) {
-    return await this.model('characters').findOne({_id: charID});
+    return this.model('characters').findOne({_id: charID});
 };
 
 characterSchema.statics.saveCharacter = async function(socket) {
     try {
-        let saveChar = await socket.character.save();
+        await socket.character.save();
     } catch (err) {
-        console.log(`[World Server] Saving Character | Error ${err}`);
+        socket.disconnect();
+        console.log(`[World Server] Saving Character | Error: ${err}`);
     }
 };
 

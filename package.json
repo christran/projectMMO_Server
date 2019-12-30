@@ -14,6 +14,7 @@
     "mongoose-unique-validator": "^2.0.3",
     "msgpack-lite": "^0.1.26",
     "path": "^0.12.7",
+    "pretty-error": "^2.1.1",
     "socket.io": "^2.0.0"
   },
   "devDependencies": {

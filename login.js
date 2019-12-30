@@ -3,11 +3,14 @@ const app = express();
 const bodyParser = require('body-parser');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const bcrypt = require('bcrypt');
 global.db = require("./db");
 
-const bcrypt = require('bcrypt');
 const moment = require('moment');
 const chalk = require('chalk');
+const PrettyError = require('pretty-error').start();
+
+
 const _config = require('./_config.json');
 const port = _config.loginserver.port;
 
@@ -208,9 +211,6 @@ io.on('connection', function(socket) {
     });
 });
 
-
-
-//Start the Server
 http.listen(port, () => {
     console.log(chalk.yellow('[Login Server] Starting Login Server... Port:', port));
 });

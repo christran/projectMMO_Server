@@ -41,20 +41,16 @@ class Map {
 
 module.exports = function(io) {
     return {
-        // Checks if map loaded into memory
-        getMap: function(mapID) {
+        // Checks if is already map loaded into memory, if not add it.
+        getMap: async function(mapID) {
             if (Maps.hasOwnProperty(mapID)) {
                 return Maps[mapID];
             } else {
-                try {
-                    let mapData = jsonfile.readFileSync('game/maps/' + mapID + '.json');
+                let mapData = await jsonfile.readFile('game/maps/' + mapID + '.json');
+                
+                Maps[mapID] = new Map(mapID, mapData);
 
-                    Maps[mapID] = new Map(mapID, mapData);
-
-                    return Maps[mapID];
-                } catch (err) {
-                    console.log('Map doesn\'t exist');
-                }
+                return Maps[mapID];
             }
         },
 
