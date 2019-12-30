@@ -4,7 +4,7 @@ module.exports = function(io, socket, clients, tick) {
 	const Player = require('../../helpers/player-helper');
 	const Map = require('../../world/Map')(io);
 
-    socket.on('player_Movement', function (data) {
+    socket.on('player_Movement', (data) => {
 		if (data.movementSnapshot) {
 			let snapshotArray = data.movementSnapshot;
 			snapshotArray.forEach((snapshot) => {
@@ -81,51 +81,59 @@ module.exports = function(io, socket, clients, tick) {
 	});
 
 	// Spawn Player after they select a character
-	socket.on('spawnPlayer', function(data) {
-		Character.getCharacter(data.name)
-		.then((character) => {
-			socket.character = character;
+	socket.on('spawnPlayer', (data) => {
+		if (_.findIndex(clients, { name: data.name })) {
+			Character.getCharacter(data.name)
+			.then((character) => {
+				socket.character = character;
 
-			clients.push({ 
-				name: character.name,
-				socketID: socket.id
-			});
-	
-			let response = {
-				mapID: character.mapID,
-				position: {
-					location: {
-						x: character.position.location.x,
-						y: character.position.location.y,
-						z: character.position.location.z
-					},
-					rotation: {
-						roll: character.position.rotation.roll,
-						pitch: character.position.rotation.pitch,
-						yaw: character.position.rotation.yaw
+				clients.push({ 
+					name: character.name,
+					socketID: socket.id
+				});
+		
+				let response = {
+					mapID: character.mapID,
+					position: {
+						location: {
+							x: character.position.location.x,
+							y: character.position.location.y,
+							z: character.position.location.z
+						},
+						rotation: {
+							roll: character.position.rotation.roll,
+							pitch: character.position.rotation.pitch,
+							yaw: character.position.rotation.yaw
+						}
 					}
-				}
-			};
+				};
 
-			// Add player to map and spawn them in the map
-			socket.join(character.mapID);
-			
-			// Send client the current tick of the server
-			socket.emit('setCurrentTick', tick);
-			socket.emit('changePlayerMap', response);
+				// Add player to map and spawn them in the map
+				socket.join(character.mapID);
+				
+				// Send client the current tick of the server
+				socket.emit('setCurrentTick', tick);
+				socket.emit('changePlayerMap', response);
 
-			// Send to other players in the map
-			socket.to(character.mapID).emit('addPlayerToMap', {
-				[socket.character.name]: {
-					position: socket.character.position
-				}
+				// Send to other players in the map
+				socket.to(character.mapID).emit('addPlayerToMap', {
+					[socket.character.name]: {
+						position: socket.character.position
+					}
+				});
+
+				console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${clients.length}`);	
+			})
+			.catch((err) => {
+				console.log(`[Player Handler] spawnPlayer | Error: ${err}`);
 			});
+		} else {
+			// If pawn is already spawned/possessed
+			socket.dcReason = 'Trying to spawn a character that is already spawned.';
+			socket.disconnect();
 
-			console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${clients.length}`);	
-		})
-		.catch((err) => {
-			console.log(`[Player Handler] spawnPlayer | Error: ${err}`);
-		});
+			console.log(`[Player Handler] spawnPlayer | Trying to spawn a character that is already spawned.`);
+		}
 	});
 
 	socket.on('player_UsePortal', (data, callback) => {
@@ -219,7 +227,7 @@ module.exports = function(io, socket, clients, tick) {
 	});
 
 	// Disconnect a player with given name
-	socket.on('player_DC', function (data) {
+	socket.on('player_DC', (data) => {
 		if (Player.getSocketByName(data.name)) {
 
 			Player.getSocketByName(data.name).disconnect();
@@ -231,8 +239,8 @@ module.exports = function(io, socket, clients, tick) {
 	});
 
 	// Player Disconnection
-	socket.on('disconnect', function () {
-		// Save Character Data to Database on Disconnection
+	socket.on('disconnect', () => {
+		// Save Character Data to Database on disconnection
 		if (socket.character) {
 			Character.saveCharacter(socket);
 
@@ -246,12 +254,14 @@ module.exports = function(io, socket, clients, tick) {
 			socket.to(socket.character.mapID).emit('removePlayerFromMap', {
 				playerName: socket.character.name
 			});
+
+			console.log(`[World Server] User: ${socket.character.name} logged off`);
+		} else {
+			console.log(`[World Server] Socket: ${socket.id} disconnected | Reason: ${socket.dcReason}`);
 		}
 
 		socketIndex = clients.findIndex(item => item.socket === socket.id);
 		clients.splice(socketIndex, 1);
-		
-		console.log(`[World Server] User: ${socket.character.name} disconnected | Total Online: ${clients.length}`);
 	});
 
 };

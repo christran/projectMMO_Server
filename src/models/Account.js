@@ -1,5 +1,4 @@
-const stuff = require('../../utils/stuff');
-const _ = require('lodash');
+const uniqueValidator = require('mongoose-unique-validator');
 
 const accountSchema = new db.mongoose.Schema(
     {
@@ -7,7 +6,8 @@ const accountSchema = new db.mongoose.Schema(
             type: String,
             required: true,
             index: true,
-            unique: true
+            unique: true,
+            uniqueCaseInsensitive: true
         },
         password: {
             type: String,
@@ -16,6 +16,9 @@ const accountSchema = new db.mongoose.Schema(
         email: {
             type: String,
             // required: true,
+            index: true,
+            unique: true,
+            uniqueCaseInsensitive: true,
             default: ''
         },
         isOnline: {
@@ -44,16 +47,18 @@ const accountSchema = new db.mongoose.Schema(
     }
 );
 
-accountSchema.statics.getAccount = function(username) {
-    return this.model('accounts').findOne({username: username}).exec();
+accountSchema.plugin(uniqueValidator);
+
+accountSchema.statics.getAccount = async function(username) {
+    return await this.model('accounts').findOne({username: username});
 };
 
-accountSchema.statics.getAccountByID = function(accountID) {
-    return this.model('accounts').findOne({_id: accountID}).exec();
+accountSchema.statics.getAccountByID = async function(accountID) {
+    return await this.model('accounts').findOne({_id: accountID});
 };
 
-accountSchema.statics.getCharacters = function(accountID) {
-    return this.model('characters').find({accountID: accountID}).sort({createdAt: 'asc'}).exec();
+accountSchema.statics.getCharacters = async function(accountID) {
+    return await this.model('characters').find({accountID: accountID}).sort({createdAt: 'asc'});
 };
 
 Account = db.mongoose.model("accounts", accountSchema);

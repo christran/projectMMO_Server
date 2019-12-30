@@ -11,6 +11,7 @@
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "mongoose": "^5.7.14",
+    "mongoose-unique-validator": "^2.0.3",
     "msgpack-lite": "^0.1.26",
     "path": "^0.12.7",
     "socket.io": "^2.0.0"

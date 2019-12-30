@@ -42,7 +42,7 @@ class Map {
 module.exports = function(io) {
     return {
         // Checks if map loaded into memory
-        getMap: function (mapID) {
+        getMap: function(mapID) {
             if (Maps.hasOwnProperty(mapID)) {
                 return Maps[mapID];
             } else {
