@@ -1,14 +1,14 @@
 module.exports = function(socket, io) {
-    socket.on('chat', function (msg) {
-		let combinedMsg = msg['playerName'] + ': ' + msg['message'];
+    socket.on('chat', function(data) {
+		let combinedMsg = data.playerName+ ': ' + data.message;
 
 		// GM Commands
-		if (msg['message'].charAt(0) == '!') {
-			let gmCommand = msg['message'].substr(1);
+		if (data.message.charAt(0) == '!') {
+			let gmCommand = data.message.substr(1);
 
 			// Teleport to Map Command
 			if (gmCommand.startsWith('goto')) {
-				let mapID = msg['message'].slice(6);
+				let mapID = data.message.slice(6);
 				if (mapID && mapID.match(/^[0-9]+$/)) {
 					console.log('Teleported to Map ID: ' + mapID);
 					// Teleport player to map

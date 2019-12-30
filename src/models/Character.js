@@ -1,9 +1,11 @@
-var characterSchema = new db.mongoose.Schema(
+const uniqueValidator = require('mongoose-unique-validator');
+
+const characterSchema = new db.mongoose.Schema(
     {
         accountID: { type: String, required: true},
         _id: String,
         worldId: Number,
-        name: { type: String, required: true, unique: true },
+        name: { type: String, required: true, index: true, unique: true, uniqueCaseInsensitive: true },
         female: Boolean,
         skin: Number,
         hair: Number,
@@ -42,23 +44,22 @@ var characterSchema = new db.mongoose.Schema(
     }
 );
 
-characterSchema.statics.getCharacter = function(name) {
-    return this.model('characters').findOne({name: name}).exec();
+characterSchema.plugin(uniqueValidator);
+
+characterSchema.statics.getCharacter = async function(name) {
+    return await this.model('characters').findOne({name: name});
 };
 
-characterSchema.statics.getCharacterByID = function(charID) {
-    return this.model('characters').findOne({_id: charID}).exec();
+characterSchema.statics.getCharacterByID = async function(charID) {
+    return await this.model('characters').findOne({_id: charID});
 };
 
-characterSchema.statics.saveCharacter = function(socket) {
-    this.getCharacter(socket.character.name)
-    .then((character) => {
-        character = socket.character;
-        character.save();
-    })
-    .catch((err) => {
-        console.log(`[World Server] Saving Character | Error: ${err}`);
-    });
+characterSchema.statics.saveCharacter = async function(socket) {
+    try {
+        let saveChar = await socket.character.save();
+    } catch (err) {
+        console.log(`[World Server] Saving Character | Error ${err}`);
+    }
 };
 
 Character = db.mongoose.model("characters", characterSchema);

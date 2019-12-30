@@ -28,7 +28,7 @@ app.post('/LoginServer/register', function(req, res) {
 });
 
 /*
-app.post('/LoginServer/createChar', function (req, res) {
+app.post('/LoginServer/createChar', function(req, res) {
     createChar(req, res);
 });
 */
@@ -41,7 +41,7 @@ app.get('/LoginServer/', function(req, res) {
     res.status(403).end();
 });
 
-function login (req, res) {
+function login(req, res) {
     Account.getAccount(req.body.username, (err, account) => {
         // Find Username
         if (account && !err) {
@@ -107,7 +107,7 @@ function login (req, res) {
     });
 }
 
-function register (req, res) {
+function register(req, res) {
     bcrypt.genSalt(10, function(err, salt) {
         bcrypt.hash(req.body.password, salt, function(err, hash) {
             let newAccount = new Account({
@@ -124,10 +124,10 @@ function register (req, res) {
                     
                     res.send(response);
                     console.log(chalk.yellow('[Login Server] New Account | Username: ' + account.username));
-                } else if (err.code == 11000) {
+                } else if (err.name === 'ValidationError') {
                     let response =  {
                         'result': 'Username Taken'
-                        };
+                    };
                     
                     res.send(response);
                 } else {
@@ -139,7 +139,7 @@ function register (req, res) {
     });
 }
 
-function createChar (req, res) {
+function createChar(req, res) {
     let newChar =  new Character({
         accountID: req.body.accountID,
         _id: new db.mongoose.Types.ObjectId().toHexString(),
@@ -197,7 +197,7 @@ function createChar (req, res) {
 
 }
 
-io.on('connection', function (socket) {
+io.on('connection', function(socket) {
     require('./src/handlers/login/login-handler')(io, socket, clients);
 
     console.log(chalk.yellow('[Login Server]'), `Connection | IP: ${socket.handshake.address}`);
@@ -211,6 +211,6 @@ io.on('connection', function (socket) {
 
 
 //Start the Server
-http.listen(port, function () {
+http.listen(port, () => {
     console.log(chalk.yellow('[Login Server] Starting Login Server... Port:', port));
 });

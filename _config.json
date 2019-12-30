@@ -7,7 +7,7 @@
         "port": 7575
     },
     "mongoDB": {
-        "dbUrl": "mongodb://localhost:27017/",
+        "dbUrl": "mongodb://127.0.0.1:27017/",
         "dbName": "testDB"
     }
 }

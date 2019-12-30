@@ -25,12 +25,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 //Server Web Client
-app.get('/', function (req, res) {
+app.get('/', function(req, res) {
 	// res.sendFile(__dirname + '/index.html');
 	res.status(403).end();
 });
 
-app.get('/serverStatus', function (req, res) {
+app.get('/serverStatus', function(req, res) {
 	let response =  {
 		'result': 'Online'
 		};
@@ -38,7 +38,7 @@ app.get('/serverStatus', function (req, res) {
 	res.send(response);
 });
 
-io.on('connection', function (socket) {
+io.on('connection', function(socket) {
 	// Require all Handlers
 	require('./src/handlers/world/player-handler')(io, socket, clients, tick);
 	require('./src/handlers/world/chat-handler')(socket);
@@ -46,7 +46,7 @@ io.on('connection', function (socket) {
 
 
 	// Send Client information about other clients in the same map
-	function hrtimeMs () {
+	function hrtimeMs() {
 		let time = process.hrtime();
 	
 		return time[0] * 1000 + time[1] / 1000000;
@@ -56,7 +56,7 @@ io.on('connection', function (socket) {
 	let previous = hrtimeMs();
 	let tickLengthMs = 1000 / TICK_RATE;
 	
-	function gameLoop () {
+	function gameLoop() {
 		setTimeout(gameLoop, tickLengthMs);
 		let now = hrtimeMs();
 		let delta = (now - previous) / 1000;
@@ -70,7 +70,7 @@ io.on('connection', function (socket) {
 	}
 
 	// Game Logic
-	function update (delta, tick) {
+	function update(delta, tick) {
 		let activeMaps = Object.keys(io.sockets.adapter.rooms).filter(Number);
 
 		// Send update to only maps with players in them (SocketIO Rooms)
@@ -99,6 +99,6 @@ io.on('connection', function (socket) {
 	gameLoop();
 
 //Start the Server
-http.listen(port, function () {
+http.listen(port, () => {
 	console.log(chalk.greenBright(`[World Server] Starting World Server... Port: ${port}`));
 });
