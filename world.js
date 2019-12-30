@@ -1,46 +1,49 @@
+require('pretty-error').start();
+
 const express = require('express');
 const bodyParser = require('body-parser');
+
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-global.db = require("./db");
 
+const _ = require('lodash');
 const fs = require('fs');
 const chalk = require('chalk');
-const PrettyError = require('pretty-error').start();
+
+const Map = require('../projectMMO_Server/src/world/Map')(io);
 
 const TICK_RATE = 10; // 0.1sec or 100ms
 let tick = 0;
 let delta = 0;
 
-const _config = require('./_config.json');
-const port = _config.worldserver.port;
+const config = require('./_config.json');
 
-let clients = [];
+const { port } = config.worldserver;
+
+const clients = [];
 
 // Load All Models (Schema)
-fs.readdirSync('./src/models').forEach(function(file) {
-  require("./src/models/" + file);
+fs.readdirSync('./src/models').forEach((file) => {
+	require(`./src/models/${file}`);
 });
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-//Server Web Client
-app.get('/', function(req, res) {
+// Server Web Client
+app.get('/', (req, res) => {
 	// res.sendFile(__dirname + '/index.html');
 	res.status(403).end();
 });
 
-app.get('/serverStatus', function(req, res) {
-	let response =  {
-		'result': 'Online'
-		};
-	
+app.get('/serverStatus', (req, res) => {
+	const response = { result: 'Online' };
+
 	res.send(response);
 });
 
-io.on('connection', function(socket) {
+io.on('connection', (socket) => {
 	// Require all Handlers
 	require('./src/handlers/world/player-handler')(io, socket, clients, delta, tick);
 	require('./src/handlers/world/chat-handler')(socket);
@@ -49,47 +52,37 @@ io.on('connection', function(socket) {
 
 // Send Client information about other clients in the same map
 function hrtimeMs() {
-	let time = process.hrtime();
+	const time = process.hrtime();
 
 	return time[0] * 1000 + time[1] / 1000000;
 }
 
-//let tick = 0;
 let previous = hrtimeMs();
-let tickLengthMs = 1000 / TICK_RATE;
-
-function gameLoop() {
-	setTimeout(gameLoop, tickLengthMs);
-	let now = hrtimeMs();
-
-	delta = (now - previous) / 1000;
-	
-	// console.log(delta, tick);
-	
-	// Game Logic
-	update(delta, tick);
-	previous = now;
-	tick++;
-}
+const tickLengthMs = 1000 / TICK_RATE;
 
 // Game Logic
-function update(delta, tick) {
-	let activeMaps = Object.keys(io.sockets.adapter.rooms).filter(Number);
+function update() {
+	const activeMaps = Object.keys(io.sockets.adapter.rooms).filter(Number);
 
 	// Send update to only maps with players in them (SocketIO Rooms)
 	// Sent to (GameState_MMO)
 	if (activeMaps.length > 0) {
-		activeMaps.forEach((mapId) => {
-			for (let socketId in io.sockets.adapter.rooms[mapId].sockets) {
-				if (io.sockets.adapter.rooms[mapId]) {
-					io.to(mapId).emit('update', {
-						[io.sockets.connected[socketId].character.name]: {
-							position: io.sockets.connected[socketId].character.position,
-							tick: tick
-						}
-					});	
-				}
-			}
+		activeMaps.forEach((mapID) => {
+			const playerArray = [];
+			const players = Map.getAllPlayersInMap(mapID);
+
+			_.forOwn(players, (value, name) => {
+				const player = {
+					[name]: {
+						position: players[name].position,
+						tick
+					}
+				};
+
+				playerArray.push(player);
+			});
+
+			io.to(mapID).emit('update', playerArray);
 		});
 	} else {
 		// No players in any maps so don't emit anything
@@ -97,6 +90,20 @@ function update(delta, tick) {
 	}
 
 	// io.emit('setCurrentTick', tick);
+}
+
+function gameLoop() {
+	setTimeout(gameLoop, tickLengthMs);
+	const now = hrtimeMs();
+
+	delta = (now - previous) / 1000;
+
+	// console.log(delta, tick);
+
+	// Game Logic
+	update();
+	previous = now;
+	tick += 1;
 }
 
 http.listen(port, () => {

@@ -1,16 +1,16 @@
-const msgpack = require("msgpack-lite");
- 
+const msgpack = require('msgpack-lite');
+
 // Encode
-let buffer = msgpack.encode(
-    {
-        "name": "Tiger",
-        "level": 180,
-        "mesos": 1000000
-    }
+const buffer = msgpack.encode(
+	{
+		name: 'Tiger',
+		level: 180,
+		mesos: 1000000
+	}
 );
- 
+
 // Decode
-let data = msgpack.decode(buffer);
- 
+const data = msgpack.decode(buffer);
+
 console.log(buffer);
 console.log(data);
