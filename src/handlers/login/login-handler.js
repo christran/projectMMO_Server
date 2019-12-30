@@ -44,7 +44,7 @@ module.exports = (io, socket, clients) => {
 
 						clients.push({
 							username: account.username,
-							socket: socket.id,
+							socketID: socket.id,
 							ip: socket.handshake.address
 						});
 
@@ -170,7 +170,7 @@ module.exports = (io, socket, clients) => {
 			console.log(chalk.yellow('[Login Server]'), `Disconnection | IP: ${socket.handshake.address} | Total Connected: ${clients.length}`);
 		}
 
-		const socketIndex = clients.findIndex((item) => item.socket === socket.id);
+		const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
 		clients.splice(socketIndex, 1);
 	});
 };

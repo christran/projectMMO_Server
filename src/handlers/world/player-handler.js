@@ -24,39 +24,39 @@ module.exports = (io, socket, clients, delta, tick) => {
 					// socket.emit('dc', 'Stop hacking');
 				}
 
-				// Set to the same as what the client has UE4 (BP_Character)
-				const rotationSpeed = 1000.0;
-
 				// Check if player fell off the map
 				if (snapshot.location.z < -10000) {
+					// Get nearest portal on server side and set charPos to it
 					socket.emit('player_ZLimit');
-				} else {
-					const charPos = socket.character.position;
+				}
 
-					switch (snapshot.direction) {
-					case 'Left':
-						charPos.location.y = snapshot.location.y - snapshot.velocity * snapshot.deltaTime;
-						charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw - rotationSpeed * snapshot.deltaTime, -90, 90);
-						charPos.location.z = snapshot.location.z;
-						break;
-					case 'Right':
-						charPos.location.y = snapshot.location.y + snapshot.velocity * snapshot.deltaTime;
-						charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw + rotationSpeed * snapshot.deltaTime, -90, 90);
-						charPos.location.z = snapshot.location.z;
-						break;
-					case 'Up':
-						charPos.location.x = snapshot.location.x + snapshot.velocity * snapshot.deltaTime;
-						charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw + rotationSpeed * snapshot.deltaTime, -180, 180);
-						charPos.location.z = snapshot.location.z;
-						break;
-					case 'Down':
-						charPos.location.x = snapshot.location.x - snapshot.velocity * snapshot.deltaTime;
-						charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw - rotationSpeed * snapshot.deltaTime, -180, 180);
-						charPos.location.z = snapshot.location.z;
-						break;
-					default:
-						break;
-					}
+				// Set to the same as what the client has UE4 (BP_Character)
+				const rotationSpeed = 1000.0;
+				const charPos = socket.character.position;
+
+				switch (snapshot.direction) {
+				case 'Left':
+					charPos.location.y = snapshot.location.y - snapshot.velocity * snapshot.deltaTime;
+					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw - rotationSpeed * snapshot.deltaTime, -90, 90);
+					charPos.location.z = snapshot.location.z;
+					break;
+				case 'Right':
+					charPos.location.y = snapshot.location.y + snapshot.velocity * snapshot.deltaTime;
+					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw + rotationSpeed * snapshot.deltaTime, -90, 90);
+					charPos.location.z = snapshot.location.z;
+					break;
+				case 'Up':
+					charPos.location.x = snapshot.location.x + snapshot.velocity * snapshot.deltaTime;
+					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw + rotationSpeed * snapshot.deltaTime, -180, 180);
+					charPos.location.z = snapshot.location.z;
+					break;
+				case 'Down':
+					charPos.location.x = snapshot.location.x - snapshot.velocity * snapshot.deltaTime;
+					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw - rotationSpeed * snapshot.deltaTime, -180, 180);
+					charPos.location.z = snapshot.location.z;
+					break;
+				default:
+					break;
 				}
 			});
 		}
@@ -91,6 +91,11 @@ module.exports = (io, socket, clients, delta, tick) => {
 		if (_.findIndex(clients, { name: data.name })) {
 			Character.getCharacter(data.name)
 				.then((character) => {
+					// const charWeakMap = new WeakMap();
+					// charWeakMap.set(socket, character);
+					// const clientCharacter = charWeakMap.get(socket);
+					// console.log(clientCharacter.mapID);
+
 					socket.character = character;
 
 					clients.push({
@@ -98,33 +103,17 @@ module.exports = (io, socket, clients, delta, tick) => {
 						socketID: socket.id
 					});
 
-					const response = {
-						mapID: character.mapID,
-						position: {
-							location: {
-								x: character.position.location.x,
-								y: character.position.location.y,
-								z: character.position.location.z
-							},
-							rotation: {
-								roll: character.position.rotation.roll,
-								pitch: character.position.rotation.pitch,
-								yaw: character.position.rotation.yaw
-							}
-						}
-					};
-
 					// Add player to map and spawn them in the map
 					socket.join(character.mapID);
 
 					// Send client the current tick of the server
 					socket.emit('setCurrentTick', tick);
-					socket.emit('changePlayerMap', response);
+					socket.emit('changePlayerMap', character);
 
 					// Send to other players in the map
 					socket.to(character.mapID).emit('addPlayerToMap', {
-						[socket.character.name]: {
-							position: socket.character.position
+						[character.name]: {
+							position: character.position
 						}
 					});
 
@@ -245,7 +234,7 @@ module.exports = (io, socket, clients, delta, tick) => {
 				playerName: socket.character.name
 			});
 
-			const socketIndex = clients.findIndex((item) => item.socket === socket.id);
+			const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
 			clients.splice(socketIndex, 1);
 
 			console.log(`[World Server] User: ${socket.character.name} logged off`);
