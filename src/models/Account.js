@@ -50,7 +50,7 @@ const accountSchema = new db.mongoose.Schema(
 accountSchema.plugin(uniqueValidator);
 
 accountSchema.statics.getAccount = async function(username) {
-    return await this.model('accounts').findOne({username: username});
+    return await this.model('accounts').findOne({username: new RegExp(`^${username}$`, 'i') });
 };
 
 accountSchema.statics.getAccountByID = async function(accountID) {
