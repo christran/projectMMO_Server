@@ -4,11 +4,15 @@ const _ = require('lodash');
 const Maps = {};
 
 class Map {
+	/**
+     * @param {number} _id - Map ID
+	 * @param {Object} map - Map Data from JSON file
+     */
 	constructor(_id, map) {
 		this.mapID = _id;
-		this.mapName = map.mapInfo.mapName;
-		this.town = map.mapInfo.town;
-		this.returnMapID = map.mapInfo.returnMapID;
+
+		/** @type {{mapName: String, town: Number, returnMapID:}} */
+		this.mapInfo = map.mapInfo;
 
 		this.npcs = map.npcs;
 		this.mobs = map.mobs;
@@ -17,19 +21,32 @@ class Map {
 	}
 
 
-	// Portals
+	/**
+     * @param {number} portalID - Portal ID
+	 * @return {{id: Number, toMapID: Number, toPortalName: String, position: { location: {x, y, z}, rotation: {x, y, z} } }} - Portal Data
+     */
 	getPortalByID(portalID) {
 		return _.find(this.portals, { id: portalID });
 	}
 
+	/**
+     * @param {string} portalName - Portal Name
+	 * @return {{id: Number, toMapID: Number, toPortalName: String, position: { location: {x, y, z}, rotation: {x, y, z} } }} - Portal Data
+     */
 	getPortalByName(portalName) {
 		return this.portals[portalName];
 	}
 }
 
 module.exports = (io) => ({
-	// Checks if is already map loaded into memory, if not add it.
+	/**
+	 * Gets map information
+	 * @async
+	 * @param {number} mapID A valid mapID
+	 * @returns {Promise<Map>} Returns a promise: Map Object
+	 */
 	getMap: async (mapID) => {
+		// Checks if is already map loaded into memory, if not add it.
 		if (Object.prototype.hasOwnProperty.call(Maps, mapID)) {
 			return Maps[mapID];
 		}
@@ -41,6 +58,11 @@ module.exports = (io) => ({
 		return Maps[mapID];
 	},
 
+	/**
+	 * Gets all players in a map
+	 * @param {number} mapID A valid mapID
+	 * @return {Object} Returns the socket.character obj, keyed by character name
+	 */
 	getAllPlayersInMap: (mapID) => {
 		const playersInMap = [];
 

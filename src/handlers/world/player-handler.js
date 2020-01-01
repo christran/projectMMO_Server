@@ -72,12 +72,13 @@ module.exports = (io, socket, clients, delta, tick) => {
 
 			const players = Map.getAllPlayersInMap(socket.character.mapID);
 
-			_.forOwn(players, (value, key) => {
+			_.forOwn(players, (value, name) => {
 				playersInMap.push({
-					playerName: players[key].name,
-					position: players[key].position
+					playerName: name,
+					position: players[name].position
 				});
 			});
+
 
 			callback(playersInMap);
 		} else {
@@ -87,45 +88,46 @@ module.exports = (io, socket, clients, delta, tick) => {
 	});
 
 	// Spawn Player after they select a character
-	socket.on('spawnPlayer', (data) => {
-		if (_.findIndex(clients, { name: data.name })) {
-			Character.getCharacter(data.name)
-				.then((character) => {
-					// const charWeakMap = new WeakMap();
-					// charWeakMap.set(socket, character);
-					// const clientCharacter = charWeakMap.get(socket);
-					// console.log(clientCharacter.mapID);
-
-					socket.character = character;
-
-					clients.push({
-						name: character.name,
-						socketID: socket.id
-					});
-
-					// Add player to map and spawn them in the map
-					socket.join(character.mapID);
-
-					// Send client the current tick of the server
-					socket.emit('setCurrentTick', tick);
-					socket.emit('changePlayerMap', character);
-
-					// Send to other players in the map
-					socket.to(character.mapID).emit('addPlayerToMap', {
-						[character.name]: {
-							position: character.position
-						}
-					});
-
-					console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${clients.length}`);
-				})
-				.catch((err) => {
-					console.log(`[Player Handler] spawnPlayer | Error: ${err}`);
-				});
-		} else {
-			// If pawn is already spawned/possessed
+	socket.on('spawnPlayer', async (data) => {
+		if (_.findIndex(clients, { name: data.name }) >= 0) {
+			// Pawn is already spawned/possessed
 			socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a character (${data.name}) that is already spawned.`;
-			socket.emit('dc', 'Stop hacking');// console.log(`[Player Handler] spawnPlayer | Trying to spawn a character (${data.name}) that is already spawned.`);
+			socket.emit('dc', 'Stop hacking');
+		} else {
+			const character = await Character.getCharacterByID(data._id).catch((err) => console.log(`[Player Handler] spawnPlayer | Error: ${err}`));
+
+			if (character) {
+				// const charWeakMap = new WeakMap();
+				// charWeakMap.set(socket, character);
+				// const clientCharacter = charWeakMap.get(socket);
+				// console.log(clientCharacter.mapID);
+
+				socket.character = character;
+
+				clients.push({
+					name: character.name,
+					socketID: socket.id
+				});
+
+				// Add player to map and spawn them in the map
+				socket.join(character.mapID);
+
+				// Send client the current tick of the server
+				socket.emit('setCurrentTick', tick);
+				socket.emit('changePlayerMap', character);
+
+				// Send to other players in the map
+				socket.to(character.mapID).emit('addPlayerToMap', {
+					[character.name]: {
+						position: character.position
+					}
+				});
+
+				console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${clients.length}`);
+			} else {
+				socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a invaild Character ID (${data._id})`;
+				socket.emit('dc', 'Stop hacking');
+			}
 		}
 	});
 
@@ -135,72 +137,50 @@ module.exports = (io, socket, clients, delta, tick) => {
 		if (currentMap) {
 			const currentPortal = currentMap.getPortalByName(data.portalName);
 
-			const targetPortal = await Map.getMap(currentPortal.toMapID).catch((err) => console.log(`[Player Handler] player_UsePortal | ${err}`));
+			// Check if portal exists in the current map
+			if (!currentPortal) {
+				console.log(`[World Server] ${socket.character.name} tried using Portal: ${data.portalName} from Map ID: ${socket.character.mapID}`);
+				// socket.emit('dc', 'Stop hacking');
+			} else {
+				const targetPortal = await Map.getMap(currentPortal.toMapID).catch((err) => console.log(`[Player Handler] player_UsePortal | ${err}`));
 
-			if (socket.character.mapID) {
-				// Tell all players in the map to remove the player that disconnected.
-				socket.to(socket.character.mapID).emit('removePlayerFromMap', {
-					playerName: socket.character.name,
-				});
-
-				// Get current map and leave the socket room
-				socket.leave(socket.character.mapID);
-
-				// Update Character Map ID in MongoDB
-				// Send callback back to client with data such as all the players in the new map
-
-				const newPosition = targetPortal.portals[currentPortal.toPortalName].position;
-
-				if (newPosition) {
-					const response = {
-						mapID: currentPortal.toMapID,
-						portal: true,
-						// Get Portal Data (SpawnLocation) given toMapId/toPortalName
-
-						position: {
-							location: {
-								x: newPosition.location.x,
-								y: newPosition.location.y,
-								z: newPosition.location.z
-							},
-							rotation: {
-								roll: newPosition.rotation.roll,
-								pitch: newPosition.rotation.pitch,
-								yaw: newPosition.rotation.yaw
-							}
-						}
-					};
-
-					socket.join(currentPortal.toMapID);
-
-					socket.character.position = {
-						location: {
-							x: newPosition.location.x,
-							y: newPosition.location.y,
-							z: newPosition.location.z
-						},
-						rotation: {
-							roll: newPosition.rotation.roll,
-							pitch: newPosition.rotation.pitch,
-							yaw: newPosition.rotation.yaw
-						}
-					};
-					socket.character.mapID = currentPortal.toMapID;
-					socket.emit('changePlayerMap', response);
-
-					Character.saveCharacter(socket);
-
-					// Send to other players in the map
-					socket.to(socket.character.mapID).emit('addPlayerToMap', {
-						[socket.character.name]: {
-							position: socket.character.position
-						}
+				if (socket.character.mapID) {
+					// Tell all players in the map to remove the player that disconnected.
+					socket.to(socket.character.mapID).emit('removePlayerFromMap', {
+						playerName: socket.character.name,
 					});
 
-					console.log(`[World Server] ${socket.character.name} moved to Map: ${targetPortal.mapName}`);
+					socket.leave(socket.character.mapID);
+
+					const newPosition = targetPortal.portals[currentPortal.toPortalName].position;
+
+					if (newPosition) {
+						const response = {
+							mapID: currentPortal.toMapID,
+							position: newPosition,
+							portal: true,
+						};
+
+						socket.join(currentPortal.toMapID);
+
+						socket.character.position = newPosition;
+						socket.character.mapID = currentPortal.toMapID;
+						socket.emit('changePlayerMap', response);
+
+						Character.saveCharacter(socket);
+
+						// Send to other players in the map
+						socket.to(socket.character.mapID).emit('addPlayerToMap', {
+							[socket.character.name]: {
+								position: socket.character.position
+							}
+						});
+
+						console.log(`[World Server] ${socket.character.name} moved to Map: ${targetPortal.mapInfo.mapName}`);
+					}
+				} else {
+					console.log(`[World Server] Player: ${socket.character.name} doesn't have a mapID`);
 				}
-			} else {
-				console.log(`[World Server] Player: ${socket.character.name} doesn't have a mapID`);
 			}
 		}
 	});

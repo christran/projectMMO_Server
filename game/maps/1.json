@@ -12,7 +12,7 @@
     },
     "mobs": {
         "100100": {
-            "spawnLocation": 
+            "spawnLocation":
             [
                 { "x": 100, "y": 100, "z": 0 },
                 { "x": 100, "y": 150, "z": 0 }

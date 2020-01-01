@@ -12,7 +12,6 @@ global.db = require('./db');
 const moment = require('moment');
 const chalk = require('chalk');
 
-
 const config = require('./_config.json');
 
 const { port } = config.loginserver;
@@ -129,12 +128,6 @@ app.post('/LoginServer/register', (req, res) => {
 	register(req, res);
 });
 
-/*
-app.post('/LoginServer/createChar', function(req, res) {
-    createChar(req, res);
-});
-*/
-
 app.post('/LoginServer/', (req, res) => {
 	res.status(403).end();
 });
@@ -146,9 +139,9 @@ app.get('/LoginServer/', (req, res) => {
 io.on('connection', (socket) => {
 	require('./src/handlers/login/login-handler')(io, socket, clients);
 
-	console.log(chalk.yellow('[Login Server]'), `Connection | IP: ${socket.handshake.address}`);
+	console.log(chalk.yellow('[Login Server]'), `Connect | IP: ${socket.handshake.address}`);
 
-	// Check Client's Version
+	// Send the server's current version
 	socket.on('serverVersion', (clientVersion, callback) => {
 		callback(config.version);
 	});

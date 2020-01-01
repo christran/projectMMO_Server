@@ -65,6 +65,8 @@ accountSchema.statics.getCharacters = async function (accountID) {
 	return Character.model('characters').find({ accountID }).sort({ createdAt: 'asc' });
 };
 
+
+/** @type {accountSchema.statics} */
 const Account = db.mongoose.model('accounts', accountSchema);
 
 module.exports = Account;

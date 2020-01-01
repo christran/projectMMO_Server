@@ -1,6 +1,5 @@
 /* eslint-disable func-names */
 const uniqueValidator = require('mongoose-unique-validator');
-
 const db = require('../../db');
 
 const characterSchema = new db.mongoose.Schema(
@@ -72,6 +71,8 @@ characterSchema.statics.saveCharacter = async function (socket) {
 	}
 };
 
+
+/** @type {characterSchema.statics} */
 const Character = db.mongoose.model('characters', characterSchema);
 
 module.exports = Character;
