@@ -1,5 +1,5 @@
 module.exports = {
-    arrayToObject: function (arr, keyField) {
-        return Object.assign({}, ...arr.map(item => ({[item[keyField]]: item})));
-    }
+	awaitStall: async (stallTime = 3000) => {
+		await new Promise((resolve) => setTimeout(resolve, stallTime));
+	}
 };

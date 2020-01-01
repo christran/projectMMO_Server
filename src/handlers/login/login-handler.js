@@ -1,5 +1,4 @@
 const bcrypt = require('bcrypt');
-const _ = require('lodash');
 const moment = require('moment');
 const chalk = require('chalk');
 
@@ -11,7 +10,6 @@ module.exports = (io, socket, clients) => {
 	socket.on('login', async (data, callback) => {
 		const account = await Account.getAccount(data.username).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
 
-		// Find Username
 		if (account) {
 			bcrypt.compare(data.password, account.password, (err, bcryptRes) => {
 				if (bcryptRes && !err) {
@@ -39,7 +37,7 @@ module.exports = (io, socket, clients) => {
 						const response = {
 							result: 'Handshaked',
 							accountID: account._id,
-							lastLogin: moment(account.lastLoginDate, 'YYYY-MM-DD HH:mm:ss').fromNow()
+							lastLogin: moment(account.lastLoginDate, 'YYYY-MM-DD HH:mm:ss').fromNow() // Remove this later, only send necessary data
 						};
 
 						clients.push({
@@ -136,10 +134,23 @@ module.exports = (io, socket, clients) => {
 		}
 	});
 
+	socket.on('deleteCharacter', async (data, callback) => {
+		const deleteChar = await Character.deleteOne({ _id: data._id }).catch((err) => {
+			callback('ERROR');
+			console.log(`[Login Server] deleteCharacter | Error: ${err}`);
+		});
+
+		if (deleteChar.deletedCount === 1) {
+			callback('OK');
+		} else {
+			callback('ERROR');
+		}
+	});
+
 	socket.on('getCharacters', async (data, callback) => {
 		const characters = await Account.getCharacters(data.accountID).catch((err) => console.log(`[Login Server] getCharacters | Error: ${err}`));
 
-		callback(_.keyBy(characters, 'name'));
+		callback(characters);
 	});
 
 	socket.on('selectCharacter', async (data) => {
@@ -165,9 +176,9 @@ module.exports = (io, socket, clients) => {
 					console.log(`[Login Server] ${err}`);
 				});
 
-			console.log(chalk.yellow('[Login Server]'), `Disconnection | User: ${socket.username} | Total Connected: ${clients.length}`);
+			console.log(chalk.yellow('[Login Server]'), `Disconnect | User: ${socket.username} | Total Connected: ${clients.length}`);
 		} else {
-			console.log(chalk.yellow('[Login Server]'), `Disconnection | IP: ${socket.handshake.address} | Total Connected: ${clients.length}`);
+			console.log(chalk.yellow('[Login Server]'), `Disconnect | IP: ${socket.handshake.address} | Total Connected: ${clients.length}`);
 		}
 
 		const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
