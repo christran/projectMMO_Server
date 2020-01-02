@@ -8,7 +8,6 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 
 const _ = require('lodash');
-const fs = require('fs');
 const chalk = require('chalk');
 
 const Map = require('../projectMMO_Server/src/world/Map')(io);
@@ -23,24 +22,12 @@ const { port } = config.worldserver;
 
 const clients = [];
 
-// Load All Models (Schema)
-fs.readdirSync('./src/models').forEach((file) => {
-	require(`./src/models/${file}`);
-});
-
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 // Server Web Client
 app.get('/', (req, res) => {
-	// res.sendFile(__dirname + '/index.html');
 	res.status(403).end();
-});
-
-app.get('/serverStatus', (req, res) => {
-	const response = { result: 'Online' };
-
-	res.send(response);
 });
 
 io.on('connection', (socket) => {
@@ -107,6 +94,9 @@ function gameLoop() {
 }
 
 http.listen(port, () => {
+	// Connect to DB
+	require('./db');
+
 	// Start the Game LOop
 	gameLoop();
 
