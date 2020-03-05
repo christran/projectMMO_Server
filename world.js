@@ -18,7 +18,7 @@ let delta = 0;
 
 const config = require('./_config.json');
 
-const { port } = config.worldserver;
+const { port, serverMessage } = config.worldserver;
 
 const clients = [];
 
@@ -34,6 +34,8 @@ io.on('connection', (socket) => {
 	// Require all Handlers
 	require('./src/handlers/world/player-handler')(io, socket, clients, delta, tick);
 	require('./src/handlers/world/chat-handler')(socket);
+
+	io.emit('serverMessage', serverMessage);
 });
 
 
@@ -59,14 +61,20 @@ function update() {
 			const players = Map.getAllPlayersInMap(mapID);
 
 			_.forOwn(players, (value, name) => {
-				const player = {
-					[name]: {
-						position: players[name].position,
-						tick
-					}
-				};
+				// Don't send data if character is idle
+				if (players[name].action > 0) {
+					const player = {
+						[name]: {
+							position: players[name].position,
+							action: players[name].action,
+							tick
+						}
+					};
 
-				playerArray.push(player);
+					playerArray.push(player);
+
+					players[name].action = 0;
+				}
 			});
 
 			io.to(mapID).emit('update', playerArray);
