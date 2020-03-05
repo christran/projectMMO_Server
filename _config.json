@@ -4,7 +4,8 @@
         "port": 8484
     },
     "worldserver": {
-        "port": 7575
+		"port": 7575,
+		"serverMessage": "Welcome to the Alpha Test."
     },
     "mongoDB": {
         "dbUrl": "mongodb://127.0.0.1:27017/",

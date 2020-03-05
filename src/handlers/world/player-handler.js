@@ -8,7 +8,10 @@ module.exports = (io, socket, clients, delta, tick) => {
 	const Map = require('../../world/Map')(io);
 
 	socket.on('player_Movement', (data) => {
-		if (data.movementSnapshot) {
+		if (socket.character.usingPortal) {
+			// Don't apply old inputs after using portal
+			console.log('[Portal] Ignore player\'s old movement data');
+		} else if (data.movementSnapshot) {
 			const snapshotArray = data.movementSnapshot;
 
 			snapshotArray.forEach((snapshot) => {
@@ -39,33 +42,37 @@ module.exports = (io, socket, clients, delta, tick) => {
 					charPos.location.y = snapshot.location.y - snapshot.velocity * snapshot.deltaTime;
 					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw - rotationSpeed * snapshot.deltaTime, -90, 90);
 					charPos.location.z = snapshot.location.z;
+					socket.character.action = 1;
 					break;
 				case 'Right':
 					charPos.location.y = snapshot.location.y + snapshot.velocity * snapshot.deltaTime;
 					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw + rotationSpeed * snapshot.deltaTime, -90, 90);
 					charPos.location.z = snapshot.location.z;
+					socket.character.action = 1;
 					break;
 				case 'Up':
 					charPos.location.x = snapshot.location.x + snapshot.velocity * snapshot.deltaTime;
 					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw + rotationSpeed * snapshot.deltaTime, -180, 180);
 					charPos.location.z = snapshot.location.z;
+					socket.character.action = 1;
 					break;
 				case 'Down':
 					charPos.location.x = snapshot.location.x - snapshot.velocity * snapshot.deltaTime;
 					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw - rotationSpeed * snapshot.deltaTime, -180, 180);
 					charPos.location.z = snapshot.location.z;
+					socket.character.action = 1;
 					break;
 				default:
 					break;
 				}
 			});
 		}
-
-		// console.log(formatBytes(totalRecv));
 	});
 
 	// When a plyer enters a map (GameInstance_MMO) will emit this event
 	socket.on('getAllPlayersInMap', (data, callback) => {
+		socket.character.usingPortal = false;
+
 		// Send client any other players in the map
 		if (Map.getAllPlayersInMap(socket.character.mapID)) {
 			const playersInMap = [];
@@ -141,10 +148,12 @@ module.exports = (io, socket, clients, delta, tick) => {
 			if (!currentPortal) {
 				console.log(`[World Server] ${socket.character.name} tried using Portal: ${data.portalName} from Map ID: ${socket.character.mapID}`);
 				// socket.emit('dc', 'Stop hacking');
-			} else {
+			} else if (currentPortal.portalType === 1) { // Regular Portal (Map to Map)
 				const targetPortal = await Map.getMap(currentPortal.toMapID).catch((err) => console.log(`[Player Handler] player_UsePortal | ${err}`));
 
 				if (socket.character.mapID) {
+					socket.character.usingPortal = true;
+
 					// Tell all players in the map to remove the player that disconnected.
 					socket.to(socket.character.mapID).emit('removePlayerFromMap', {
 						playerName: socket.character.name,
@@ -158,7 +167,6 @@ module.exports = (io, socket, clients, delta, tick) => {
 						const response = {
 							mapID: currentPortal.toMapID,
 							position: newPosition,
-							portal: true,
 						};
 
 						socket.join(currentPortal.toMapID);
@@ -180,6 +188,27 @@ module.exports = (io, socket, clients, delta, tick) => {
 					}
 				} else {
 					console.log(`[World Server] Player: ${socket.character.name} doesn't have a mapID`);
+				}
+			} else if (currentPortal.portalType === 2) { // Teleport Portals (Portals in the same map that just change location)
+				const targetPortal = currentMap.getPortalByName(data.portalName);
+
+				// socket.character.usingPortal = true;
+
+				const newPosition = currentMap.getPortalByName(targetPortal.toPortalName).position;
+
+				if (newPosition) {
+					const response = {
+						position: newPosition,
+						portal: true,
+					};
+
+					socket.character.position = newPosition;
+					socket.character.action = 2;
+					socket.emit('teleportPlayer', response);
+
+					Character.saveCharacter(socket);
+
+					console.log(`[World Server] ${socket.character.name} used portal: ${data.portalName} in Map: ${currentMap.mapInfo.mapName}`);
 				}
 			}
 		}

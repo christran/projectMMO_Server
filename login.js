@@ -44,6 +44,7 @@ io.on('connection', (socket) => {
 });
 
 http.listen(port, () => {
+	// Connect to DB
 	require('./db');
 
 	console.log(chalk.yellow('[Login Server] Starting Login Server... Port:', port));
