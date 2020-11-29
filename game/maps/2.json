@@ -1,22 +1,19 @@
 {
     "mapInfo": {
-        "mapName": "Leaving Maple Road"
+        "mapName": "Leaving Maple Road",
+        "version": 1,
+        "town": 1,
+        "returnMapID": 1
     },
     "portals": {
         "map_2_portal_1": {
+			"id": 1,
+			"portalType": 1,
             "toMapID": 1,
             "toPortalName": "map_1_portal_1",
             "position": {
-                "translation": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "rotation": { 
-                    "x": 0, 
-                    "y": 0, 
-                    "z": 90 
-                }
+                "location": { "x": 60, "y": -30, "z": 140 },
+                "rotation": { "roll": 0, "pitch": 0, "yaw": 90 }
             }
         }
     }

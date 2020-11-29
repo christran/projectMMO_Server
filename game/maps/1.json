@@ -1,6 +1,9 @@
 {
     "mapInfo": {
-        "mapName": "Maple Road"
+        "mapName": "Maple Road",
+        "version": 1,
+        "town": 1,
+        "returnMapID": 1
     },
     "npcs": {
         "Ms. Park": {
@@ -8,36 +11,41 @@
         }
     },
     "mobs": {
-        "1": {
-            "spawnLocation": [
-                {
-                    "x": 100,
-                    "y": 100,
-                    "z": 0
-                },
-                {
-                    "x": 100,
-                    "y": 150,
-                    "z": 0
-                }
+        "100100": {
+            "spawnLocation":
+            [
+                { "x": 100, "y": 100, "z": 0 },
+                { "x": 100, "y": 150, "z": 0 }
             ]
         }
     },
     "portals": {
         "map_1_portal_1": {
+			"id": 1,
+			"portalType": 1,
             "toMapID": 2,
             "toPortalName": "map_2_portal_1",
             "position": {
-                "translation": {
-                    "x": 0,
-                    "y": 0,
-                    "z": 0
-                },
-                "rotation": { 
-                    "x": 0, 
-                    "y": 0, 
-                    "z": -90
-                }
+                "location": { "x": -20, "y": 600, "z": 140 },
+                "rotation": { "roll": 0, "pitch": 0, "yaw": -90 }
+            }
+		},
+		"map_1_portal_2": {
+			"id": 2,
+			"portalType": 2,
+            "toPortalName": "map_1_portal_3",
+            "position": {
+                "location": { "x": -530, "y": 1740, "z": 140 },
+                "rotation": { "roll": 0, "pitch": 0, "yaw": -90 }
+            }
+        },
+		"map_1_portal_3": {
+			"id": 3,
+			"portalType": 2,
+            "toPortalName": "map_1_portal_2",
+            "position": {
+                "location": { "x": -180, "y": 760, "z": -1410 },
+                "rotation": { "roll": 0, "pitch": 0, "yaw": 0 }
             }
         }
     }
