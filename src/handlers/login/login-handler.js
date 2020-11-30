@@ -165,6 +165,8 @@ module.exports = (io, socket, clients) => {
 	});
 
 	socket.on('disconnect', () => {
+		const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
+
 		// Check if user was logged in and set isOnline to false.
 		if (!socket.handoffToWorldServer && socket.username) {
 			Account.getAccount(socket.username)
@@ -176,12 +178,17 @@ module.exports = (io, socket, clients) => {
 					console.log(`[Login Server] ${err}`);
 				});
 
+			clients.splice(socketIndex, 1);
+
 			console.log(chalk.yellow('[Login Server]'), `Disconnect | User: ${socket.username} | Total Connected: ${clients.length}`);
+		} else if (socket.handoffToWorldServer) {
+			clients.splice(socketIndex, 1);
+
+			console.log(chalk.yellow('[Login Server]'), `Handoff to World Server | User: ${socket.username}`);
 		} else {
+			clients.splice(socketIndex, 1);
+
 			console.log(chalk.yellow('[Login Server]'), `Disconnect | IP: ${socket.handshake.address} | Total Connected: ${clients.length}`);
 		}
-
-		const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
-		clients.splice(socketIndex, 1);
 	});
 };

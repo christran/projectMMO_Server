@@ -2,6 +2,9 @@
     "version": 0.01,
     "loginserver": {
         "port": 8484
+	},
+	"chatserver": {
+        "port": 8485
     },
     "worldserver": {
 		"port": 7575,
