@@ -1,4 +1,4 @@
-module.exports = (socket, io) => {
+module.exports = (io, socket, clients) => {
 	socket.on('chat', (data) => {
 		const combinedMsg = `${data.playerName}: ${data.message}`;
 
@@ -22,5 +22,10 @@ module.exports = (socket, io) => {
 			io.emit('chat', combinedMsg);
 			console.log(`[All Chat] ${combinedMsg}`);
 		}
+	});
+
+
+	socket.on('disconnect', () => {
+		console.log(`[Chat Server] User: blank | Total Online: ${clients.length}`);
 	});
 };
