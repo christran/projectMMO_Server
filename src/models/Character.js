@@ -66,7 +66,8 @@ characterSchema.statics.saveCharacter = async function (socket) {
 	try {
 		await socket.character.save();
 	} catch (err) {
-		socket.disconnect();
+		// socket.disconnect();
+		socket.emit('dc', 'Character Error');
 		console.log(`[World Server] Saving Character | Error: ${err}`);
 	}
 };

@@ -42,24 +42,28 @@ module.exports = (io, socket, clients, delta, tick) => {
 					charPos.location.y = snapshot.location.y - snapshot.velocity * snapshot.deltaTime;
 					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw - rotationSpeed * snapshot.deltaTime, -90, 90);
 					charPos.location.z = snapshot.location.z;
+					charPos.velocity = snapshot.velocity;
 					socket.character.action = 1;
 					break;
 				case 'Right':
 					charPos.location.y = snapshot.location.y + snapshot.velocity * snapshot.deltaTime;
 					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw + rotationSpeed * snapshot.deltaTime, -90, 90);
 					charPos.location.z = snapshot.location.z;
+					charPos.velocity = snapshot.velocity;
 					socket.character.action = 1;
 					break;
 				case 'Up':
 					charPos.location.x = snapshot.location.x + snapshot.velocity * snapshot.deltaTime;
 					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw + rotationSpeed * snapshot.deltaTime, -180, 180);
 					charPos.location.z = snapshot.location.z;
+					charPos.velocity = snapshot.velocity;
 					socket.character.action = 1;
 					break;
 				case 'Down':
 					charPos.location.x = snapshot.location.x - snapshot.velocity * snapshot.deltaTime;
 					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw - rotationSpeed * snapshot.deltaTime, -180, 180);
 					charPos.location.z = snapshot.location.z;
+					charPos.velocity = snapshot.velocity;
 					socket.character.action = 1;
 					break;
 				default:
@@ -121,13 +125,12 @@ module.exports = (io, socket, clients, delta, tick) => {
 
 				// Send client the current tick of the server
 				socket.emit('setCurrentTick', tick);
-				socket.emit('changePlayerMap', character);
+				socket.emit('changePlayerMap', character.mapID);
 
 				// Send to other players in the map
 				socket.to(character.mapID).emit('addPlayerToMap', {
-					[character.name]: {
-						position: character.position
-					}
+					name: character.name,
+					position: character.position
 				});
 
 				console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${clients.length}`);
@@ -164,24 +167,17 @@ module.exports = (io, socket, clients, delta, tick) => {
 					const newPosition = targetPortal.portals[currentPortal.toPortalName].position;
 
 					if (newPosition) {
-						const response = {
-							mapID: currentPortal.toMapID,
-							position: newPosition,
-						};
-
 						socket.join(currentPortal.toMapID);
 
 						socket.character.position = newPosition;
 						socket.character.mapID = currentPortal.toMapID;
-						socket.emit('changePlayerMap', response);
+						socket.emit('changePlayerMap', currentPortal.toMapID);
 
 						Character.saveCharacter(socket);
 
-						// Send to other players in the map
 						socket.to(socket.character.mapID).emit('addPlayerToMap', {
-							[socket.character.name]: {
-								position: socket.character.position
-							}
+							name: socket.character.name,
+							position: socket.character.position
 						});
 
 						console.log(`[World Server] ${socket.character.name} moved to Map: ${targetPortal.mapInfo.mapName}`);
@@ -191,8 +187,6 @@ module.exports = (io, socket, clients, delta, tick) => {
 				}
 			} else if (currentPortal.portalType === 2) { // Teleport Portals (Portals in the same map that just change location)
 				const targetPortal = currentMap.getPortalByName(data.portalName);
-
-				// socket.character.usingPortal = true;
 
 				const newPosition = currentMap.getPortalByName(targetPortal.toPortalName).position;
 
@@ -205,8 +199,6 @@ module.exports = (io, socket, clients, delta, tick) => {
 					socket.character.position = newPosition;
 					socket.character.action = 2;
 					socket.emit('teleportPlayer', response);
-
-					Character.saveCharacter(socket);
 
 					console.log(`[World Server] ${socket.character.name} used portal: ${data.portalName} in Map: ${currentMap.mapInfo.mapName}`);
 				}

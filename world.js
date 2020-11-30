@@ -33,9 +33,8 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
 	// Require all Handlers
 	require('./src/handlers/world/player-handler')(io, socket, clients, delta, tick);
-	require('./src/handlers/world/chat-handler')(socket);
 
-	io.emit('serverMessage', serverMessage);
+	io.emit('updateServerMessage', serverMessage);
 });
 
 
@@ -45,9 +44,6 @@ function hrtimeMs() {
 
 	return time[0] * 1000 + time[1] / 1000000;
 }
-
-let previous = hrtimeMs();
-const tickLengthMs = 1000 / TICK_RATE;
 
 // Game Logic
 function update() {
@@ -67,6 +63,7 @@ function update() {
 						[name]: {
 							position: players[name].position,
 							action: players[name].action,
+							velocity: players[name].position.velocity,
 							tick
 						}
 					};
@@ -87,6 +84,11 @@ function update() {
 	// io.emit('setCurrentTick', tick);
 }
 
+
+// Game Loop
+let previous = hrtimeMs();
+const tickLengthMs = 1000 / TICK_RATE;
+
 function gameLoop() {
 	setTimeout(gameLoop, tickLengthMs);
 	const now = hrtimeMs();
@@ -97,6 +99,8 @@ function gameLoop() {
 
 	// Game Logic
 	update();
+
+
 	previous = now;
 	tick += 1;
 }
