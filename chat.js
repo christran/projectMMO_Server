@@ -28,7 +28,7 @@ io.on('connection', (socket) => {
 	// Require all Handlers
 	require('./src/handlers/world/chat-handler')(io, socket, clients);
 
-	console.log(`[Chat Server] User: blank | Total Online: ${clients.length}`);
+	console.log('[Chat Server] User: blank connected to chat');
 });
 
 http.listen(port, () => {

@@ -1,4 +1,7 @@
 const _ = require('lodash');
+const moment = require('moment');
+
+const Discord = require('../../helpers/discord');
 
 const Account = require('../../../src/models/Account');
 const Character = require('../../../src/models/Character');
@@ -6,15 +9,19 @@ const Character = require('../../../src/models/Character');
 module.exports = (io, socket, clients, delta, tick) => {
 	const Player = require('../../helpers/player-helper')(io, clients);
 	const Map = require('../../world/Map')(io);
+	const snapshotArray = [];
 
+	/*
 	socket.on('player_Movement', (data) => {
 		if (socket.character.usingPortal) {
 			// Don't apply old inputs after using portal
+			// If a player is still moving when using a portal it carries over to the next map
+			// Currently broken because of the new server movement code
 			console.log('[Portal] Ignore player\'s old movement data');
 		} else if (data.movementSnapshot) {
-			const snapshotArray = data.movementSnapshot;
+			const { movementSnapshot } = data;
 
-			snapshotArray.forEach((snapshot) => {
+			movementSnapshot.forEach((snapshot) => {
 				// Check if player's velocity is > than the max walk speed + any speed enhancing skills
 				if (Math.round(snapshot.velocity) > 4089) {
 					console.log(`[Anticheat] ${socket.character.name} | Speed Hacking | Current Velocity: ${Math.round(snapshot.velocity)}`);
@@ -22,58 +29,51 @@ module.exports = (io, socket, clients, delta, tick) => {
 					// socket.emit('dc', 'Stop hacking');
 				}
 
-				if (snapshot.deltaTime > delta) {
-					console.log(`[Anticheat] ${socket.character.name} | Speed Hacking | Client Delta Time: ${snapshot.deltaTime} > ${delta}`);
-					// socket.emit('dc', 'Stop hacking');
-				}
-
 				// Check if player fell off the map
-				if (snapshot.location.z < -10000) {
-					// Get nearest portal on server side and set charPos to it
-					socket.emit('player_ZLimit');
-				}
+				// if (socket.character.position.location.z < -10000) {
+				// 	// Get nearest portal on server side and set charPos to it
+				// 	socket.emit('player_ZLimit');
+				// }
 
 				// Set to the same as what the client has UE4 (BP_Character)
-				const rotationSpeed = 1000.0;
-				const charPos = socket.character.position;
+				// const rotationSpeed = 1000.0;
 
-				switch (snapshot.direction) {
-				case 'Left':
-					charPos.location.y = snapshot.location.y - snapshot.velocity * snapshot.deltaTime;
-					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw - rotationSpeed * snapshot.deltaTime, -90, 90);
-					charPos.location.z = snapshot.location.z;
-					charPos.velocity = snapshot.velocity;
-					socket.character.action = 1;
-					break;
-				case 'Right':
-					charPos.location.y = snapshot.location.y + snapshot.velocity * snapshot.deltaTime;
-					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw + rotationSpeed * snapshot.deltaTime, -90, 90);
-					charPos.location.z = snapshot.location.z;
-					charPos.velocity = snapshot.velocity;
-					socket.character.action = 1;
-					break;
-				case 'Up':
-					charPos.location.x = snapshot.location.x + snapshot.velocity * snapshot.deltaTime;
-					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw + rotationSpeed * snapshot.deltaTime, -180, 180);
-					charPos.location.z = snapshot.location.z;
-					charPos.velocity = snapshot.velocity;
-					socket.character.action = 1;
-					break;
-				case 'Down':
-					charPos.location.x = snapshot.location.x - snapshot.velocity * snapshot.deltaTime;
-					charPos.rotation.yaw = _.clamp(snapshot.rotation.yaw - rotationSpeed * snapshot.deltaTime, -180, 180);
-					charPos.location.z = snapshot.location.z;
-					charPos.velocity = snapshot.velocity;
-					socket.character.action = 1;
-					break;
-				default:
-					break;
-				}
+				snapshotArray.push(snapshot);
+				socket.character.snapshot = snapshotArray;
 			});
+		}
+	});
+	*/
+
+	const movementArray = [];
+
+	socket.on('player_Movement', (data) => {
+		movementArray.push(data);
+
+		console.log(movementArray.length);
+	});
+
+	socket.on('player_Action', (data) => {
+		switch (data.action) {
+		case 'Jump':
+			socket.character.action = 2;
+			console.log(`${socket.character.name} jumped`);
+			break;
+		case 'Crouch':
+			socket.character.action = 3;
+			console.log(`${socket.character.name} crouched`);
+			break;
+		case 'Attack':
+			socket.character.action = 4;
+			console.log(`${socket.character.name} attacked`);
+			break;
+		default:
+			break;
 		}
 	});
 
 	// When a plyer enters a map (GameInstance_MMO) will emit this event
+	// Shouldn't need this because of how the client is also getting send world snapshots that contain the same information
 	socket.on('getAllPlayersInMap', (data, callback) => {
 		socket.character.usingPortal = false;
 
@@ -100,12 +100,14 @@ module.exports = (io, socket, clients, delta, tick) => {
 
 	// Spawn Player after they select a character
 	socket.on('spawnPlayer', async (data) => {
+		// Check if player is trying to spawn a character that is already spawned ingame
 		if (_.findIndex(clients, { name: data.name }) >= 0) {
 			// Pawn is already spawned/possessed
 			socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a character (${data.name}) that is already spawned.`;
 			socket.emit('dc', 'Stop hacking');
 		} else {
 			const character = await Character.getCharacterByID(data._id).catch((err) => console.log(`[Player Handler] spawnPlayer | Error: ${err}`));
+			const account = await Account.getAccountByID(character.accountID).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
 
 			if (character) {
 				// const charWeakMap = new WeakMap();
@@ -132,6 +134,12 @@ module.exports = (io, socket, clients, delta, tick) => {
 					name: character.name,
 					position: character.position
 				});
+
+				// Discord Login Message
+				Discord.LoginNotify(character);
+
+				account.lastLoginDate = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
+				account.save();
 
 				console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${clients.length}`);
 			} else {
@@ -206,12 +214,18 @@ module.exports = (io, socket, clients, delta, tick) => {
 		}
 	});
 
-	// Disconnect a player with given name
+	// Disconnect a player with given name (GM Command - !dc {playername})
 	socket.on('player_DC', (data) => {
 		if (Player.getSocketByName(data.name)) {
 			const player = Player.getSocketByName(data.name);
 
 			io.to(`${player.id}`).emit('dc', 'D/Ced by a GM');
+
+			// Tell all clients in the map to remove the player that disconnected.
+			socket.to(player.mapID).emit('removePlayerFromMap', {
+				playerName: data.name
+			});
+
 			console.log(`[World Server] ${player.character.name} was dced by a GM`);
 		} else {
 			console.log(`[World Server] Can't find player: ${data.name}`);
@@ -230,7 +244,7 @@ module.exports = (io, socket, clients, delta, tick) => {
 				account.save();
 			});
 
-			// Tell all players in the map to remove the player that disconnected.
+			// Tell all clients in the map to remove the player that disconnected.
 			socket.to(socket.character.mapID).emit('removePlayerFromMap', {
 				playerName: socket.character.name
 			});
