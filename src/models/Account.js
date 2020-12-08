@@ -2,7 +2,7 @@
 const uniqueValidator = require('mongoose-unique-validator');
 const db = require('../../db');
 
-const Character = require('../../src/models/Character');
+const Character = require('./Character');
 
 const accountSchema = new db.mongoose.Schema(
 	{
@@ -64,7 +64,6 @@ accountSchema.statics.getAccountByID = async function (accountID) {
 accountSchema.statics.getCharacters = async function (accountID) {
 	return Character.model('characters').find({ accountID }).sort({ createdAt: 'asc' });
 };
-
 
 /** @type {accountSchema.statics} */
 const Account = db.mongoose.model('accounts', accountSchema);

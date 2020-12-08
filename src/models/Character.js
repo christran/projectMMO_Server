@@ -72,7 +72,6 @@ characterSchema.statics.saveCharacter = async function (socket) {
 	}
 };
 
-
 /** @type {characterSchema.statics} */
 const Character = db.mongoose.model('characters', characterSchema);
 

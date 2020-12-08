@@ -3,15 +3,14 @@ const moment = require('moment');
 
 const Discord = require('../../helpers/discord');
 
-const Account = require('../../../src/models/Account');
-const Character = require('../../../src/models/Character');
+const Account = require('../../models/Account');
+const Character = require('../../models/Character');
 
 module.exports = (io, socket, clients, delta, tick) => {
 	const Player = require('../../helpers/player-helper')(io, clients);
 	const Map = require('../../world/Map')(io);
 	const snapshotArray = [];
 
-	/*
 	socket.on('player_Movement', (data) => {
 		if (socket.character.usingPortal) {
 			// Don't apply old inputs after using portal
@@ -43,15 +42,14 @@ module.exports = (io, socket, clients, delta, tick) => {
 			});
 		}
 	});
-	*/
 
-	const movementArray = [];
+	// const movementArray = [];
 
-	socket.on('player_Movement', (data) => {
-		movementArray.push(data);
+	// socket.on('player_Movement', (data) => {
+	// 	movementArray.push(data);
 
-		console.log(movementArray.length);
-	});
+	// 	console.log(movementArray.length);
+	// });
 
 	socket.on('player_Action', (data) => {
 		switch (data.action) {
@@ -89,7 +87,6 @@ module.exports = (io, socket, clients, delta, tick) => {
 					position: players[name].position
 				});
 			});
-
 
 			callback(playersInMap);
 		} else {
