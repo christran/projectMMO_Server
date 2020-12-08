@@ -15,8 +15,10 @@
     "msgpack-lite": "^0.1.26",
     "path": "^0.12.7",
     "pretty-error": "^2.1.1",
+    "random-color": "^1.0.1",
     "request": "^2.88.0",
-    "socket.io": "^2.0.0"
+    "socket.io": "^2.0.0",
+    "webhook-discord": "^3.7.7"
   },
   "devDependencies": {
     "eslint": "^6.1.0",
