@@ -10,11 +10,9 @@ const io = require('socket.io')(http);
 const _ = require('lodash');
 const chalk = require('chalk');
 
-const Map = require('../projectMMO_Server/src/world/Map')(io);
+const Map = require('./src/world/Map')(io);
 
 const TICK_RATE = 10; // 0.1sec or 100ms
-let tick = 0;
-let delta = 0;
 
 const config = require('./_config.json');
 
@@ -36,15 +34,6 @@ io.on('connection', (socket) => {
 
 	io.emit('updateServerMessage', serverMessage);
 });
-
-
-// Send Client information about other clients in the same map
-function hrtimeMs() {
-	const time = process.hrtime();
-
-	return time[0] * 1000 + time[1] / 1000000;
-}
-
 
 // Simulate Inputs/Movements on the Server
 function sendWorldSnapshot() {
@@ -81,7 +70,6 @@ function sendWorldSnapshot() {
 	}
 	// console.log('Sent World Snapshot to All Clients')
 }
-
 
 // Game Logic
 function update(delta) {
@@ -161,26 +149,33 @@ function update(delta) {
 	// io.emit('setCurrentTick', tick);
 }
 
-
 // Game Loop
-let previous = hrtimeMs();
 const tickLengthMs = 1000 / TICK_RATE;
 
-function gameLoop() {
-	setTimeout(gameLoop, tickLengthMs);
-	const now = hrtimeMs();
+let previousTick = Date.now();
+// eslint-disable-next-line no-unused-vars
+let actualTicks = 0;
 
-	const delta = (now - previous) / 1000;
+const gameLoop = () => {
+	const now = Date.now();
 
-	// console.log(delta, tick);
+	actualTicks += 1;
+	if (previousTick + tickLengthMs <= now) {
+		const delta = (now - previousTick) / 1000;
+		previousTick = now;
 
-	// Game Logic
-	update(delta);
-	sendWorldSnapshot();
+		// Run Update
+		update(delta);
 
-	previous = now;
-	tick += 1;
-}
+		actualTicks = 0;
+	}
+
+	if (Date.now() - previousTick < tickLengthMs - 16) {
+		setTimeout(gameLoop);
+	} else {
+		setImmediate(gameLoop);
+	}
+};
 
 http.listen(port, () => {
 	// Connect to DB
