@@ -6,7 +6,7 @@ const Discord = require('../../helpers/discord');
 const Account = require('../../models/Account');
 const Character = require('../../models/Character');
 
-module.exports = (io, socket, clients, delta, tick) => {
+module.exports = (io, socket, clients, tick) => {
 	const Player = require('../../helpers/player-helper')(io, clients);
 	const Map = require('../../world/Map')(io);
 	const snapshotArray = [];

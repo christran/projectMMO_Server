@@ -13,6 +13,7 @@ const chalk = require('chalk');
 const Map = require('./src/world/Map')(io);
 
 const TICK_RATE = 10; // 0.1sec or 100ms
+let tick = 0;
 
 const config = require('./_config.json');
 
@@ -30,7 +31,7 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
 	// Require all Handlers
-	require('./src/handlers/world/player-handler')(io, socket, clients, delta, tick);
+	require('./src/handlers/world/player-handler')(io, socket, clients, tick);
 
 	io.emit('updateServerMessage', serverMessage);
 });
@@ -166,6 +167,8 @@ const gameLoop = () => {
 
 		// Run Update
 		update(delta);
+
+		tick += 1;
 
 		actualTicks = 0;
 	}
