@@ -49,7 +49,7 @@ module.exports = (io, socket, clients) => {
 						socket.username = account.username;
 
 						// account.isOnline = true;
-						account.lastLoginDate = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
+						// account.lastLoginDate = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
 						account.ip = socket.handshake.address;
 						account.save();
 
