@@ -86,9 +86,9 @@ module.exports = (io, socket, clients) => {
 			eyes: 1,
 
 			mapID: 1,
-			position: {
+			transform: {
 				location: { x: 0, y: 0, z: 0 },
-				rotation: { roll: 0, pitch: 0, yaw: 0 }
+				rotation: 90
 			},
 
 			stats: {

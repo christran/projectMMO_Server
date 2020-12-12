@@ -28,6 +28,10 @@ io.on('connection', (socket) => {
 	// Require all Handlers
 	require('./src/handlers/world/chat-handler')(io, socket, clients);
 
+	socket.on('hello', (data) => {
+		console.log(data);
+	});
+
 	console.log('[Chat Server] User: blank connected to chat');
 });
 
