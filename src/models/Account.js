@@ -19,6 +19,7 @@ const accountSchema = new db.mongoose.Schema(
 		},
 		email: {
 			type: String,
+			// Remind user to confirm their email ingame, don't force them confirm right after registering.
 			// required: true,
 			index: true,
 			unique: true,
@@ -35,11 +36,10 @@ const accountSchema = new db.mongoose.Schema(
 		},
 		ban: {
 			banType: { type: Number, default: 0 },
-			banReason: { type: String, default: '' }
+			banReason: { type: String, default: 'No Reason' }
 		},
 		lastLoginDate: {
-			type: Date,
-			default: Date
+			type: Date
 		},
 		ip: {
 			type: String,

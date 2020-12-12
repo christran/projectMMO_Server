@@ -20,9 +20,9 @@ const characterSchema = new db.mongoose.Schema(
 		eyes: Number,
 
 		mapID: { type: Number, default: 1 },
-		position: {
+		transform: {
 			location: { x: Number, y: Number, z: Number },
-			rotation: { roll: Number, pitch: Number, yaw: Number }
+			rotation: Number
 		},
 
 		stats: {
