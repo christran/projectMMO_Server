@@ -20,9 +20,9 @@ const characterSchema = new db.mongoose.Schema(
 		eyes: Number,
 
 		mapID: { type: Number, default: 1 },
-		position: {
+		transform: {
 			location: { x: Number, y: Number, z: Number },
-			rotation: { roll: Number, pitch: Number, yaw: Number }
+			rotation: Number
 		},
 
 		stats: {
@@ -71,7 +71,6 @@ characterSchema.statics.saveCharacter = async function (socket) {
 		console.log(`[World Server] Saving Character | Error: ${err}`);
 	}
 };
-
 
 /** @type {characterSchema.statics} */
 const Character = db.mongoose.model('characters', characterSchema);

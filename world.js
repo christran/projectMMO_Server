@@ -10,11 +10,10 @@ const io = require('socket.io')(http);
 const _ = require('lodash');
 const chalk = require('chalk');
 
-const Map = require('../projectMMO_Server/src/world/Map')(io);
+const Map = require('./src/world/Map')(io);
 
 const TICK_RATE = 10; // 0.1sec or 100ms
 let tick = 0;
-let delta = 0;
 
 const config = require('./_config.json');
 
@@ -32,59 +31,13 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
 	// Require all Handlers
-	require('./src/handlers/world/player-handler')(io, socket, clients, delta, tick);
+	require('./src/handlers/world/player-handler')(io, socket, clients, tick);
 
 	io.emit('updateServerMessage', serverMessage);
 });
 
-
-// Send Client information about other clients in the same map
-function hrtimeMs() {
-	const time = process.hrtime();
-
-	return time[0] * 1000 + time[1] / 1000000;
-}
-
-
-// Simulate Inputs/Movements on the Server
-function sendWorldSnapshot() {
-	// clients.forEach((data) => {
-	// 	const { character } = io.sockets.connected[data.socketID];
-
-	// 	if (character.snapshot && character.snapshot.length > 0) {
-	// 		switch (character.snapshot.direction) {
-	// 		case 'Left':
-	// 			character.position.location -= 1;
-	// 			break;
-	// 		case 'Right':
-	// 			character.position.location += 1;
-	// 			break;
-	// 		default:
-	// 			break;
-	// 		}
-	// 	}
-	// 	character.snapshot = [];
-	// }
-	// );
-
-	const activeMaps = Object.keys(io.sockets.adapter.rooms).filter(Number);
-
-	if (activeMaps > 0) {
-		activeMaps.forEach((mapID) => {
-			const playerArray = [];
-			const players = Map.getAllPlayersInMap(mapID);
-
-			_.forOwn(players, (value, name) => {
-				// console.log(`${name} @ ${value.position}`);
-			});
-		});
-	}
-	// console.log('Sent World Snapshot to All Clients')
-}
-
-
 // Game Logic
-function update(delta) {
+function update() {
 	const activeMaps = Object.keys(io.sockets.adapter.rooms).filter(Number);
 
 	// Send update to only maps with players in them (SocketIO Rooms)
@@ -96,59 +49,15 @@ function update(delta) {
 
 			_.forOwn(players, (value, name) => {
 				// Don't send data if character is idle
-				if (players[name].snapshot && players[name].snapshot.length > 0) {
-					// Simulate Inputs/Movements on the Server
-					players[name].snapshot.forEach((data) => {
-						switch (data.direction) {
-						case 'Left':
-							/*
-							Formula to Simulate Movement
-
-							PredictedPosition = CurrentPosition + CurrentVelocity * PredictionTime;
-
-							x = x0 + v * t
-
-							x = future position
-							x0 = current position
-							v = velocity
-							t = time (server delta time?)
-							*/
-							// console.log(`Current Player (Server): ${players[name].position.location}`);
-							// console.log(`Player Velocity (Client): ${data.velocity}`);
-							// console.log(`Predicted Y: ${(players[name].position.location.y + data.velocity.y) * delta}`);
-							// console.log(players[name].position.location.y);
-
-							players[name].position.location.y += data.velocity.y * delta;
-							players[name].snapshot.shift();
-							break;
-						case 'Right':
-							players[name].position.location.y += data.velocity.y * delta;
-							players[name].snapshot.shift();
-							break;
-						case 'Up':
-							players[name].position.location.x += data.velocity.x * delta;
-							players[name].snapshot.shift();
-							break;
-						case 'Down':
-							players[name].position.location.x += data.velocity.x * delta;
-							players[name].snapshot.shift();
-							break;
-						default:
-							break;
-						}
-					});
-
-					// Build/Send Snapshot to Clients
-					const player = {
-						[name]: {
-							position: players[name].position,
-							action: players[name].action,
-							// velocity: players[name].position.velocity,
-							tick
-						}
-					};
-					playerArray.push(player);
-				}
+				// Build/Send Snapshot to Clients
+				const player = {
+					[name]: {
+						transform: players[name].transform,
+						action: players[name].action,
+						tick
+					}
+				};
+				playerArray.push(player);
 			});
 
 			io.to(mapID).emit('update', playerArray);
@@ -157,30 +66,39 @@ function update(delta) {
 		// No players in any maps so don't emit anything
 		// console.log('No active maps');
 	}
-
-	// io.emit('setCurrentTick', tick);
 }
-
 
 // Game Loop
-let previous = hrtimeMs();
 const tickLengthMs = 1000 / TICK_RATE;
 
-function gameLoop() {
-	setTimeout(gameLoop, tickLengthMs);
-	const now = hrtimeMs();
+let previousTick = Date.now();
+// eslint-disable-next-line no-unused-vars
+let actualTicks = 0;
 
-	const delta = (now - previous) / 1000;
+const gameLoop = () => {
+	const now = Date.now();
 
-	// console.log(delta, tick);
+	actualTicks += 1;
+	if (previousTick + tickLengthMs <= now) {
+		// eslint-disable-next-line no-unused-vars
+		const delta = (now - previousTick) / 1000;
+		previousTick = now;
 
-	// Game Logic
-	update(delta);
-	sendWorldSnapshot();
+		// Run Update
+		update();
 
-	previous = now;
-	tick += 1;
-}
+		// eslint-disable-next-line no-undef
+		tick += 1;
+
+		actualTicks = 0;
+	}
+
+	if (Date.now() - previousTick < tickLengthMs - 16) {
+		setTimeout(gameLoop);
+	} else {
+		setImmediate(gameLoop);
+	}
+};
 
 http.listen(port, () => {
 	// Connect to DB

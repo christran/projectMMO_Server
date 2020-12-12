@@ -3,54 +3,49 @@ const moment = require('moment');
 
 const Discord = require('../../helpers/discord');
 
-const Account = require('../../../src/models/Account');
-const Character = require('../../../src/models/Character');
+const Account = require('../../models/Account');
+const Character = require('../../models/Character');
+const susLog = require('../../models/susLogger.js');
 
-module.exports = (io, socket, clients, delta, tick) => {
+module.exports = (io, socket, clients, tick) => {
 	const Player = require('../../helpers/player-helper')(io, clients);
 	const Map = require('../../world/Map')(io);
-	const snapshotArray = [];
 
-	/*
-	socket.on('player_Movement', (data) => {
-		if (socket.character.usingPortal) {
-			// Don't apply old inputs after using portal
-			// If a player is still moving when using a portal it carries over to the next map
-			// Currently broken because of the new server movement code
-			console.log('[Portal] Ignore player\'s old movement data');
-		} else if (data.movementSnapshot) {
-			const { movementSnapshot } = data;
+	socket.on('player_Movement', (transform) => {
+	// Don't apply old inputs after using portal
+	// If a player is still moving when using a portal it carries over to the next map
+	// Currently broken because of the new server movement code
 
-			movementSnapshot.forEach((snapshot) => {
-				// Check if player's velocity is > than the max walk speed + any speed enhancing skills
-				if (Math.round(snapshot.velocity) > 4089) {
-					console.log(`[Anticheat] ${socket.character.name} | Speed Hacking | Current Velocity: ${Math.round(snapshot.velocity)}`);
-					// socket.disconnect();
-					// socket.emit('dc', 'Stop hacking');
-				}
-
-				// Check if player fell off the map
-				// if (socket.character.position.location.z < -10000) {
-				// 	// Get nearest portal on server side and set charPos to it
-				// 	socket.emit('player_ZLimit');
-				// }
-
-				// Set to the same as what the client has UE4 (BP_Character)
-				// const rotationSpeed = 1000.0;
-
-				snapshotArray.push(snapshot);
-				socket.character.snapshot = snapshotArray;
-			});
+		// Check if player fell off the map
+		if (transform.location.z < -5000) {
+			// Get nearest portal on server side and set charPos to it
+			socket.emit('player_ZLimit');
 		}
-	});
-	*/
 
-	const movementArray = [];
+		// This is not server authoritative
+		socket.character.transform.location = transform.location;
+		socket.character.transform.rotation = transform.rotation;
 
-	socket.on('player_Movement', (data) => {
-		movementArray.push(data);
+		/*
+		// bootleg anticheat
+		const compareX = transform.location.x - socket.character.transform.location.x;
+		const compareY = transform.location.y - socket.character.transform.location.y;
 
-		console.log(movementArray.length);
+		if (compareX >= 90 || compareX <= -90 || compareY >= 90 || compareY <= -90) {
+			// Check if used teleport or flashjump skill
+			socket.emit('dc', 'Stop speed hacking');
+
+			susLog.newEntry({
+				accountID: socket.character.accountID,
+				characterName: socket.character.name,
+				reason: 'speed hacking'
+			});
+			console.log(`${socket.character.name} is speed hacking - X: ${compareX} Y: ${compareY}`);
+		} else {
+			socket.character.transform.location = transform.location;
+			socket.character.transform.rotation = transform.rotation;
+		}
+		*/
 	});
 
 	socket.on('player_Action', (data) => {
@@ -73,10 +68,8 @@ module.exports = (io, socket, clients, delta, tick) => {
 	});
 
 	// When a plyer enters a map (GameInstance_MMO) will emit this event
-	// Shouldn't need this because of how the client is also getting send world snapshots that contain the same information
+	// Shouldn't need this because of how the client is also getting sent world snapshots that contain the same information in world.js update loop
 	socket.on('getAllPlayersInMap', (data, callback) => {
-		socket.character.usingPortal = false;
-
 		// Send client any other players in the map
 		if (Map.getAllPlayersInMap(socket.character.mapID)) {
 			const playersInMap = [];
@@ -86,12 +79,13 @@ module.exports = (io, socket, clients, delta, tick) => {
 			_.forOwn(players, (value, name) => {
 				playersInMap.push({
 					playerName: name,
-					position: players[name].position
+					transform: players[name].transform
 				});
 			});
 
-
 			callback(playersInMap);
+
+			socket.character.usingPortal = false;
 		} else {
 			// No other players in the map, don't do anything
 			// console.log('No other players in map to know about');
@@ -132,7 +126,7 @@ module.exports = (io, socket, clients, delta, tick) => {
 				// Send to other players in the map
 				socket.to(character.mapID).emit('addPlayerToMap', {
 					name: character.name,
-					position: character.position
+					transform: character.transform
 				});
 
 				// Discord Login Message
@@ -154,7 +148,6 @@ module.exports = (io, socket, clients, delta, tick) => {
 
 		if (currentMap) {
 			const currentPortal = currentMap.getPortalByName(data.portalName);
-
 			// Check if portal exists in the current map
 			if (!currentPortal) {
 				console.log(`[World Server] ${socket.character.name} tried using Portal: ${data.portalName} from Map ID: ${socket.character.mapID}`);
@@ -163,8 +156,6 @@ module.exports = (io, socket, clients, delta, tick) => {
 				const targetPortal = await Map.getMap(currentPortal.toMapID).catch((err) => console.log(`[Player Handler] player_UsePortal | ${err}`));
 
 				if (socket.character.mapID) {
-					socket.character.usingPortal = true;
-
 					// Tell all players in the map to remove the player that disconnected.
 					socket.to(socket.character.mapID).emit('removePlayerFromMap', {
 						playerName: socket.character.name,
@@ -172,12 +163,12 @@ module.exports = (io, socket, clients, delta, tick) => {
 
 					socket.leave(socket.character.mapID);
 
-					const newPosition = targetPortal.portals[currentPortal.toPortalName].position;
+					const newPosition = targetPortal.portals[currentPortal.toPortalName].transform;
 
 					if (newPosition) {
 						socket.join(currentPortal.toMapID);
 
-						socket.character.position = newPosition;
+						socket.character.transform = newPosition;
 						socket.character.mapID = currentPortal.toMapID;
 						socket.emit('changePlayerMap', currentPortal.toMapID);
 
@@ -185,7 +176,7 @@ module.exports = (io, socket, clients, delta, tick) => {
 
 						socket.to(socket.character.mapID).emit('addPlayerToMap', {
 							name: socket.character.name,
-							position: socket.character.position
+							transform: socket.character.transform
 						});
 
 						console.log(`[World Server] ${socket.character.name} moved to Map: ${targetPortal.mapInfo.mapName}`);
@@ -196,15 +187,15 @@ module.exports = (io, socket, clients, delta, tick) => {
 			} else if (currentPortal.portalType === 2) { // Teleport Portals (Portals in the same map that just change location)
 				const targetPortal = currentMap.getPortalByName(data.portalName);
 
-				const newPosition = currentMap.getPortalByName(targetPortal.toPortalName).position;
+				const newPosition = currentMap.getPortalByName(targetPortal.toPortalName).transform;
 
 				if (newPosition) {
 					const response = {
-						position: newPosition,
+						transform: newPosition,
 						portal: true,
 					};
 
-					socket.character.position = newPosition;
+					socket.character.transform = newPosition;
 					socket.character.action = 2;
 					socket.emit('teleportPlayer', response);
 

@@ -2,7 +2,7 @@
 const uniqueValidator = require('mongoose-unique-validator');
 const db = require('../../db');
 
-const Character = require('../../src/models/Character');
+const Character = require('./Character');
 
 const accountSchema = new db.mongoose.Schema(
 	{
@@ -19,6 +19,7 @@ const accountSchema = new db.mongoose.Schema(
 		},
 		email: {
 			type: String,
+			// Remind user to confirm their email ingame, don't force them confirm right after registering.
 			// required: true,
 			index: true,
 			unique: true,
@@ -35,11 +36,10 @@ const accountSchema = new db.mongoose.Schema(
 		},
 		ban: {
 			banType: { type: Number, default: 0 },
-			banReason: { type: String, default: '' }
+			banReason: { type: String, default: 'No Reason' }
 		},
 		lastLoginDate: {
-			type: Date,
-			default: Date
+			type: Date
 		},
 		ip: {
 			type: String,
@@ -64,7 +64,6 @@ accountSchema.statics.getAccountByID = async function (accountID) {
 accountSchema.statics.getCharacters = async function (accountID) {
 	return Character.model('characters').find({ accountID }).sort({ createdAt: 'asc' });
 };
-
 
 /** @type {accountSchema.statics} */
 const Account = db.mongoose.model('accounts', accountSchema);
