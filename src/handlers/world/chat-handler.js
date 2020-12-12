@@ -24,9 +24,6 @@ module.exports = (io, socket, clients) => {
 		}
 	});
 
-	socket.on('hello', (data) => {
-		console.log('world');
-	});
 	socket.on('disconnect', () => {
 		console.log('[Chat Server] User: blank disconnected from chat');
 	});

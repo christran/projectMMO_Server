@@ -25,27 +25,27 @@
 			"portalType": 1,
             "toMapID": 2,
             "toPortalName": "map_2_portal_1",
-            "position": {
+            "transform": {
                 "location": { "x": -20, "y": 600, "z": 140 },
-                "rotation": { "roll": 0, "pitch": 0, "yaw": -90 }
+                "rotation": -90
             }
 		},
 		"map_1_portal_2": {
 			"id": 2,
 			"portalType": 2,
             "toPortalName": "map_1_portal_3",
-            "position": {
+            "transform": {
                 "location": { "x": -530, "y": 1740, "z": 140 },
-                "rotation": { "roll": 0, "pitch": 0, "yaw": -90 }
+                "rotation": -90
             }
         },
 		"map_1_portal_3": {
 			"id": 3,
 			"portalType": 2,
             "toPortalName": "map_1_portal_2",
-            "position": {
+            "transform": {
                 "location": { "x": -180, "y": 760, "z": -1410 },
-                "rotation": { "roll": 0, "pitch": 0, "yaw": 0 }
+                "rotation": 0
             }
         }
     }
