@@ -3,8 +3,8 @@ const moment = require('moment');
 const chalk = require('chalk');
 
 const db = require('../../../db');
-const Account = require('../../../src/models/Account');
-const Character = require('../../../src/models/Character');
+const Account = require('../../models/Account');
+const Character = require('../../models/Character');
 
 module.exports = (io, socket, clients) => {
 	socket.on('login', async (data, callback) => {

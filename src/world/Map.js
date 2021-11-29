@@ -1,7 +1,8 @@
+const fs = require('fs');
+const path = require('path');
 const jsonfile = require('jsonfile');
+// const chalk = require('chalk');
 const _ = require('lodash');
-
-const Maps = {};
 
 class Map {
 	/**
@@ -19,7 +20,6 @@ class Map {
 
 		this.portals = map.portals;
 	}
-
 
 	/**
      * @param {number} portalID - Portal ID
@@ -39,6 +39,22 @@ class Map {
 }
 
 module.exports = (io) => ({
+	loadMaps: async () => {
+		const getMaps = fs.readdirSync(path.join(__dirname, '../../game/maps'));
+		const allMapsInArray = [];
+
+		// eslint-disable-next-line no-restricted-syntax
+		for (const map of getMaps) {
+			const mapID = map.replace(/\.[^.]*$/, '');
+			// eslint-disable-next-line no-await-in-loop
+			const mapData = await jsonfile.readFile(`game/maps/${map}`);
+
+			allMapsInArray.push(new Map(parseInt(mapID, 10), mapData));
+		}
+
+		return allMapsInArray;
+	},
+
 	/**
 	 * Gets map information
 	 * @async
@@ -46,16 +62,7 @@ module.exports = (io) => ({
 	 * @returns {Promise<Map>} Returns a promise: Map Object
 	 */
 	getMap: async (mapID) => {
-		// Checks if is already map loaded into memory, if not add it.
-		if (Object.prototype.hasOwnProperty.call(Maps, mapID)) {
-			return Maps[mapID];
-		}
-
-		const mapData = await jsonfile.readFile(`game/maps/${mapID}.json`);
-
-		Maps[mapID] = new Map(mapID, mapData);
-
-		return Maps[mapID];
+		return _.find(global.loadedMaps, { mapID });
 	},
 
 	/**
@@ -66,23 +73,30 @@ module.exports = (io) => ({
 	getAllPlayersInMap: (mapID) => {
 		const playersInMap = [];
 
-		if ((io.sockets.adapter.rooms[mapID])) {
+		if (io.sockets.adapter.rooms.get(mapID)) {
 			const socketsinMap = [];
 
-			Object.keys(io.sockets.adapter.rooms[mapID].sockets).forEach((socketID) => {
+			io.sockets.adapter.rooms.get(mapID).forEach((socketID) => {
 				socketsinMap.push(socketID);
 			});
 
 			socketsinMap.forEach((socketID) => {
 				playersInMap.push(
-					io.sockets.connected[socketID].character
+					io.sockets.sockets.get(socketID).character
 				);
 			});
 		} else {
 			console.log(`Map: ${mapID} is empty`);
 		}
-		// console.log(_.find(playersInMap, 'Tiger'));
 
 		return _.keyBy(playersInMap, 'name');
+	},
+
+	getActiveMaps: () => {
+		const arr = Array.from(io.sockets.adapter.rooms);
+		const filtered = arr.filter((room) => !room[1].has(room[0]));
+
+		const res = filtered.map((i) => i[0]);
+		return res;
 	}
 });

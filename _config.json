@@ -1,5 +1,6 @@
 {
-    "version": 0.01,
+	"version": 0.01,
+	"md5_hash": "8930d83b6d68fd77e5b8bcda9f60cd8d",
     "loginserver": {
         "port": 8484
 	},
@@ -8,10 +9,10 @@
     },
     "worldserver": {
 		"port": 7575,
-		"serverMessage": "Welcome to the Alpha Test."
+		"serverMessage": "Welcome to the Alpha Alpha Test."
     },
     "mongoDB": {
-        "dbUrl": "mongodb://127.0.0.1:27017/",
+        "dbUrl": "mongodb+srv://chris:iuiqPwWvkFdRdO5q@cluster0.e4bh9.mongodb.net/",
         "dbName": "testDB"
     }
 }

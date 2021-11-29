@@ -5,7 +5,7 @@ const Discord = require('../../helpers/discord');
 
 const Account = require('../../models/Account');
 const Character = require('../../models/Character');
-const susLog = require('../../models/susLogger.js');
+// const susLog = require('../../models/susLogger.js');
 
 module.exports = (io, socket, clients, tick) => {
 	const Player = require('../../helpers/player-helper')(io, clients);
@@ -15,7 +15,6 @@ module.exports = (io, socket, clients, tick) => {
 	// Don't apply old inputs after using portal
 	// If a player is still moving when using a portal it carries over to the next map
 	// Currently broken because of the new server movement code
-
 		// Check if player fell off the map
 		if (transform.location.z < -5000) {
 			// Get nearest portal on server side and set charPos to it
@@ -25,7 +24,6 @@ module.exports = (io, socket, clients, tick) => {
 		// This is not server authoritative
 		socket.character.transform.location = transform.location;
 		socket.character.transform.rotation = transform.rotation;
-
 		/*
 		// bootleg anticheat
 		const compareX = transform.location.x - socket.character.transform.location.x;
@@ -73,7 +71,6 @@ module.exports = (io, socket, clients, tick) => {
 		// Send client any other players in the map
 		if (Map.getAllPlayersInMap(socket.character.mapID)) {
 			const playersInMap = [];
-
 			const players = Map.getAllPlayersInMap(socket.character.mapID);
 
 			_.forOwn(players, (value, name) => {
@@ -109,7 +106,8 @@ module.exports = (io, socket, clients, tick) => {
 				// const clientCharacter = charWeakMap.get(socket);
 				// console.log(clientCharacter.mapID);
 
-				socket.character = character;
+				// io.of('/').connected[socket.id].character = character;
+				io.sockets.sockets.get(socket.id).character = character;
 
 				clients.push({
 					name: character.name,
@@ -135,7 +133,7 @@ module.exports = (io, socket, clients, tick) => {
 				account.lastLoginDate = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
 				account.save();
 
-				console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${clients.length}`);
+				console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${io.engine.clientsCount}`);
 			} else {
 				socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a invaild Character ID (${data._id})`;
 				socket.emit('dc', 'Stop hacking');
@@ -223,8 +221,8 @@ module.exports = (io, socket, clients, tick) => {
 		}
 	});
 
-	// Player Disconnection
-	socket.on('disconnect', () => {
+	// eslint-disable-next-line no-unused-vars
+	socket.on('disconnecting', (reason) => {
 		// Save Character Data to Database on disconnection
 		if (socket.character) {
 			Character.saveCharacter(socket);
@@ -234,7 +232,13 @@ module.exports = (io, socket, clients, tick) => {
 				account.isOnline = false;
 				account.save();
 			});
+		}
+	});
 
+	// Player Disconnection
+	socket.on('disconnect', (reason) => {
+		// Save Character Data to Database on disconnection
+		if (socket.character) {
 			// Tell all clients in the map to remove the player that disconnected.
 			socket.to(socket.character.mapID).emit('removePlayerFromMap', {
 				playerName: socket.character.name
@@ -245,7 +249,7 @@ module.exports = (io, socket, clients, tick) => {
 
 			console.log(`[World Server] User: ${socket.character.name} logged off`);
 		} else {
-			console.log(`[World Server] IP: ${socket.handshake.address} disconnected | Reason: ${socket.dcReason}`);
+			console.log(`[World Server] IP: ${socket.handshake.address} disconnected | Reason: ${socket.dcReason} | ${reason}`);
 		}
 	});
 };

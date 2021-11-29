@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 module.exports = (io, socket, clients) => {
 	socket.on('chat', (data) => {
 		const combinedMsg = `${data.playerName}: ${data.message}`;
