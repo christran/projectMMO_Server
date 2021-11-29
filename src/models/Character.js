@@ -21,7 +21,11 @@ const characterSchema = new db.mongoose.Schema(
 
 		mapID: { type: Number, default: 1 },
 		transform: {
-			location: { x: Number, y: Number, z: Number },
+			location: {
+				x: Number,
+				y: Number,
+				z: Number
+			},
 			rotation: Number
 		},
 

@@ -17,8 +17,8 @@
     "pretty-error": "^2.1.1",
     "random-color": "^1.0.1",
     "request": "^2.88.0",
-    "socket.io": "^2.0.0",
-    "webhook-discord": "^3.7.7"
+    "socket.io": "^4.4.0",
+    "webhook-discord": "^3.7.8"
   },
   "devDependencies": {
     "eslint": "^6.8.0",

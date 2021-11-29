@@ -5,7 +5,10 @@ const bodyParser = require('body-parser');
 
 const app = express();
 const http = require('http').Server(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(http, {
+	transports: ['websocket'],
+	allowUpgrades: false
+});
 
 const _ = require('lodash');
 const chalk = require('chalk');
@@ -20,6 +23,7 @@ const config = require('./_config.json');
 const { port, serverMessage } = config.worldserver;
 
 const clients = [];
+global.loadedMaps = [];
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -27,6 +31,13 @@ app.use(bodyParser.json());
 // Server Web Client
 app.get('/', (req, res) => {
 	res.status(403).end();
+});
+
+// Load Maps into Memory
+Map.loadMaps().then((maps) => {
+	global.loadedMaps = maps;
+
+	console.log(chalk.yellow('[Map] Loaded Maps'));
 });
 
 io.on('connection', (socket) => {
@@ -38,17 +49,15 @@ io.on('connection', (socket) => {
 
 // Game Logic
 function update() {
-	const activeMaps = Object.keys(io.sockets.adapter.rooms).filter(Number);
-
-	// Send update to only maps with players in them (SocketIO Rooms)
+	// Send update only to maps with players in them (SocketIO Rooms)
 	// Sent to (GameState_MMO)
-	if (activeMaps.length > 0) {
-		activeMaps.forEach((mapID) => {
+	if (Map.getActiveMaps().length > 0) {
+		Map.getActiveMaps().forEach((mapID) => {
 			const playerArray = [];
 			const players = Map.getAllPlayersInMap(mapID);
 
 			_.forOwn(players, (value, name) => {
-				// Don't send data if character is idle
+				// Don't send data if character is idle/not moving
 				// Build/Send Snapshot to Clients
 				const player = {
 					[name]: {
@@ -58,6 +67,7 @@ function update() {
 					}
 				};
 				playerArray.push(player);
+				players[name].action = 0;
 			});
 
 			io.to(mapID).emit('update', playerArray);
