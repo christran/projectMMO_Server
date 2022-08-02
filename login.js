@@ -26,7 +26,6 @@ app.get('/', (req, res) => {
 	res.status(403).end();
 });
 
-
 io.on('connection', (socket) => {
 	require('./src/handlers/login/login-handler')(io, socket, clients);
 
