@@ -67,7 +67,6 @@ function update() {
 					}
 				};
 				playerArray.push(player);
-				players[name].action = 0;
 			});
 
 			io.to(mapID).emit('update', playerArray);

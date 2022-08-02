@@ -24,6 +24,8 @@ module.exports = (io, socket, clients, tick) => {
 		// This is not server authoritative
 		socket.character.transform.location = transform.location;
 		socket.character.transform.rotation = transform.rotation;
+		socket.character.transform.velocity = transform.velocity;
+
 		/*
 		// bootleg anticheat
 		const compareX = transform.location.x - socket.character.transform.location.x;
@@ -48,16 +50,28 @@ module.exports = (io, socket, clients, tick) => {
 
 	socket.on('player_Action', (data) => {
 		switch (data.action) {
-		case 'Jump':
+		case 'Idle':
+			socket.character.action = 1;
+			// console.log(`${socket.character.name} is idle`);
+			break;
+		case 'Walking':
 			socket.character.action = 2;
+			console.log(`${socket.character.name} is walking`);
+			break;
+		case 'Running':
+			socket.character.action = 3;
+			console.log(`${socket.character.name} is running`);
+			break;
+		case 'Jump':
+			socket.character.action = 4;
 			console.log(`${socket.character.name} jumped`);
 			break;
 		case 'Crouch':
-			socket.character.action = 3;
+			socket.character.action = 5;
 			console.log(`${socket.character.name} crouched`);
 			break;
 		case 'Attack':
-			socket.character.action = 4;
+			socket.character.action = 6;
 			console.log(`${socket.character.name} attacked`);
 			break;
 		default:
@@ -68,7 +82,7 @@ module.exports = (io, socket, clients, tick) => {
 	// When a plyer enters a map (GameInstance_MMO) will emit this event
 	// Shouldn't need this because of how the client is also getting sent world snapshots that contain the same information in world.js update loop
 	socket.on('getAllPlayersInMap', (data, callback) => {
-		// Send client any other players in the map
+		// Send client any other players in the map including themselves
 		if (Map.getAllPlayersInMap(socket.character.mapID)) {
 			const playersInMap = [];
 			const players = Map.getAllPlayersInMap(socket.character.mapID);
@@ -161,6 +175,9 @@ module.exports = (io, socket, clients, tick) => {
 
 					socket.leave(socket.character.mapID);
 
+					// Tell client to change map
+					socket.emit('changePlayerMap', currentPortal.toMapID);
+
 					const newPosition = targetPortal.portals[currentPortal.toPortalName].transform;
 
 					if (newPosition) {
@@ -168,14 +185,14 @@ module.exports = (io, socket, clients, tick) => {
 
 						socket.character.transform = newPosition;
 						socket.character.mapID = currentPortal.toMapID;
-						socket.emit('changePlayerMap', currentPortal.toMapID);
 
-						Character.saveCharacter(socket);
-
+						// Tell all players currently in the map to add the player that joined
 						socket.to(socket.character.mapID).emit('addPlayerToMap', {
 							name: socket.character.name,
 							transform: socket.character.transform
 						});
+
+						Character.saveCharacter(socket);
 
 						console.log(`[World Server] ${socket.character.name} moved to Map: ${targetPortal.mapInfo.mapName}`);
 					}
