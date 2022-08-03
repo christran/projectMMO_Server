@@ -62,13 +62,14 @@ function update() {
 				const player = {
 					[name]: {
 						transform: players[name].transform,
+						velocity: players[name].velocity,
 						action: players[name].action,
 						tick
 					}
 				};
+
 				playerArray.push(player);
 			});
-
 			io.to(mapID).emit('update', playerArray);
 		});
 	} else {

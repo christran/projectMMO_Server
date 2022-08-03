@@ -26,12 +26,7 @@ const characterSchema = new db.mongoose.Schema(
 				y: Number,
 				z: Number
 			},
-			rotation: Number,
-			velocity: {
-				x: Number,
-				y: Number,
-				z: Number
-			} // velocity shouldn't even be stored temp workaround for now, it breaks portal and casuses server to crash if portal is spammed
+			rotation: Number
 		},
 
 		stats: {
