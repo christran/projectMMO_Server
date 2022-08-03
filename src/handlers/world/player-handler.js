@@ -11,25 +11,25 @@ module.exports = (io, socket, clients, tick) => {
 	const Player = require('../../helpers/player-helper')(io, clients);
 	const Map = require('../../world/Map')(io);
 
-	socket.on('player_Movement', (transform) => {
+	socket.on('player_Movement', (data) => {
 	// Don't apply old inputs after using portal
 	// If a player is still moving when using a portal it carries over to the next map
 	// Currently broken because of the new server movement code
 		// Check if player fell off the map
-		if (transform.location.z < -5000) {
+		if (data.location.z < -5000) {
 			// Get nearest portal on server side and set charPos to it
 			socket.emit('player_ZLimit');
 		}
 
 		// This is not server authoritative
-		socket.character.transform.location = transform.location;
-		socket.character.transform.rotation = transform.rotation;
-		socket.character.transform.velocity = transform.velocity;
+		socket.character.transform.location = data.location;
+		socket.character.transform.rotation = data.rotation;
+		socket.character.velocity = data.velocity;
 
 		/*
 		// bootleg anticheat
-		const compareX = transform.location.x - socket.character.transform.location.x;
-		const compareY = transform.location.y - socket.character.transform.location.y;
+		const compareX = data.location.x - socket.character.data.location.x;
+		const compareY = data.location.y - socket.character.data.location.y;
 
 		if (compareX >= 90 || compareX <= -90 || compareY >= 90 || compareY <= -90) {
 			// Check if used teleport or flashjump skill
@@ -42,8 +42,8 @@ module.exports = (io, socket, clients, tick) => {
 			});
 			console.log(`${socket.character.name} is speed hacking - X: ${compareX} Y: ${compareY}`);
 		} else {
-			socket.character.transform.location = transform.location;
-			socket.character.transform.rotation = transform.rotation;
+			socket.character.data.location = data.location;
+			socket.character.data.rotation = data.rotation;
 		}
 		*/
 	});
