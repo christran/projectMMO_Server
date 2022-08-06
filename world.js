@@ -59,6 +59,7 @@ function update() {
 			_.forOwn(players, (value, name) => {
 				// Don't send data if character is idle/not moving
 				// Build/Send Snapshot to Clients
+
 				const player = {
 					[name]: {
 						transform: players[name].transform,
