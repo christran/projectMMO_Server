@@ -135,10 +135,17 @@ module.exports = (io, socket, clients, tick) => {
 				socket.emit('setCurrentTick', tick);
 				socket.emit('changePlayerMap', character.mapID);
 
+				// Default velocity
+				character.velocity = {
+					x: 0,
+					y: 0,
+					z: 0
+				};
+
 				// Send to other players in the map
 				socket.to(character.mapID).emit('addPlayerToMap', {
 					name: character.name,
-					transform: character.transform
+					transform: character.transform,
 				});
 
 				// Discord Login Message
