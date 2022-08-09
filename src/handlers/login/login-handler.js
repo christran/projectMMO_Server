@@ -80,16 +80,16 @@ module.exports = (io, socket, clients) => {
 			accountID: data.accountID,
 			_id: new db.mongoose.Types.ObjectId().toHexString(),
 			name: data.name,
-			female: false,
+			gender: 0,
 			skin: 1,
 			hair: 1,
 			eyes: 1,
-
+			top: 1,
+			bottom: 1,
+			shoes: 1,
 			mapID: 1,
-			transform: {
-				location: { x: 0, y: 0, z: 0 },
-				rotation: 90
-			},
+			location: { x: 0, y: 0, z: 0 },
+			rotation: 90,
 
 			stats: {
 				level: 1,

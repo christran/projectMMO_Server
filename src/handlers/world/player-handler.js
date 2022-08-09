@@ -1,3 +1,4 @@
+const jsonfile = require('jsonfile');
 const _ = require('lodash');
 const moment = require('moment');
 
@@ -22,8 +23,8 @@ module.exports = (io, socket, clients, tick) => {
 		}
 
 		// This is not server authoritative
-		socket.character.transform.location = data.location;
-		socket.character.transform.rotation = data.rotation;
+		socket.character.location = data.location;
+		socket.character.rotation = data.rotation;
 		socket.character.velocity = data.velocity;
 
 		/*
@@ -79,7 +80,63 @@ module.exports = (io, socket, clients, tick) => {
 		}
 	});
 
-	// When a plyer enters a map (GameInstance_MMO) will emit this event
+	// Client sends data to server to update character appearance/clothing
+	socket.on('player_UpdateApperance', (appearanceData) => {
+		// const skinsDataTable = './game/character_skins.json';
+		// const hairDataTable = './game/character_hair.json';
+		// const eyesDataTable = './game/character_eyes.json';
+		const topsDataTable = './game/character_tops.json';
+		const bottomsDataTable = './game/character_bottoms.json';
+		const shoesDataTable = './game/character_shoes.json';
+
+		switch (appearanceData.type) {
+		case 'top':
+			jsonfile.readFile(topsDataTable)
+				.then((fileData) => {
+					const topsKeyID = _.keyBy(fileData, 'Name');
+
+					// Update Character Top on Server
+					socket.character.appearance.top = appearanceData.id;
+
+					// Update Character Top in Database
+					Character.saveCharacter(socket);
+
+					// Tell other clients to update this character top
+					socket.to(socket.character.mapID).emit('updateAppearance', {
+						name: socket.character.name,
+						type: 'top',
+						id: appearanceData.id,
+
+					});
+
+					console.log(`[Update] ${socket.character.name} changed Top: ${topsKeyID[appearanceData.id].top_name}`);
+				})
+				.catch((err) => console.log(err));
+			break;
+		case 'bottom':
+			jsonfile.readFile(bottomsDataTable)
+				.then((fileData) => {
+					const bottomsKeyByID = _.keyBy(fileData, 'Name');
+
+					console.log(`[Update] ${socket.character.name} changed Top: ${bottomsKeyByID[appearanceData.id].bottom_name}`);
+				})
+				.catch((err) => console.log(err));
+			break;
+		case 'shoe':
+			jsonfile.readFile(shoesDataTable)
+				.then((fileData) => {
+					const shoesKeyByID = _.keyBy(fileData, 'Name');
+
+					console.log(`[Update] ${socket.character.name} changed Top: ${shoesKeyByID[appearanceData.id].shoe_name}`);
+				})
+				.catch((err) => console.log(err));
+			break;
+		default:
+			break;
+		}
+	});
+
+	// When a player enters a map (GameInstance_MMO) will emit this event
 	// Shouldn't need this because of how the client is also getting sent world snapshots that contain the same information in world.js update loop
 	socket.on('getAllPlayersInMap', (data, callback) => {
 		// Send client any other players in the map including themselves
@@ -89,8 +146,7 @@ module.exports = (io, socket, clients, tick) => {
 
 			_.forOwn(players, (value, name) => {
 				playersInMap.push({
-					playerName: name,
-					transform: players[name].transform
+					characterInfo: players[name]
 				});
 			});
 
@@ -144,8 +200,7 @@ module.exports = (io, socket, clients, tick) => {
 
 				// Send to other players in the map
 				socket.to(character.mapID).emit('addPlayerToMap', {
-					name: character.name,
-					transform: character.transform,
+					characterInfo: character,
 				});
 
 				// Discord Login Message
@@ -185,18 +240,18 @@ module.exports = (io, socket, clients, tick) => {
 					// Tell client to change map
 					socket.emit('changePlayerMap', currentPortal.toMapID);
 
-					const newPosition = targetPortal.portals[currentPortal.toPortalName].transform;
+					const newPosition = targetPortal.portals[currentPortal.toPortalName];
 
 					if (newPosition) {
 						socket.join(currentPortal.toMapID);
 
-						socket.character.transform = newPosition;
+						socket.character.location = newPosition.location;
+						socket.character.rotation = newPosition.rotation;
 						socket.character.mapID = currentPortal.toMapID;
 
 						// Tell all players currently in the map to add the player that joined
 						socket.to(socket.character.mapID).emit('addPlayerToMap', {
-							name: socket.character.name,
-							transform: socket.character.transform
+							characterInfo: socket.character
 						});
 
 						Character.saveCharacter(socket);
@@ -209,15 +264,17 @@ module.exports = (io, socket, clients, tick) => {
 			} else if (currentPortal.portalType === 2) { // Teleport Portals (Portals in the same map that just change location)
 				const targetPortal = currentMap.getPortalByName(data.portalName);
 
-				const newPosition = currentMap.getPortalByName(targetPortal.toPortalName).transform;
+				const newPosition = currentMap.getPortalByName(targetPortal.toPortalName);
 
 				if (newPosition) {
 					const response = {
-						transform: newPosition,
+						location: newPosition.location,
+						rotation: newPosition.rotation,
 						portal: true,
 					};
 
-					socket.character.transform = newPosition;
+					socket.character.location = newPosition.location;
+					socket.character.rotation = newPosition.rotation;
 					socket.character.action = 2;
 					socket.emit('teleportPlayer', response);
 

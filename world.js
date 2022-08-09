@@ -62,7 +62,8 @@ function update() {
 
 				const player = {
 					[name]: {
-						transform: players[name].transform,
+						location: players[name].location,
+						rotation: players[name].rotation,
 						velocity: players[name].velocity,
 						action: players[name].action,
 						tick
