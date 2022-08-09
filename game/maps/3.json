@@ -11,10 +11,8 @@
 			"portalType": 1,
             "toMapID": 2,
             "toPortalName": "map_2_portal_2",
-            "transform": {
-                "location": { "x": 0, "y": -180, "z": 180 },
-                "rotation": 90
-            }
+			"location": { "x": 0, "y": -180, "z": 180 },
+			"rotation": 90
         }
     }
 }

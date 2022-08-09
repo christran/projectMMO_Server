@@ -14,20 +14,20 @@ const characterSchema = new db.mongoose.Schema(
 			unique: true,
 			uniqueCaseInsensitive: true
 		},
-		female: Boolean,
-		skin: Number,
-		hair: Number,
-		eyes: Number,
-
+		gender: Number,
+		skin: { type: Number, default: 1 },
+		hair: { type: Number, default: 1 },
+		eyes: { type: Number, default: 1 },
+		top: { type: Number, default: 1 },
+		bottom: { type: Number, default: 1 },
+		shoe: { type: Number, default: 1 },
 		mapID: { type: Number, default: 1 },
-		transform: {
-			location: {
-				x: Number,
-				y: Number,
-				z: Number
-			},
-			rotation: Number
+		location: {
+			x: Number,
+			y: Number,
+			z: Number
 		},
+		rotation: Number,
 
 		stats: {
 			level: { type: Number, default: 1 },
