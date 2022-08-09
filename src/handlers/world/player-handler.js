@@ -96,7 +96,7 @@ module.exports = (io, socket, clients, tick) => {
 					const topsKeyID = _.keyBy(fileData, 'Name');
 
 					// Update Character Top on Server
-					socket.character.appearance.top = appearanceData.id;
+					socket.character.top = appearanceData.id;
 
 					// Update Character Top in Database
 					Character.saveCharacter(socket);
@@ -118,6 +118,8 @@ module.exports = (io, socket, clients, tick) => {
 				.then((fileData) => {
 					const bottomsKeyByID = _.keyBy(fileData, 'Name');
 
+					// add update stuff
+
 					console.log(`[Update] ${socket.character.name} changed Top: ${bottomsKeyByID[appearanceData.id].bottom_name}`);
 				})
 				.catch((err) => console.log(err));
@@ -126,6 +128,8 @@ module.exports = (io, socket, clients, tick) => {
 			jsonfile.readFile(shoesDataTable)
 				.then((fileData) => {
 					const shoesKeyByID = _.keyBy(fileData, 'Name');
+
+					// add update stuff
 
 					console.log(`[Update] ${socket.character.name} changed Top: ${shoesKeyByID[appearanceData.id].shoe_name}`);
 				})

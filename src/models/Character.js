@@ -20,7 +20,7 @@ const characterSchema = new db.mongoose.Schema(
 		eyes: { type: Number, default: 1 },
 		top: { type: Number, default: 1 },
 		bottom: { type: Number, default: 1 },
-		shoe: { type: Number, default: 1 },
+		shoes: { type: Number, default: 1 },
 		mapID: { type: Number, default: 1 },
 		location: {
 			x: Number,
