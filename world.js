@@ -15,7 +15,7 @@ const chalk = require('chalk');
 
 const Map = require('./src/world/Map')(io);
 
-const TICK_RATE = 10; // 0.1sec or 100ms
+const TICK_RATE = 20; // 0.1sec or 100ms
 let tick = 0;
 
 const config = require('./_config.json');
@@ -23,6 +23,8 @@ const config = require('./_config.json');
 const { port, serverMessage } = config.worldserver;
 
 const clients = [];
+let worldSnapshot = [];
+
 global.loadedMaps = [];
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -44,7 +46,54 @@ io.on('connection', (socket) => {
 	// Require all Handlers
 	require('./src/handlers/world/player-handler')(io, socket, clients, tick);
 
+	socket.on('player_Movement', (data) => {
+		const snapshot = {
+			name: socket.character.name,
+			location: data.location,
+			rotation: data.rotation,
+			action: parseInt(data.action, 10),
+			velocity: data.velocity,
+		};
+
+		function addOrReplaceBy(arr = [], predicate, getItem) {
+			const index = _.findIndex(arr, predicate);
+			return index === -1
+				? [...arr, getItem()]
+				: [
+					...arr.slice(0, index),
+					getItem(arr[index]),
+					...arr.slice(index + 1)];
+		}
+
+		worldSnapshot = addOrReplaceBy(worldSnapshot, { name: socket.character.name }, () => snapshot);
+
+		// Simulate on the Server Side
+		socket.character.location = data.location;
+		socket.character.rotation = data.rotation;
+		socket.character.velocity = data.velocity;
+	});
+
 	io.emit('updateServerMessage', serverMessage);
+
+	// Player Disconnection
+	socket.on('disconnect', (reason) => {
+		// Save Character Data to Database on disconnection
+		if (socket.character) {
+			// Tell all clients in the map to remove the player that disconnected.
+			socket.to(socket.character.mapID).emit('removePlayerFromMap', {
+				playerName: socket.character.name
+			});
+
+			_.remove(worldSnapshot, (character) => character.name === socket.character.name);
+
+			const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
+			clients.splice(socketIndex, 1);
+
+			console.log(`[World Server] User: ${socket.character.name} logged off`);
+		} else {
+			console.log(`[World Server] IP: ${socket.handshake.address} disconnected | Reason: ${socket.dcReason} | ${reason}`);
+		}
+	});
 });
 
 // Game Logic
@@ -53,31 +102,17 @@ function update() {
 	// Sent to (GameState_MMO)
 	if (Map.getActiveMaps().length > 0) {
 		Map.getActiveMaps().forEach((mapID) => {
-			const playerArray = [];
-			const players = Map.getAllPlayersInMap(mapID);
-
-			_.forOwn(players, (value, name) => {
-				// Don't send data if character is idle/not moving
-				// Build/Send Snapshot to Clients
-
-				const player = {
-					[name]: {
-						location: players[name].location,
-						rotation: players[name].rotation,
-						velocity: players[name].velocity,
-						action: players[name].action,
-						tick
-					}
-				};
-
-				playerArray.push(player);
+			io.to(mapID).emit('newSnapshot', {
+				timestamp: Date.now().toString(),
+				worldSnapshot
 			});
-			io.to(mapID).emit('update', playerArray);
 		});
 	} else {
 		// No players in any maps so don't emit anything
 		// console.log('No active maps');
 	}
+
+	// console.log(worldSnapshot);
 }
 
 // Game Loop

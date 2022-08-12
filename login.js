@@ -38,6 +38,10 @@ io.on('connection', (socket) => {
 	- The server checks the md5 hash the client sends and sends a callback if it's valid or invalid
 	- config.md5_hash
 	*/
+	socket.on('hello', () => {
+		console.log('msg from client');
+	});
+
 	socket.on('handshakeWS', (clientVersion, callback) => {
 		request(`http://127.0.0.1:${config.worldserver.port}`, (err) => {
 			if (!err) {

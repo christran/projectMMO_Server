@@ -12,43 +12,6 @@ module.exports = (io, socket, clients, tick) => {
 	const Player = require('../../helpers/player-helper')(io, clients);
 	const Map = require('../../world/Map')(io);
 
-	socket.on('player_Movement', (data) => {
-	// Don't apply old inputs after using portal
-	// If a player is still moving when using a portal it carries over to the next map
-	// Currently broken because of the new server movement code
-		// Check if player fell off the map
-		if (data.location.z < -5000) {
-			// Get nearest portal on server side and set charPos to it
-			socket.emit('player_ZLimit');
-		}
-
-		// This is not server authoritative
-		socket.character.location = data.location;
-		socket.character.rotation = data.rotation;
-		socket.character.velocity = data.velocity;
-
-		/*
-		// bootleg anticheat
-		const compareX = data.location.x - socket.character.data.location.x;
-		const compareY = data.location.y - socket.character.data.location.y;
-
-		if (compareX >= 90 || compareX <= -90 || compareY >= 90 || compareY <= -90) {
-			// Check if used teleport or flashjump skill
-			socket.emit('dc', 'Stop speed hacking');
-
-			susLog.newEntry({
-				accountID: socket.character.accountID,
-				characterName: socket.character.name,
-				reason: 'speed hacking'
-			});
-			console.log(`${socket.character.name} is speed hacking - X: ${compareX} Y: ${compareY}`);
-		} else {
-			socket.character.data.location = data.location;
-			socket.character.data.rotation = data.rotation;
-		}
-		*/
-	});
-
 	socket.on('player_Action', (data) => {
 		switch (data.action) {
 		case 'Idle':
@@ -85,9 +48,10 @@ module.exports = (io, socket, clients, tick) => {
 		// const skinsDataTable = './game/character_skins.json';
 		// const hairDataTable = './game/character_hair.json';
 		// const eyesDataTable = './game/character_eyes.json';
-		const topsDataTable = './game/character_tops.json';
-		const bottomsDataTable = './game/character_bottoms.json';
-		const shoesDataTable = './game/character_shoes.json';
+		const topsDataTable = './game/character/tops.json';
+		const bottomsDataTable = './game/character/bottoms.json';
+		const shoesDataTable = './game/character/shoes.json';
+		const weaponsDataTable = './game/character/weapons.json';
 
 		switch (appearanceData.type) {
 		case 'top':
@@ -109,7 +73,7 @@ module.exports = (io, socket, clients, tick) => {
 
 					});
 
-					console.log(`[Update] ${socket.character.name} changed Top: ${topsKeyID[appearanceData.id].top_name}`);
+					console.log(`[Update] ${socket.character.name} changed Top: ${topsKeyID[appearanceData.id].item_name}`);
 				})
 				.catch((err) => console.log(err));
 			break;
@@ -120,7 +84,7 @@ module.exports = (io, socket, clients, tick) => {
 
 					// add update stuff
 
-					console.log(`[Update] ${socket.character.name} changed Top: ${bottomsKeyByID[appearanceData.id].bottom_name}`);
+					console.log(`[Update] ${socket.character.name} changed Bottom: ${bottomsKeyByID[appearanceData.id].bottom_name}`);
 				})
 				.catch((err) => console.log(err));
 			break;
@@ -131,7 +95,29 @@ module.exports = (io, socket, clients, tick) => {
 
 					// add update stuff
 
-					console.log(`[Update] ${socket.character.name} changed Top: ${shoesKeyByID[appearanceData.id].shoe_name}`);
+					console.log(`[Update] ${socket.character.name} changed Shoes: ${shoesKeyByID[appearanceData.id].item_name}`);
+				})
+				.catch((err) => console.log(err));
+			break;
+		case 'weapon_left':
+			jsonfile.readFile(shoesDataTable)
+				.then((fileData) => {
+					const shoesKeyByID = _.keyBy(fileData, 'Name');
+
+					// add update stuff
+
+					console.log(`[Update] ${socket.character.name} changed Shoes: ${shoesKeyByID[appearanceData.id].item_name}`);
+				})
+				.catch((err) => console.log(err));
+			break;
+		case 'weapon_right':
+			jsonfile.readFile(weaponsDataTable)
+				.then((fileData) => {
+					const weaponsKeyByID = _.keyBy(fileData, 'Name');
+
+					// add update stuff
+
+					console.log(`[Update] ${socket.character.name} changed Shoes: ${weaponsKeyByID[appearanceData.id].weapon_name}`);
 				})
 				.catch((err) => console.log(err));
 			break;
@@ -142,7 +128,7 @@ module.exports = (io, socket, clients, tick) => {
 
 	// When a player enters a map (GameInstance_MMO) will emit this event
 	// Shouldn't need this because of how the client is also getting sent world snapshots that contain the same information in world.js update loop
-	socket.on('getAllPlayersInMap', (data, callback) => {
+	socket.on('requestMapState', (data, callback) => {
 		// Send client any other players in the map including themselves
 		if (Map.getAllPlayersInMap(socket.character.mapID)) {
 			const playersInMap = [];
@@ -155,8 +141,6 @@ module.exports = (io, socket, clients, tick) => {
 			});
 
 			callback(playersInMap);
-
-			socket.character.usingPortal = false;
 		} else {
 			// No other players in the map, don't do anything
 			// console.log('No other players in map to know about');
@@ -317,24 +301,6 @@ module.exports = (io, socket, clients, tick) => {
 				account.isOnline = false;
 				account.save();
 			});
-		}
-	});
-
-	// Player Disconnection
-	socket.on('disconnect', (reason) => {
-		// Save Character Data to Database on disconnection
-		if (socket.character) {
-			// Tell all clients in the map to remove the player that disconnected.
-			socket.to(socket.character.mapID).emit('removePlayerFromMap', {
-				playerName: socket.character.name
-			});
-
-			const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
-			clients.splice(socketIndex, 1);
-
-			console.log(`[World Server] User: ${socket.character.name} logged off`);
-		} else {
-			console.log(`[World Server] IP: ${socket.handshake.address} disconnected | Reason: ${socket.dcReason} | ${reason}`);
 		}
 	});
 };

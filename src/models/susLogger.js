@@ -1,6 +1,15 @@
 /* eslint-disable func-names */
 const db = require('../../db');
 
+/*
+// How to add a new entry
+	susLog.newEntry({
+		accountID: socket.character.accountID,
+		characterName: socket.character.name,
+		reason: 'speed hacking'
+	});
+*/
+
 const SusLogSchema = new db.mongoose.Schema(
 	{
 		accountID: { type: String, required: true },

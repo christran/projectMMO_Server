@@ -1,0 +1,3 @@
+---,item_name,Icon,material
+1,Black Jeans,None,MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeans/M_BlackJeans.M_BlackJeans'
+2,Black Jeans (Visible Ankles),None,MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeansVisibleAnkle/M_BlackJeansVisibleAnkle.M_BlackJeansVisibleAnkle'

@@ -1,0 +1,9 @@
+[
+	{
+		"Name": "NewRow",
+		"weapon_name": "",
+		"weapon_type": "Sword",
+		"icon": "None",
+		"static_mesh": "StaticMesh'/Game/Materials/Items/katana/katana_prototype2_katana.katana_prototype2_katana'"
+	}
+]

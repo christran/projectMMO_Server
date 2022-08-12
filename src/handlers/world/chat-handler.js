@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 module.exports = (io, socket, clients) => {
 	socket.on('chat', (data) => {
-		const combinedMsg = `${data.playerName}: ${data.message}`;
+		const combinedMsg = `${socket.name}: ${data.message}`;
 
 		// GM Commands
 		if (data.message.charAt(0) === '!') {
@@ -20,12 +20,35 @@ module.exports = (io, socket, clients) => {
 				console.log(`Invalid GM Command: ${gmCommand}`);
 			}
 		} else {
-			io.emit('chat', combinedMsg);
-			console.log(`[All Chat] ${combinedMsg}`);
+			switch (data.msgtype) {
+			case 'all':
+				socket.broadcast.emit('newMessage', {
+					type: 'all',
+					msg: combinedMsg
+				});
+				console.log(`[All Chat] ${combinedMsg}`);
+				break;
+			case 'local':
+				socket.to('1').emit('newMessage', {
+					type: 'local',
+					msg: combinedMsg
+				});
+				console.log(`[Local Chat] ${combinedMsg}`);
+				break;
+			default:
+				break;
+			}
 		}
 	});
 
+	// Authenticate User to Chat Server
+	socket.on('helloworld', (data) => {
+		socket.name = data.name;
+
+		console.log(`[Chat Server] ${data.name} connected to the chat server`);
+	});
+
 	socket.on('disconnect', () => {
-		console.log('[Chat Server] User: blank disconnected from chat');
+		console.log(`[Chat Server] ${socket.name} disconnected from the chat server`);
 	});
 };
