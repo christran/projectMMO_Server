@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "NodeJS/SocketIO MMO Server",
   "dependencies": {
-    "bcrypt": "^3.0.7",
+    "bcrypt": "^5.0.1",
     "body-parser": "^1.19.0",
     "chalk": "^3.0.0",
     "express": "^4.17.1",

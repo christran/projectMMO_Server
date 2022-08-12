@@ -1,4 +1,4 @@
----,top_name,Icon,material
+---,item_name,Icon,material
 1,Plain White T-Shirt,None,MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/PlainWhiteTShirt1/M_PlainWhiteTShirt.M_PlainWhiteTShirt'
 2,Detroit Become Human T-Shirt,None,MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/BlackDetroitTShirt/M_BlackDetroitTShirt.M_BlackDetroitTShirt'
 3,Sakura T-Shirt,None,MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/Sakura/M_Sakura.M_Sakura'

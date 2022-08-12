@@ -5,7 +5,10 @@ const bodyParser = require('body-parser');
 
 const app = express();
 const http = require('http').Server(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(http, {
+	transports: ['websocket'],
+	allowUpgrades: false
+});
 
 // const _ = require('lodash');
 const chalk = require('chalk');
@@ -27,12 +30,6 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
 	// Require all Handlers
 	require('./src/handlers/world/chat-handler')(io, socket, clients);
-
-	socket.on('hello', (data) => {
-		console.log(data);
-	});
-
-	console.log('[Chat Server] User: blank connected to chat');
 });
 
 http.listen(port, () => {

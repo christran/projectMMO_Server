@@ -14,6 +14,12 @@ const characterSchema = new db.mongoose.Schema(
 			unique: true,
 			uniqueCaseInsensitive: true
 		},
+		location: {
+			x: Number,
+			y: Number,
+			z: Number
+		},
+		rotation: Number,
 		gender: Number,
 		skin: { type: Number, default: 1 },
 		hair: { type: Number, default: 1 },
@@ -22,12 +28,9 @@ const characterSchema = new db.mongoose.Schema(
 		bottom: { type: Number, default: 1 },
 		shoes: { type: Number, default: 1 },
 		mapID: { type: Number, default: 1 },
-		location: {
-			x: Number,
-			y: Number,
-			z: Number
-		},
-		rotation: Number,
+
+		weapon_left: { type: Number, default: 0 },
+		weapon_right: { type: Number, default: 0 },
 
 		stats: {
 			level: { type: Number, default: 1 },
