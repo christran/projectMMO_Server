@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
 	*/
 	socket.on('handshakeWS', (clientVersion, callback) => {
 		// request(`http://127.0.0.1:${config.worldserver.port}`, (err) => {
-		request('https://projectmmo-test.herokuapp.com:7575/', (err) => {
+		request('https://projectmmo-test.herokuapp.com', (err) => {
 			if (!err) {
 				callback({
 					worldServer: 'ONLINE',
