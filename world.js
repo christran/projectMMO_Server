@@ -51,6 +51,8 @@ io.on('connection', (socket) => {
 	io.emit('updateServerMessage', serverMessage);
 });
 
+setInterval(() => io.emit('updateTick', { tick }), 2000);
+
 // Game Logic
 const update = () => {
 	// Send update only to maps with players in them (SocketIO Rooms)
