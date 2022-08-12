@@ -67,7 +67,7 @@ const update = () => {
 		});
 	}
 
-	console.log(worldSnapshotByMapID);
+	// console.log(worldSnapshotByMapID);
 };
 
 const cleanup = () => {
