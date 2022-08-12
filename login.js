@@ -38,9 +38,9 @@ io.on('connection', (socket) => {
 	- The server checks the md5 hash the client sends and sends a callback if it's valid or invalid
 	- config.md5_hash
 	*/
-
 	socket.on('handshakeWS', (clientVersion, callback) => {
-		request(`http://127.0.0.1:${config.worldserver.port}`, (err) => {
+		// request(`http://127.0.0.1:${config.worldserver.port}`, (err) => {
+		request('https://projectmmo-test.herokuapp.com:7575/', (err) => {
 			if (!err) {
 				callback({
 					worldServer: 'ONLINE',
