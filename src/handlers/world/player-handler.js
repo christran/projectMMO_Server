@@ -8,39 +8,41 @@ const Account = require('../../models/Account');
 const Character = require('../../models/Character');
 // const susLog = require('../../models/susLogger.js');
 
-module.exports = (io, socket, clients, tick) => {
+module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 	const Player = require('../../helpers/player-helper')(io, clients);
 	const Map = require('../../world/Map')(io);
 
-	socket.on('player_Action', (data) => {
-		switch (data.action) {
-		case 'Idle':
-			socket.character.action = 1;
-			// console.log(`${socket.character.name} is idle`);
-			break;
-		case 'Walking':
-			socket.character.action = 2;
-			console.log(`${socket.character.name} is walking`);
-			break;
-		case 'Running':
-			socket.character.action = 3;
-			console.log(`${socket.character.name} is running`);
-			break;
-		case 'Jump':
-			socket.character.action = 4;
-			console.log(`${socket.character.name} jumped`);
-			break;
-		case 'Crouch':
-			socket.character.action = 5;
-			console.log(`${socket.character.name} crouched`);
-			break;
-		case 'Attack':
-			socket.character.action = 6;
-			console.log(`${socket.character.name} attacked`);
-			break;
-		default:
-			break;
+	socket.on('characterState', (data) => {
+		if (data.location.z < -5000) {
+			// Get nearest portal on server side and set charPos to it
+			// does the server even need to do this? just let the client handle it unless they can abuse it somehow?
+			socket.emit('character_ZLimit');
 		}
+
+		const snapshot = {
+			name: socket.character.name,
+			location: data.location,
+			rotation: data.rotation,
+			action: parseInt(data.action, 10),
+			velocity: data.velocity,
+		};
+
+		function addOrReplaceBy(arr = [], predicate, getItem) {
+			const index = _.findIndex(arr, predicate);
+			return index === -1
+				? [...arr, getItem()]
+				: [
+					...arr.slice(0, index),
+					getItem(arr[index]),
+					...arr.slice(index + 1)];
+		}
+
+		worldSnapshotByMapID[socket.character.mapID] = addOrReplaceBy(worldSnapshotByMapID[socket.character.mapID], { name: socket.character.name }, () => snapshot);
+
+		// Simulate on the Server Side
+		socket.character.location = data.location;
+		socket.character.rotation = data.rotation;
+		socket.character.velocity = data.velocity;
 	});
 
 	// Client sends data to server to update character appearance/clothing
@@ -126,10 +128,11 @@ module.exports = (io, socket, clients, tick) => {
 		}
 	});
 
-	// When a player enters a map (GameInstance_MMO) will emit this event
+	// When a player enters a map (GameState_MMO) will emit this event
 	// Shouldn't need this because of how the client is also getting sent world snapshots that contain the same information in world.js update loop
 	socket.on('requestMapState', (data, callback) => {
 		// Send client any other players in the map including themselves
+		// Portal logic runs before this? casuing the character to spawn at the wrong location
 		if (Map.getAllPlayersInMap(socket.character.mapID)) {
 			const playersInMap = [];
 			const players = Map.getAllPlayersInMap(socket.character.mapID);
@@ -148,7 +151,7 @@ module.exports = (io, socket, clients, tick) => {
 	});
 
 	// Spawn Player after they select a character
-	socket.on('spawnPlayer', async (data) => {
+	socket.on('spawnRequest', async (data) => {
 		// Check if player is trying to spawn a character that is already spawned ingame
 		if (_.findIndex(clients, { name: data.name }) >= 0) {
 			// Pawn is already spawned/possessed
@@ -176,8 +179,7 @@ module.exports = (io, socket, clients, tick) => {
 				socket.join(character.mapID);
 
 				// Send client the current tick of the server
-				socket.emit('setCurrentTick', tick);
-				socket.emit('changePlayerMap', character.mapID);
+				socket.emit('changeMap', character.mapID);
 
 				// Default velocity
 				character.velocity = {
@@ -187,7 +189,7 @@ module.exports = (io, socket, clients, tick) => {
 				};
 
 				// Send to other players in the map
-				socket.to(character.mapID).emit('addPlayerToMap', {
+				socket.to(character.mapID).emit('addCharacter', {
 					characterInfo: character,
 				});
 
@@ -218,27 +220,29 @@ module.exports = (io, socket, clients, tick) => {
 				const targetPortal = await Map.getMap(currentPortal.toMapID).catch((err) => console.log(`[Player Handler] player_UsePortal | ${err}`));
 
 				if (socket.character.mapID) {
-					// Tell all players in the map to remove the player that disconnected.
-					socket.to(socket.character.mapID).emit('removePlayerFromMap', {
-						playerName: socket.character.name,
-					});
-
-					socket.leave(socket.character.mapID);
-
-					// Tell client to change map
-					socket.emit('changePlayerMap', currentPortal.toMapID);
-
 					const newPosition = targetPortal.portals[currentPortal.toPortalName];
 
 					if (newPosition) {
+						// Tell all players in the map to remove the player that disconnected.
+						// Expect for this socket client
+						socket.to(socket.character.mapID).emit('removeCharacter', {
+							name: socket.character.name,
+						});
+
+						_.remove(worldSnapshotByMapID[socket.character.mapID], (character) => character.name === socket.character.name);
+
+						socket.leave(socket.character.mapID);
 						socket.join(currentPortal.toMapID);
 
+						socket.character.mapID = currentPortal.toMapID;
 						socket.character.location = newPosition.location;
 						socket.character.rotation = newPosition.rotation;
-						socket.character.mapID = currentPortal.toMapID;
 
-						// Tell all players currently in the map to add the player that joined
-						socket.to(socket.character.mapID).emit('addPlayerToMap', {
+						// Tell client to change map
+						socket.emit('changeMap', currentPortal.toMapID);
+
+						// Tell all players currently in the new map to add the player that joined
+						socket.to(socket.character.mapID).emit('addCharacter', {
 							characterInfo: socket.character
 						});
 
@@ -264,7 +268,7 @@ module.exports = (io, socket, clients, tick) => {
 					socket.character.location = newPosition.location;
 					socket.character.rotation = newPosition.rotation;
 					socket.character.action = 2;
-					socket.emit('teleportPlayer', response);
+					socket.emit('teleportCharacter', response);
 
 					console.log(`[World Server] ${socket.character.name} used portal: ${data.portalName} in Map: ${currentMap.mapInfo.mapName}`);
 				}
@@ -280,8 +284,8 @@ module.exports = (io, socket, clients, tick) => {
 			io.to(`${player.id}`).emit('dc', 'D/Ced by a GM');
 
 			// Tell all clients in the map to remove the player that disconnected.
-			socket.to(player.mapID).emit('removePlayerFromMap', {
-				playerName: data.name
+			socket.to(player.mapID).emit('removeCharacter', {
+				name: data.name
 			});
 
 			console.log(`[World Server] ${player.character.name} was dced by a GM`);
@@ -301,6 +305,27 @@ module.exports = (io, socket, clients, tick) => {
 				account.isOnline = false;
 				account.save();
 			});
+		}
+	});
+
+	// Player Disconnection
+	socket.on('disconnect', (reason) => {
+		// Save Character Data to Database on disconnection
+		if (socket.character) {
+			// Tell all clients in the map to remove the player that disconnected.
+			socket.to(socket.character.mapID).emit('removeCharacter', {
+				name: socket.character.name
+			});
+
+			// _.remove(worldSnapshot, (character) => character.name === socket.character.name);
+			_.remove(worldSnapshotByMapID[socket.character.mapID], (character) => character.name === socket.character.name);
+
+			const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
+			clients.splice(socketIndex, 1);
+
+			console.log(`[World Server] User: ${socket.character.name} logged off`);
+		} else {
+			console.log(`[World Server] IP: ${socket.handshake.address} disconnected | Reason: ${socket.dcReason} | ${reason}`);
 		}
 	});
 };
