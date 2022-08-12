@@ -21,7 +21,8 @@ let tick = 0;
 
 const config = require('./_config.json');
 
-const { port, serverMessage } = config.worldserver;
+const { serverMessage } = config.worldserver;
+const port = process.env.PORT || 7575;
 
 const clients = [];
 const worldSnapshotByMapID = {};
