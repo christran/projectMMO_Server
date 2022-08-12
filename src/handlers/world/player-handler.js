@@ -38,6 +38,7 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 			rotation: data.rotation,
 			action: parseInt(data.action, 10),
 			velocity: data.velocity,
+			timestamp: Date.now().toString()
 		};
 
 		function addOrReplaceBy(arr = [], predicate, getItem) {
