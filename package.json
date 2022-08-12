@@ -2,6 +2,10 @@
   "name": "projectmmo",
   "version": "0.1.0",
   "description": "NodeJS/SocketIO MMO Server",
+  "scripts": {
+	"start": "node world.js"
+  },
+
   "dependencies": {
     "bcrypt": "^5.0.1",
     "body-parser": "^1.19.0",
