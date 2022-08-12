@@ -19,6 +19,19 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 			socket.emit('character_ZLimit');
 		}
 
+		// calculate character's new location given last location, velocity, and time passed since last update
+		// const location = {
+		// 	x: data.location.x + data.velocity.x * 0.05,
+		// 	y: data.location.y + data.velocity.y * 0.05,
+		// 	z: data.location.z + data.velocity.z * 0.05,
+		// };
+
+		// const location = {
+		// 	x: socket.character.x += data.velocity.x * 0.05,
+		// 	y: socket.character.y += data.velocity.y * 0.05,
+		// 	z: socket.character.z += data.velocity.z * 0.05,
+		// };
+
 		const snapshot = {
 			name: socket.character.name,
 			location: data.location,
