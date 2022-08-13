@@ -16,7 +16,7 @@ const chalk = require('chalk');
 // const _ = require('lodash');
 const Map = require('./src/world/Map')(io);
 
-const TICK_RATE = 20; // 0.1sec or 100ms
+const TICK_RATE = 10; // 0.1sec or 100ms
 // eslint-disable-next-line no-unused-vars
 let tick = 0;
 
