@@ -13,6 +13,7 @@ const io = require('socket.io')(http, {
 // const _ = require('lodash');
 const chalk = require('chalk');
 
+// const _ = require('lodash');
 const Map = require('./src/world/Map')(io);
 
 const TICK_RATE = 20; // 0.1sec or 100ms
@@ -51,8 +52,6 @@ io.on('connection', (socket) => {
 	io.emit('updateServerMessage', serverMessage);
 });
 
-setInterval(() => io.emit('updateTick', { tick }), 2000);
-
 // Game Logic
 const update = () => {
 	// Send update only to maps with players in them (SocketIO Rooms)
@@ -63,9 +62,14 @@ const update = () => {
 
 	if (activeMaps.length > 0) {
 		activeMaps.forEach((mapID) => {
-			io.to(parseInt(mapID, 10)).emit('newSnapshot', {
-				timestamp: Date.now().toString(),
-				worldSnapshot: worldSnapshotByMapID[parseInt(parseInt(mapID, 10), 10)]
+			// io.to(parseInt(mapID, 10)).emit('newSnapshot', {
+			// 	timestamp: Date.now().toString(),
+			// 	worldSnapshot: worldSnapshotByMapID[parseInt(parseInt(mapID, 10), 10)]
+			// });
+
+			// Client receives newSnapshot of each character in the map
+			worldSnapshotByMapID[mapID].forEach((characterSnapshot) => {
+				io.to(parseInt(mapID, 10)).emit('newSnapshot', characterSnapshot);
 			});
 		});
 	}
