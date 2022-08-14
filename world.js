@@ -67,6 +67,9 @@ const update = () => {
 				worldSnapshot: worldSnapshotByMapID[parseInt(parseInt(mapID, 10), 10)]
 			});
 
+			// Remove worldSnapshot after sending it to the clients
+			worldSnapshotByMapID[parseInt(mapID, 10)] = [];
+
 			// Client receives newSnapshot of each character in the map
 			// worldSnapshotByMapID[mapID].forEach((characterSnapshot) => {
 			// 	io.to(parseInt(mapID, 10)).emit('newSnapshot', characterSnapshot);
