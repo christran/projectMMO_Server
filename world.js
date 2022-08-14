@@ -62,15 +62,20 @@ const update = () => {
 
 	if (activeMaps.length > 0) {
 		activeMaps.forEach((mapID) => {
-			// io.to(parseInt(mapID, 10)).emit('newSnapshot', {
-			// 	timestamp: Date.now().toString(),
-			// 	worldSnapshot: worldSnapshotByMapID[parseInt(parseInt(mapID, 10), 10)]
-			// });
+			io.to(parseInt(mapID, 10)).emit('newSnapshot', {
+				timestamp: Date.now().toString(),
+				worldSnapshot: worldSnapshotByMapID[parseInt(parseInt(mapID, 10), 10)]
+			});
 
 			// Client receives newSnapshot of each character in the map
-			worldSnapshotByMapID[mapID].forEach((characterSnapshot) => {
-				io.to(parseInt(mapID, 10)).emit('newSnapshot', characterSnapshot);
-			});
+			// worldSnapshotByMapID[mapID].forEach((characterSnapshot) => {
+			// 	io.to(parseInt(mapID, 10)).emit('newSnapshot', characterSnapshot);
+
+			// 	// Remove a characterSnapshot from worldSnapshotByMapID by character name after sending to clients
+			// 	_.remove(worldSnapshotByMapID[mapID], (character) => character.name === characterSnapshot.name);
+
+			// 	// console.log(characterSnapshot);
+			// });
 		});
 	}
 

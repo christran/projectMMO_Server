@@ -57,6 +57,9 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 		socket.character.location = data.location;
 		socket.character.rotation = data.rotation;
 		socket.character.velocity = data.velocity;
+		socket.character.action = parseInt(data.action, 10);
+
+		// console.log(data); // Check if client is sending indepedent of framerate
 	});
 
 	// Client sends data to server to update character appearance/clothing
