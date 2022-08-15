@@ -1,3 +1,0 @@
----,weapon_name,weapon_type,icon,static_mesh,L_relative_location,L_relative_rotation,R_relative_location,R_relative_rotation
-1,"Sword","Sword","None","StaticMesh'/Game/Materials/Items/katana/katana_prototype2_katana.katana_prototype2_katana'","(X=-7.655043,Y=-18.621444,Z=-12.508180)","(Pitch=67.784265,Yaw=-118.885339,Roll=-3.345281)","(X=6.618860,Y=-18.832831,Z=-2.243012)","(Pitch=-85.020420,Yaw=-169.069371,Roll=-78.556354)"
-2,"Picochan","Sword","None","StaticMesh'/Game/Materials/Items/picopico/picohan.picohan'","(X=6.297585,Y=-2.218939,Z=-2.141026)","(Pitch=4.981185,Yaw=-30.018558,Roll=-0.436933)","(X=-6.615761,Y=1.150247,Z=-2.242335)","(Pitch=11.341991,Yaw=-160.764573,Roll=179.401627)"
