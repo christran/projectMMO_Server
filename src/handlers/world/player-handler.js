@@ -253,12 +253,13 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 			}).catch((err) => {
 				// Remove Item from Client's map
 				// Tell client that item doesn't exist and they're hacking
-				io.to(socket.character.mapID).emit('removeItem', { _id: data._id });
+				io.to(socket.id).emit('removeItem', { _id: data._id });
 
 				console.log(err);
 				console.log(chalk.red('[Item Factory] Item does not exist in the database.'));
 			});
 		} else {
+			io.to(socket.id).emit('removeItem', { _id: data._id });
 			console.log(chalk.yellow(`[Item Factory] ID: ${socket.character.id} | Name : ${socket.character.name} | tried to loot an item that doesn't exist in the world.`));
 		}
 	});
@@ -269,16 +270,23 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 		// Send client any other players in the map including themselves
 		// Portal logic runs before this? casuing the character to spawn at the wrong location
 		if (Map.getAllPlayersInMap(socket.character.mapID)) {
-			const playersInMap = [];
+			const charactersInMap = [];
 			const players = Map.getAllPlayersInMap(socket.character.mapID);
 
 			_.forOwn(players, (value, name) => {
-				playersInMap.push({
+				charactersInMap.push({
 					characterInfo: players[name]
 				});
 			});
 
-			callback(playersInMap);
+			// Check if worldSnapshot for mapID exists
+			if (worldSnapshotByMapID[socket.character.mapID]) {
+				const mapState = {
+					charactersInMap,
+					itemsOnTheGround: worldSnapshotByMapID[socket.character.mapID].itemsOnTheGround
+				};
+				callback(mapState);
+			}
 		} else {
 			// No other players in the map, don't do anything
 			// console.log('No other players in map to know about');
@@ -362,8 +370,7 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 							name: socket.character.name,
 						});
 
-						_.remove(worldSnapshotByMapID[socket.character.mapID], (character) => character.name === socket.character.name);
-
+						// Join new map then leave old map
 						socket.leave(socket.character.mapID);
 						socket.join(currentPortal.toMapID);
 

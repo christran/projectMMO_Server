@@ -17,7 +17,7 @@ const _ = require('lodash');
 const Item = require('./src/models/Item');
 const Map = require('./src/world/Map')(io);
 
-const TICK_RATE = 20; // 0.1sec or 100ms
+const TICK_RATE = 10; // 0.1sec or 100ms
 // eslint-disable-next-line no-unused-vars
 let tick = 0;
 
@@ -62,6 +62,11 @@ const update = () => {
 		// if the mapID doesn't exist in the worldSnapshotByMapID create it
 		if (!worldSnapshotByMapID[mapID]) {
 			worldSnapshotByMapID[mapID] = { characterStates: [], itemsOnTheGround: [] };
+
+			io.to(parseInt(mapID, 10)).emit('newSnapshot', {
+				timestamp: Date.now().toString(),
+				worldSnapshot: worldSnapshotByMapID[parseInt(parseInt(mapID, 10), 10)].characterStates
+			});
 		} else {
 			io.to(parseInt(mapID, 10)).emit('newSnapshot', {
 				timestamp: Date.now().toString(),
@@ -82,7 +87,7 @@ const update = () => {
 			// });
 
 			const now = Date.now();
-			const secondsToKeepItemOnTheGround = 60;
+			const secondsToKeepItemOnTheGround = 30;
 
 			// Delete items from itemsOnTheGround that are older than 60 seconds
 			_.remove(worldSnapshotByMapID[mapID].itemsOnTheGround, (item) => {
@@ -95,6 +100,8 @@ const update = () => {
 			});
 		}
 	});
+
+	console.log(worldSnapshotByMapID);
 };
 
 const cleanup = () => {
