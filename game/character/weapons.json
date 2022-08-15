@@ -1,9 +1,64 @@
 [
 	{
-		"Name": "NewRow",
-		"weapon_name": "",
+		"Name": "1",
+		"weapon_name": "Sword",
 		"weapon_type": "Sword",
 		"icon": "None",
-		"static_mesh": "StaticMesh'/Game/Materials/Items/katana/katana_prototype2_katana.katana_prototype2_katana'"
+		"static_mesh": "StaticMesh'/Game/Materials/Items/katana/katana_prototype2_katana.katana_prototype2_katana'",
+		"L_relative_location":
+		{
+			"X": -7.655043,
+			"Y": -18.621444,
+			"Z": -12.508179999999999
+		},
+		"L_relative_rotation":
+		{
+			"Pitch": 67.784265000000005,
+			"Yaw": -118.885339,
+			"Roll": -3.3452809999999999
+		},
+		"R_relative_location":
+		{
+			"X": 6.6188599999999997,
+			"Y": -18.832830999999999,
+			"Z": -2.2430119999999998
+		},
+		"R_relative_rotation":
+		{
+			"Pitch": -85.020420000000001,
+			"Yaw": -169.06937099999999,
+			"Roll": -78.556353999999999
+		}
+	},
+	{
+		"Name": "2",
+		"weapon_name": "Picochan",
+		"weapon_type": "Sword",
+		"icon": "None",
+		"static_mesh": "StaticMesh'/Game/Materials/Items/picopico/picohan.picohan'",
+		"L_relative_location":
+		{
+			"X": 6.2975849999999998,
+			"Y": -2.2189390000000002,
+			"Z": -2.1410260000000001
+		},
+		"L_relative_rotation":
+		{
+			"Pitch": 4.981185,
+			"Yaw": -30.018557999999999,
+			"Roll": -0.43693300000000002
+		},
+		"R_relative_location":
+		{
+			"X": -6.615761,
+			"Y": 1.150247,
+			"Z": -2.2423350000000002
+		},
+		"R_relative_rotation":
+		{
+			"Pitch": 11.341991,
+			"Yaw": -160.76457300000001,
+			"Roll": 179.40162699999999
+		}
 	}
 ]
