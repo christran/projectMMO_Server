@@ -1,11 +1,16 @@
-const jsonfile = require('jsonfile');
+// const jsonfile = require('jsonfile');
 const _ = require('lodash');
 const moment = require('moment');
+const chalk = require('chalk');
+const jsonfile = require('jsonfile');
 
 const Discord = require('../../helpers/discord');
 
 const Account = require('../../models/Account');
 const Character = require('../../models/Character');
+const Item = require('../../models/Item');
+
+const itemsDataTable = './game/items.json';
 // const susLog = require('../../models/susLogger.js');
 
 module.exports = (io, socket, clients, worldSnapshotByMapID) => {
@@ -50,8 +55,8 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 					getItem(arr[index]),
 					...arr.slice(index + 1)];
 		}
-
-		worldSnapshotByMapID[socket.character.mapID] = addOrReplaceBy(worldSnapshotByMapID[socket.character.mapID], { name: socket.character.name }, () => snapshot);
+		// add or replace snapshot in worldSnapshotByMapID array of snapshots for the map
+		worldSnapshotByMapID[socket.character.mapID].characterStates = addOrReplaceBy(worldSnapshotByMapID[socket.character.mapID].characterStates, (character) => character.name === socket.character.name, () => snapshot);
 
 		// Simulate on the Server Side
 		socket.character.location = data.location;
@@ -64,84 +69,197 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 
 	// Client sends data to server to update character appearance/clothing
 	socket.on('player_UpdateApperance', (appearanceData) => {
-		// const skinsDataTable = './game/character_skins.json';
-		// const hairDataTable = './game/character_hair.json';
-		// const eyesDataTable = './game/character_eyes.json';
-		const topsDataTable = './game/character/tops.json';
-		const bottomsDataTable = './game/character/bottoms.json';
-		const shoesDataTable = './game/character/shoes.json';
-		const weaponsDataTable = './game/character/weapons.json';
+		socket.character.appearance = appearanceData;
 
-		switch (appearanceData.type) {
-		case 'top':
-			jsonfile.readFile(topsDataTable)
-				.then((fileData) => {
-					const topsKeyID = _.keyBy(fileData, 'Name');
+		socket.to(socket.character.mapID).emit('updateAppearance', {
+			name: socket.character.name,
+			appearance: appearanceData
+		});
 
-					// Update Character Top on Server
-					socket.character.top = appearanceData.id;
+		// _.forOwn(appearanceData, (id, type) => {
+		// 	if (id !== 0) {
+		// 		if (type === 'top' || type === 'bottom' || type === 'shoes') {
+		// 			jsonfile.readFile(`./game/character/${type}s.json`)
+		// 				.then((fileData) => {
+		// 					const keyByID = _.keyBy(fileData, 'Name');
 
-					// Update Character Top in Database
-					Character.saveCharacter(socket);
+		// 					socket.character.appearance.top = id;
 
-					// Tell other clients to update this character top
-					socket.to(socket.character.mapID).emit('updateAppearance', {
-						name: socket.character.name,
-						type: 'top',
-						id: appearanceData.id,
+		// 					socket.to(socket.character.mapID).emit('updateAppearance', {
+		// 						name: socket.character.name,
+		// 						type: 'top',
+		// 						id
 
-					});
+		// 					});
 
-					console.log(`[Update] ${socket.character.name} changed Top: ${topsKeyID[appearanceData.id].item_name}`);
-				})
-				.catch((err) => console.log(err));
-			break;
-		case 'bottom':
-			jsonfile.readFile(bottomsDataTable)
-				.then((fileData) => {
-					const bottomsKeyByID = _.keyBy(fileData, 'Name');
+		// 					console.log(`[Update] ${socket.character.name} changed ${type}: ${keyByID[id].item_name}`);
+		// 				});
 
-					// add update stuff
+		// 			// switch (type) {
+		// 			// case 'top':
+		// 			// 	jsonfile.readFile(topsDataTable)
+		// 			// 		.then((fileData) => {
+		// 			// 			const topsKeyID = _.keyBy(fileData, 'Name');
 
-					console.log(`[Update] ${socket.character.name} changed Bottom: ${bottomsKeyByID[appearanceData.id].bottom_name}`);
-				})
-				.catch((err) => console.log(err));
-			break;
-		case 'shoe':
-			jsonfile.readFile(shoesDataTable)
-				.then((fileData) => {
-					const shoesKeyByID = _.keyBy(fileData, 'Name');
+		// 			// 			// Update Character Top on Server
+		// 			// 			socket.character.appearance.top = id;
 
-					// add update stuff
+		// 			// 			// Tell other clients to update this character top
+		// 			// 			socket.to(socket.character.mapID).emit('updateAppearance', {
+		// 			// 				name: socket.character.name,
+		// 			// 				type: 'top',
+		// 			// 				id
 
-					console.log(`[Update] ${socket.character.name} changed Shoes: ${shoesKeyByID[appearanceData.id].item_name}`);
-				})
-				.catch((err) => console.log(err));
-			break;
-		case 'weapon_left':
-			jsonfile.readFile(shoesDataTable)
-				.then((fileData) => {
-					const shoesKeyByID = _.keyBy(fileData, 'Name');
+		// 			// 			});
 
-					// add update stuff
+		// 			// 			console.log(`[Update] ${socket.character.name} changed Top: ${topsKeyID[id].item_name}`);
+		// 			// 		})
+		// 			// 		.catch((err) => console.log(err));
+		// 			// 	break;
+		// 			// case 'bottom':
+		// 			// 	jsonfile.readFile(bottomsDataTable)
+		// 			// 		.then((fileData) => {
+		// 			// 			const bottomsKeyByID = _.keyBy(fileData, 'Name');
 
-					console.log(`[Update] ${socket.character.name} changed Shoes: ${shoesKeyByID[appearanceData.id].item_name}`);
-				})
-				.catch((err) => console.log(err));
-			break;
-		case 'weapon_right':
-			jsonfile.readFile(weaponsDataTable)
-				.then((fileData) => {
-					const weaponsKeyByID = _.keyBy(fileData, 'Name');
+		// 			// 			// add update stuff
 
-					// add update stuff
+		// 			// 			console.log(`[Update] ${socket.character.name} changed Bottom: ${bottomsKeyByID[id].item_name}`);
+		// 			// 		})
+		// 			// 		.catch((err) => console.log(err));
+		// 			// 	break;
+		// 			// case 'shoes':
+		// 			// 	jsonfile.readFile(shoesDataTable)
+		// 			// 		.then((fileData) => {
+		// 			// 			const shoesKeyByID = _.keyBy(fileData, 'Name');
 
-					console.log(`[Update] ${socket.character.name} changed Shoes: ${weaponsKeyByID[appearanceData.id].weapon_name}`);
-				})
-				.catch((err) => console.log(err));
-			break;
-		default:
-			break;
+		// 			// 			// add update stuff
+
+		// 			// 			console.log(`[Update] ${socket.character.name} changed Shoes: ${shoesKeyByID[id].item_name}`);
+		// 			// 		})
+		// 			// 		.catch((err) => console.log(err));
+		// 			// 	break;
+		// 			// case 'weapon_L':
+		// 			// 	jsonfile.readFile(shoesDataTable)
+		// 			// 		.then((fileData) => {
+		// 			// 			const shoesKeyByID = _.keyBy(fileData, 'Name');
+
+		// 			// 			// add update stuff
+
+		// 			// 			console.log(`[Update] ${socket.character.name} changed Shoes: ${shoesKeyByID[id].weapon_name}`);
+		// 			// 		})
+		// 			// 		.catch((err) => console.log(err));
+		// 			// 	break;
+		// 			// case 'weapon_R':
+		// 			// 	jsonfile.readFile(weaponsDataTable)
+		// 			// 		.then((fileData) => {
+		// 			// 			const weaponsKeyByID = _.keyBy(fileData, 'Name');
+
+		// 			// 			// Update Character Top on Server
+		// 			// 			socket.character.appearance.weapon_R = id;
+
+		// 			// 			// Tell other clients to update this character top
+		// 			// 			socket.to(socket.character.mapID).emit('updateAppearance', {
+		// 			// 				name: socket.character.name,
+		// 			// 				type: 'weapon_R',
+		// 			// 				id,
+
+		// 			// 			});
+
+		// 			// 			console.log(`[Update] ${socket.character.name} changed Weapon_R: ${weaponsKeyByID[id].weapon_name}`);
+		// 			// 		})
+		// 			// 		.catch((err) => console.log(err));
+		// 			// 	break;
+		// 			// default:
+		// 			// 	break;
+		// 			// }
+		// 		} else if (type === 'weapon_L' || type === 'weapon_R') {
+		// 			if (type === 'weapon_L') {
+		// 				jsonfile.readFile(weaponsDataTable)
+		// 					.then((fileData) => {
+		// 						const weaponsKeyByID = _.keyBy(fileData, 'Name');
+
+		// 						// Update Character Top on Server
+		// 						socket.character.appearance.weapon_L = id;
+
+		// 						// Tell other clients to update this character top
+		// 						socket.to(socket.character.mapID).emit('updateAppearance', {
+		// 							name: socket.character.name,
+		// 							type: 'weapon_L',
+		// 							id,
+
+		// 						});
+
+		// 						console.log(`[Update] ${socket.character.name} changed weapon_L: ${weaponsKeyByID[id].weapon_name}`);
+		// 					})
+		// 					.catch((err) => console.log(err));
+		// 			} else if (type === 'weapon_R') {
+		// 				jsonfile.readFile(weaponsDataTable)
+		// 					.then((fileData) => {
+		// 						const weaponsKeyByID = _.keyBy(fileData, 'Name');
+
+		// 						// Update Character Top on Server
+		// 						socket.character.appearance.weapon_R = id;
+
+		// 						// Tell other clients to update this character top
+		// 						socket.to(socket.character.mapID).emit('updateAppearance', {
+		// 							name: socket.character.name,
+		// 							type: 'weapon_R',
+		// 							id,
+
+		// 						});
+
+		// 						console.log(`[Update] ${socket.character.name} changed Weapon_R: ${weaponsKeyByID[id].weapon_name}`);
+		// 					})
+		// 					.catch((err) => console.log(err));
+		// 			}
+		// 		}
+		// 	} else {
+		// 		// console.log('[Update] Character Appearance: Shirtless/Bottomeless etc...');
+		// 	}
+		// });
+
+		// Update Character Appearance in Database
+		Character.saveCharacter(socket);
+	});
+
+	socket.on('player_LootItem', (data, callback) => {
+		const itemsInMapID = worldSnapshotByMapID[socket.character.mapID].itemsOnTheGround;
+
+		const findItemInMapID = _.find(itemsInMapID, { _id: data._id });
+
+		if (findItemInMapID) {
+			// Update item's owner with socket.characterID in the Items database
+			Item.findItemByID(data._id).then((itemInDB) => {
+				itemInDB.characterID = socket.character.id;
+				itemInDB.lootable = false;
+
+				itemInDB.save().then(() => {
+				// Remove Item from worldSnapshotByID.itemsOnTheGround
+					_.remove(itemsInMapID, { _id: data._id });
+
+					// Emit to all clients in mapID that an item has been looted and to remove it
+					io.to(socket.character.mapID).emit('removeItem', { _id: data._id });
+
+					/// Tell Client that the item has been looted
+					callback(true);
+
+					jsonfile.readFile(itemsDataTable)
+						.then((fileData) => {
+							const itemsKeyByID = _.keyBy(fileData, 'Name');
+
+							console.log(chalk.yellow(`[Item Factory] ${socket.character.name} looted: ${itemsKeyByID[itemInDB.itemID].item_name}`));
+						}).catch((err) => console.log(err));
+				});
+			}).catch((err) => {
+				// Remove Item from Client's map
+				// Tell client that item doesn't exist and they're hacking
+				io.to(socket.character.mapID).emit('removeItem', { _id: data._id });
+
+				console.log(err);
+				console.log(chalk.red('[Item Factory] Item does not exist in the database.'));
+			});
+		} else {
+			console.log(chalk.yellow(`[Item Factory] ID: ${socket.character.id} | Name : ${socket.character.name} | tried to loot an item that doesn't exist in the world.`));
 		}
 	});
 
@@ -189,13 +307,11 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 
 				clients.push({
 					name: character.name,
-					socketID: socket.id
+					socketID: socket.id,
 				});
 
 				// Add player to map and spawn them in the map
 				socket.join(character.mapID);
-
-				// Send client the current tick of the server
 				socket.emit('changeMap', character.mapID);
 
 				// Default velocity
@@ -333,9 +449,6 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 			socket.to(socket.character.mapID).emit('removeCharacter', {
 				name: socket.character.name
 			});
-
-			// _.remove(worldSnapshot, (character) => character.name === socket.character.name);
-			_.remove(worldSnapshotByMapID[socket.character.mapID], (character) => character.name === socket.character.name);
 
 			const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
 			clients.splice(socketIndex, 1);

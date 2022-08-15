@@ -1,0 +1,470 @@
+[
+	{
+		"Name": "1",
+		"item_name": "None",
+		"item_type": "etc",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "None",
+		"skeletal_mesh": "None",
+		"material": "None",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		}
+	},
+	{
+		"Name": "2",
+		"item_name": "Plain White T-Shirt",
+		"item_type": "top",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "None",
+		"skeletal_mesh": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/PlainWhiteTShirt1/M_PlainWhiteTShirt.M_PlainWhiteTShirt'",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		}
+	},
+	{
+		"Name": "3",
+		"item_name": "Detroit Become Human T-Shirt",
+		"item_type": "top",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "None",
+		"skeletal_mesh": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/BlackDetroitTShirt/M_BlackDetroitTShirt.M_BlackDetroitTShirt'",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		}
+	},
+	{
+		"Name": "4",
+		"item_name": "Sakura T-Shirt",
+		"item_type": "top",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "None",
+		"skeletal_mesh": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/Sakura/M_Sakura.M_Sakura'",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		}
+	},
+	{
+		"Name": "5",
+		"item_name": "Happy Sad T-Shirt",
+		"item_type": "top",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "None",
+		"skeletal_mesh": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/HappySad/M_HappySad.M_HappySad'",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		}
+	},
+	{
+		"Name": "6",
+		"item_name": "Squid Game T-Shirt",
+		"item_type": "top",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "None",
+		"skeletal_mesh": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/SquidGameTShirt/M_SquidGameTShirt.M_SquidGameTShirt'",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		}
+	},
+	{
+		"Name": "7",
+		"item_name": "Black Jeans",
+		"item_type": "bottom",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "None",
+		"skeletal_mesh": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeans/M_BlackJeans.M_BlackJeans'",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		}
+	},
+	{
+		"Name": "8",
+		"item_name": "Black Jeans (Visible Ankles)",
+		"item_type": "etc",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "None",
+		"skeletal_mesh": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeansVisibleAnkle/M_BlackJeansVisibleAnkle.M_BlackJeansVisibleAnkle'",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		}
+	},
+	{
+		"Name": "9",
+		"item_name": "Vans",
+		"item_type": "shoes",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "None",
+		"skeletal_mesh": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/Shoes/Vans/M_Vans.M_Vans'",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		}
+	},
+	{
+		"Name": "10",
+		"item_name": "Konkon Kitune Casket Hat",
+		"item_type": "hat",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "StaticMesh'/Game/Materials/Clothing/Hats/KonkonKityuneCasketHat/KonkonKityuneCasketHat.KonkonKityuneCasketHat'",
+		"skeletal_mesh": "None",
+		"material": "None",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		}
+	},
+	{
+		"Name": "11",
+		"item_name": "Bunny Hat",
+		"item_type": "hat",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "None",
+		"skeletal_mesh": "SkeletalMesh'/Game/Materials/Clothing/Hats/BunnyEars/insamoza.insamoza'",
+		"material": "None",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		}
+	},
+	{
+		"Name": "12",
+		"item_name": "Picohan",
+		"item_type": "weapon",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "StaticMesh'/Game/Materials/Items/picopico/picohan.picohan'",
+		"skeletal_mesh": "None",
+		"material": "None",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 6.2975849999999998,
+			"Y": -2.2189390000000002,
+			"Z": -2.1410260000000001
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 4.981185,
+			"Yaw": -30.018557999999999,
+			"Roll": -0.43693300000000002
+		},
+		"r_relative_location":
+		{
+			"X": -6.615761,
+			"Y": 1.150247,
+			"Z": -2.2423350000000002
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 11.341991,
+			"Yaw": -160.76457300000001,
+			"Roll": 179.40162699999999
+		}
+	},
+	{
+		"Name": "13",
+		"item_name": "Katana",
+		"item_type": "weapon",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "StaticMesh'/Game/Materials/Items/katana/katana_prototype2_katana.katana_prototype2_katana'",
+		"skeletal_mesh": "None",
+		"material": "None",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": -7.655043,
+			"Y": -18.621444,
+			"Z": -12.508179999999999
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 67.784265000000005,
+			"Yaw": -118.885339,
+			"Roll": -3.3452809999999999
+		},
+		"r_relative_location":
+		{
+			"X": 6.6188599999999997,
+			"Y": -18.832830999999999,
+			"Z": -2.2430119999999998
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": -85.020420000000001,
+			"Yaw": -169.06937099999999,
+			"Roll": -78.556353999999999
+		}
+	}
+]

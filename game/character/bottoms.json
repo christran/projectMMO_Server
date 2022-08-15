@@ -1,14 +1,20 @@
 [
 	{
 		"Name": "1",
-		"item_name": "Black Jeans",
+		"item_name": "None",
 		"icon": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeans/M_BlackJeans.M_BlackJeans'"
+		"material": "None"
 	},
 	{
 		"Name": "2",
 		"item_name": "Black Jeans (Visible Ankles)",
 		"icon": "None",
 		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeansVisibleAnkle/M_BlackJeansVisibleAnkle.M_BlackJeansVisibleAnkle'"
+	},
+	{
+		"Name": "3",
+		"item_name": "Black Jeans",
+		"icon": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeans/M_BlackJeans.M_BlackJeans'"
 	}
 ]

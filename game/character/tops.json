@@ -1,39 +1,39 @@
 [
 	{
 		"Name": "1",
+		"item_name": "Topless",
+		"icon": "None",
+		"material": "None"
+	},
+	{
+		"Name": "2",
 		"item_name": "Plain White T-Shirt",
 		"icon": "None",
 		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/PlainWhiteTShirt1/M_PlainWhiteTShirt.M_PlainWhiteTShirt'"
 	},
 	{
-		"Name": "2",
+		"Name": "3",
 		"item_name": "Detroit Become Human T-Shirt",
 		"icon": "None",
 		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/BlackDetroitTShirt/M_BlackDetroitTShirt.M_BlackDetroitTShirt'"
 	},
 	{
-		"Name": "3",
+		"Name": "4",
 		"item_name": "Sakura T-Shirt",
 		"icon": "None",
 		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/Sakura/M_Sakura.M_Sakura'"
 	},
 	{
-		"Name": "4",
+		"Name": "5",
 		"item_name": "Happy Sad T-Shirt",
 		"icon": "None",
 		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/HappySad/M_HappySad.M_HappySad'"
 	},
 	{
-		"Name": "5",
+		"Name": "6",
 		"item_name": "Squid Game T-Shirt",
 		"icon": "None",
 		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/SquidGameTShirt/M_SquidGameTShirt.M_SquidGameTShirt'"
-	},
-	{
-		"Name": "6",
-		"item_name": "",
-		"icon": "None",
-		"material": "None"
 	},
 	{
 		"Name": "7",

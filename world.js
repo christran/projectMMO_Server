@@ -13,14 +13,16 @@ const io = require('socket.io')(http, {
 // const _ = require('lodash');
 const chalk = require('chalk');
 
-// const _ = require('lodash');
+const _ = require('lodash');
+const Item = require('./src/models/Item');
 const Map = require('./src/world/Map')(io);
 
-const TICK_RATE = 10; // 0.1sec or 100ms
+const TICK_RATE = 20; // 0.1sec or 100ms
 // eslint-disable-next-line no-unused-vars
 let tick = 0;
 
 const config = require('./_config.json');
+// const _ = require('lodash');
 
 const { serverMessage } = config.worldserver;
 const port = process.env.PORT || 7575;
@@ -56,19 +58,18 @@ io.on('connection', (socket) => {
 const update = () => {
 	// Send update only to maps with players in them (SocketIO Rooms)
 	// Sent to (GameState_MMO)
-
-	// Returns strings
-	const activeMaps = Object.keys(worldSnapshotByMapID);
-
-	if (activeMaps.length > 0) {
-		activeMaps.forEach((mapID) => {
+	Map.getActiveMaps().forEach((mapID) => {
+		// if the mapID doesn't exist in the worldSnapshotByMapID create it
+		if (!worldSnapshotByMapID[mapID]) {
+			worldSnapshotByMapID[mapID] = { characterStates: [], itemsOnTheGround: [] };
+		} else {
 			io.to(parseInt(mapID, 10)).emit('newSnapshot', {
 				timestamp: Date.now().toString(),
-				worldSnapshot: worldSnapshotByMapID[parseInt(parseInt(mapID, 10), 10)]
+				worldSnapshot: worldSnapshotByMapID[parseInt(parseInt(mapID, 10), 10)].characterStates
 			});
 
-			// Remove worldSnapshot after sending it to the clients
-			worldSnapshotByMapID[parseInt(mapID, 10)] = [];
+			// Remove worldSnapshot after processing states
+			worldSnapshotByMapID[parseInt(mapID, 10)].characterStates = [];
 
 			// Client receives newSnapshot of each character in the map
 			// worldSnapshotByMapID[mapID].forEach((characterSnapshot) => {
@@ -79,23 +80,64 @@ const update = () => {
 
 			// 	// console.log(characterSnapshot);
 			// });
-		});
-	}
 
-	// console.log(worldSnapshotByMapID);
-};
+			const now = Date.now();
+			const secondsToKeepItemOnTheGround = 60;
 
-const cleanup = () => {
-	// Remove inactive mapID from worldSnapshotByMapID if the length is equal to 0
-	Object.keys(worldSnapshotByMapID).forEach((mapID) => {
-		if (worldSnapshotByMapID[mapID].length === 0) {
-			delete worldSnapshotByMapID[mapID];
+			// Delete items from itemsOnTheGround that are older than 60 seconds
+			_.remove(worldSnapshotByMapID[mapID].itemsOnTheGround, (item) => {
+				return now - item.createdAt > secondsToKeepItemOnTheGround * 1000;
+			}).forEach((item) => {
+				Item.deleteByID(item._id);
+				io.emit('removeItem', item);
+
+			// console.log(chalk.yellow(`[Item Factory] Removed ID: ${item._id} | Item ID: ${item.itemID}`));
+			});
 		}
 	});
 };
 
+const cleanup = () => {
+	// Remove inactive maps after 60 seconds
+};
+
 // Run cleanup every 10 seconds to remove inactive maps from worldSnapshotByMapID
-setInterval(cleanup, 10000);
+setInterval(cleanup, 60000);
+
+// Item Spawning Test
+setInterval(() => {
+	// Round the numbers to 2 decimal places
+	const mapID = '1';
+
+	if (worldSnapshotByMapID[mapID]) {
+		Item.createItem({
+			// random int between 10 and 11
+			itemID: Math.floor(Math.random() * (11 - 10 + 1)) + 10,
+		}).then((item) => {
+			io.to(1).emit('spawnItem', {
+				_id: item._id,
+				itemID: item.itemID,
+				location: {
+					x: 100,
+					y: 70,
+					z: 100 // Height
+				},
+				createdAt: new Date(item.createdAt).getTime().toString(),
+				randomX: Math.random() * (1000 - (-1000)) + (-1000),
+				randomY: Math.random() * (1000 - (-1000)) + (-1000),
+				zHeight: 3000
+			});
+
+			worldSnapshotByMapID[mapID].itemsOnTheGround.push({
+				_id: item._id,
+				itemID: item.itemID,
+				createdAt: new Date(item.createdAt).getTime().toString(),
+			});
+		}).catch((err) => {
+			console.log(err);
+		});
+	}
+}, 5000);
 
 // Game Loop
 const tickLengthMs = 1000 / TICK_RATE;

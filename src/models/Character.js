@@ -20,18 +20,21 @@ const characterSchema = new db.mongoose.Schema(
 			z: Number
 		},
 		rotation: Number,
-		gender: Number,
-		skin: { type: Number, default: 1 },
-		hair: { type: Number, default: 1 },
-		eyes: { type: Number, default: 1 },
-		top: { type: Number, default: 1 },
-		bottom: { type: Number, default: 1 },
-		shoes: { type: Number, default: 1 },
+
+		appearance: {
+			gender: { type: Number, default: 1 },
+			skin: { type: Number, default: 1 },
+			hair: { type: Number, default: 1 },
+			eyes: { type: Number, default: 1 },
+			top: { type: Number, default: 2 },
+			bottom: { type: Number, default: 2 },
+			shoes: { type: Number, default: 2 },
+
+			weapon_L: { type: Number, default: 0 },
+			weapon_R: { type: Number, default: 0 },
+		},
+
 		mapID: { type: Number, default: 1 },
-
-		weapon_left: { type: Number, default: 0 },
-		weapon_right: { type: Number, default: 0 },
-
 		stats: {
 			level: { type: Number, default: 1 },
 			job: Number,
