@@ -21,6 +21,7 @@
     "random-color": "^1.0.1",
     "request": "^2.88.0",
     "socket.io": "^4.4.0",
+    "three": "^0.143.0",
     "webhook-discord": "^3.7.8"
   },
   "devDependencies": {

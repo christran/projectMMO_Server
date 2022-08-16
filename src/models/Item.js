@@ -7,7 +7,7 @@ const itemSchema = new db.mongoose.Schema(
 	{
 		_id: String,
 		itemID: { type: Number, required: true },
-		characterID: { type: String, default: 'none' },
+		characterID: { type: String, default: null },
 		lootable: { type: Boolean, default: false }
 
 		// stats: {

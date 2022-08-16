@@ -1,21 +1,22 @@
 // const jsonfile = require('jsonfile');
 const _ = require('lodash');
 const moment = require('moment');
-const chalk = require('chalk');
 const jsonfile = require('jsonfile');
-
-const Discord = require('../../helpers/discord');
+const chalk = require('chalk');
 
 const Account = require('../../models/Account');
 const Character = require('../../models/Character');
 const Item = require('../../models/Item');
 
-const itemsDataTable = './game/items.json';
-// const susLog = require('../../models/susLogger.js');
+const Discord = require('../../helpers/discord');
+const susLog = require('../../models/susLogger');
 
-module.exports = (io, socket, clients, worldSnapshotByMapID) => {
+const itemsDataTable = './game/items.json';
+
+module.exports = (io, socket, clients, worldSnapshot) => {
 	const Player = require('../../helpers/player-helper')(io, clients);
-	const Map = require('../../world/Map')(io);
+	const Map = require('../../world/MapFactory')(io);
+	const ItemFactory = require('../../world/ItemFactory')(io, worldSnapshot);
 
 	socket.on('characterState', (data) => {
 		if (data.location.z < -5000) {
@@ -23,20 +24,6 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 			// does the server even need to do this? just let the client handle it unless they can abuse it somehow?
 			socket.emit('character_ZLimit');
 		}
-
-		// calculate character's new location given last location, velocity, and time passed since last update
-		// const location = {
-		// 	x: data.location.x + data.velocity.x * 0.05,
-		// 	y: data.location.y + data.velocity.y * 0.05,
-		// 	z: data.location.z + data.velocity.z * 0.05,
-		// };
-
-		// const location = {
-		// 	x: socket.character.x += data.velocity.x * 0.05,
-		// 	y: socket.character.y += data.velocity.y * 0.05,
-		// 	z: socket.character.z += data.velocity.z * 0.05,
-		// };
-
 		const snapshot = {
 			name: socket.character.name,
 			location: data.location,
@@ -56,8 +43,11 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 					...arr.slice(index + 1)];
 		}
 		// add or replace snapshot in worldSnapshotByMapID array of snapshots for the map
-		worldSnapshotByMapID[socket.character.mapID].characterStates = addOrReplaceBy(worldSnapshotByMapID[socket.character.mapID].characterStates, (character) => character.name === socket.character.name, () => snapshot);
-
+		if (worldSnapshot[socket.character.mapID]) {
+			worldSnapshot[socket.character.mapID].characterStates = addOrReplaceBy(worldSnapshot[socket.character.mapID].characterStates, (character) => character.name === socket.character.name, () => snapshot);
+		} else {
+			console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in worldSnapshotByMapID`));
+		}
 		// Simulate on the Server Side
 		socket.character.location = data.location;
 		socket.character.rotation = data.rotation;
@@ -223,8 +213,7 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 	});
 
 	socket.on('player_LootItem', (data, callback) => {
-		const itemsInMapID = worldSnapshotByMapID[socket.character.mapID].itemsOnTheGround;
-
+		const itemsInMapID = worldSnapshot[socket.character.mapID].itemsOnTheGround;
 		const findItemInMapID = _.find(itemsInMapID, { _id: data._id });
 
 		if (findItemInMapID) {
@@ -255,13 +244,36 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 				// Tell client that item doesn't exist and they're hacking
 				io.to(socket.id).emit('removeItem', { _id: data._id });
 
+				susLog.newEntry({
+					accountID: socket.character.accountID,
+					characterName: socket.character.name,
+					reason: 'Tried to loot an item that does not exist in the database.',
+				});
+
 				console.log(err);
 				console.log(chalk.red('[Item Factory] Item does not exist in the database.'));
 			});
-		} else {
-			io.to(socket.id).emit('removeItem', { _id: data._id });
-			console.log(chalk.yellow(`[Item Factory] ID: ${socket.character.id} | Name : ${socket.character.name} | tried to loot an item that doesn't exist in the world.`));
+		} else if (findItemInMapID === undefined) {
+			console.log(chalk.yellow(`[Item Factory] ID: ${socket.character.id} | Name : ${socket.character.name} | tried to loot an item: ${findItemInMapID}`));
 		}
+	});
+
+	socket.on('player_DropItem', (data, callback) => {
+		Item.findItemByID(data._id).then((itemInDB) => {
+			if (itemInDB.characterID === socket.character.id) {
+				itemInDB.characterID = null;
+				itemInDB.lootable = true;
+				itemInDB.save().then(() => {
+					ItemFactory.dropItem(itemInDB.itemID, socket.character);
+					callback(true);
+				});
+			} else {
+				console.log(chalk.red('[Item Factory] Item does not belong to this character.'));
+			}
+		}).catch((err) => {
+			console.log(err);
+			console.log(chalk.red('[Item Factory] Item does not exist in the database.'));
+		});
 	});
 
 	// When a player enters a map (GameState_MMO) will emit this event
@@ -279,11 +291,18 @@ module.exports = (io, socket, clients, worldSnapshotByMapID) => {
 				});
 			});
 
-			// Check if worldSnapshot for mapID exists
-			if (worldSnapshotByMapID[socket.character.mapID]) {
+			if (!worldSnapshot[socket.character.mapID]) {
+				worldSnapshot[socket.character.mapID] = { characterStates: [], itemsOnTheGround: [] };
+
 				const mapState = {
 					charactersInMap,
-					itemsOnTheGround: worldSnapshotByMapID[socket.character.mapID].itemsOnTheGround
+					itemsOnTheGround: worldSnapshot[socket.character.mapID].itemsOnTheGround
+				};
+				callback(mapState);
+			} else {
+				const mapState = {
+					charactersInMap,
+					itemsOnTheGround: worldSnapshot[socket.character.mapID].itemsOnTheGround
 				};
 				callback(mapState);
 			}
