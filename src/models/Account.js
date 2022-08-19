@@ -1,10 +1,10 @@
 /* eslint-disable func-names */
-const uniqueValidator = require('mongoose-unique-validator');
-const db = require('../../db');
+import mongoose from 'mongoose';
+import uniqueValidator from 'mongoose-unique-validator';
 
-const Character = require('./Character');
+import Character from './Character.js';
 
-const accountSchema = new db.mongoose.Schema(
+const accountSchema = new mongoose.Schema(
 	{
 		username: {
 			type: String,
@@ -65,7 +65,4 @@ accountSchema.statics.getCharacters = async function (accountID) {
 	return Character.model('characters').find({ accountID }).sort({ createdAt: 'asc' });
 };
 
-/** @type {accountSchema.statics} */
-const Account = db.mongoose.model('accounts', accountSchema);
-
-module.exports = Account;
+export default mongoose.model('accounts', accountSchema);

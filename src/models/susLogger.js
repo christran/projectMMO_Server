@@ -1,20 +1,20 @@
 /* eslint-disable func-names */
-const db = require('../../db');
+import mongoose from 'mongoose';
 
 /*
 // How to add a new entry
-	susLog.newEntry({
-		accountID: socket.character.accountID,
-		characterName: socket.character.name,
+	susLog.new({
+		socket,
 		reason: 'speed hacking'
 	});
 */
 
-const SusLogSchema = new db.mongoose.Schema(
+const SusLogSchema = new mongoose.Schema(
 	{
 		accountID: { type: String, required: true },
 		characterName: { type: String, required: true },
-		reason: { type: String, required: true }
+		reason: { type: String, required: true },
+		ip: { type: String, required: true },
 	},
 	{
 		timestamps: true,
@@ -22,17 +22,20 @@ const SusLogSchema = new db.mongoose.Schema(
 	}
 );
 
-SusLogSchema.statics.newEntry = async function (data) {
-	this.create(
-		{
-			accountID: data.accountID,
-			characterName: data.characterName,
-			reason: data.reason
-		}
-	)
-		.catch((err) => console.log(err));
+SusLogSchema.statics.new = async function (data) {
+	if (data.socket) {
+		const { character } = data.socket;
+
+		this.create(
+			{
+				accountID: character.accountID,
+				characterName: character.name,
+				reason: data.reason,
+				ip: data.socket.handshake.address
+			}
+		)
+			.catch((err) => console.log(err));
+	}
 };
 
-const SusLogger = db.mongoose.model('susLog', SusLogSchema);
-
-module.exports = SusLogger;
+export default mongoose.model('susLog', SusLogSchema);

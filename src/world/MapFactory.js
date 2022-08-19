@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const jsonfile = require('jsonfile');
-// const chalk = require('chalk');
-const _ = require('lodash');
+import jsonfile from 'jsonfile';
+import chalk from 'chalk';
+import _ from 'lodash';
+
+import Item from '../models/Item.js';
 
 class Map {
 	/**
@@ -15,88 +15,126 @@ class Map {
 		/** @type {{mapName: String, town: Number, returnMapID:}} */
 		this.mapInfo = map.mapInfo;
 
+		this.characters = [];
+		this.characterStates = [];
+		this.itemsOnTheGround = [];
+
 		this.npcs = map.npcs;
 		this.mobs = map.mobs;
 
 		this.portals = map.portals;
-	}
 
-	/**
-     * @param {number} portalID - Portal ID
-	 * @return {{id: Number, toMapID: Number, toPortalName: String, position: { location: {x, y, z}, rotation: {x, y, z} } }} - Portal Data
-     */
-	getPortalByID(portalID) {
-		return _.find(this.portals, { id: portalID });
-	}
-
-	/**
-     * @param {string} portalName - Portal Name
-	 * @return {{id: Number, toMapID: Number, toPortalName: String, position: { location: {x, y, z}, rotation: {x, y, z} } }} - Portal Data
-     */
-	getPortalByName(portalName) {
-		return this.portals[portalName];
+		this.inactivity = 0;
 	}
 }
 
-module.exports = (io) => ({
-	loadMaps: async () => {
-		const getMaps = fs.readdirSync(path.join(__dirname, '../../game/maps'));
-		const allMapsInArray = [];
+export default (io, world) => {
+	const MapFactory = {
+		// eslint-disable-next-line consistent-return
+		loadMap: async (mapID) => {
+			try {
+				const myMap = await jsonfile.readFile(`game/maps/${mapID}.json`);
 
-		// eslint-disable-next-line no-restricted-syntax
-		for (const map of getMaps) {
-			const mapID = map.replace(/\.[^.]*$/, '');
-			// eslint-disable-next-line no-await-in-loop
-			const mapData = await jsonfile.readFile(`game/maps/${map}`);
+				world[mapID] = new Map(mapID, myMap);
+				console.log(chalk.green('Loaded Map ID:', mapID));
+				return world[mapID];
+			} catch (err) {
+				console.log(err);
+			}
+		},
 
-			allMapsInArray.push(new Map(parseInt(mapID, 10), mapData));
-		}
+		getMap: async (mapID) => {
+			if (!world[mapID]) {
+				try {
+					const myMap = await jsonfile.readFile(`game/maps/${mapID}.json`);
+					world[mapID] = new Map(mapID, myMap);
 
-		return allMapsInArray;
-	},
+					console.log(chalk.green('Loaded Map ID:', mapID));
+					return world[mapID];
+				} catch (err) {
+					console.log(err);
+				}
+			}
 
-	/**
-	 * Gets map information
-	 * @async
-	 * @param {number} mapID A valid mapID
-	 * @returns {Promise<Map>} Returns a promise: Map Object
-	 */
-	getMap: async (mapID) => {
-		return _.find(global.loadedMaps, { mapID });
-	},
+			return world[mapID];
+		},
 
-	/**
-	 * Gets all players in a map
-	 * @param {number} mapID A valid mapID
-	 * @return {Object} Returns the socket.character obj, keyed by character name
-	 */
-	getAllPlayersInMap: (mapID) => {
-		const playersInMap = [];
+		getPortalByID(portalID, mapID) {
+			return _.find(world[mapID].portals, { _id: portalID });
+		},
 
-		if (io.sockets.adapter.rooms.get(mapID)) {
-			const socketsinMap = [];
+		getPortalByName(portalName, mapID) {
+			return world[mapID].portals[portalName];
+		},
 
-			io.sockets.adapter.rooms.get(mapID).forEach((socketID) => {
-				socketsinMap.push(socketID);
+		getActiveMaps: () => {
+			const arr = Array.from(io.sockets.adapter.rooms);
+			const filtered = arr.filter((room) => !room[1].has(room[0]));
+
+			const res = filtered.map((i) => i[0]);
+			return res;
+		},
+
+		getAllPlayersInMap: (mapID) => {
+			const playersInMap = [];
+
+			if (io.sockets.adapter.rooms.get(mapID)) {
+				const socketsinMap = [];
+
+				io.sockets.adapter.rooms.get(mapID).forEach((socketID) => {
+					socketsinMap.push(socketID);
+				});
+
+				socketsinMap.forEach((socketID) => {
+					playersInMap.push(
+						io.sockets.sockets.get(socketID).character
+					);
+				});
+			} else {
+				console.log(`Map: ${mapID} is empty`);
+			}
+
+			return _.keyBy(playersInMap, 'name');
+		},
+
+		clearItemsOnTheGround: (mapID, secondsToKeepItemOnTheGround) => {
+			const arr = [];
+
+			if (world[mapID]) {
+				const now = Date.now();
+
+				_.remove(world[mapID].itemsOnTheGround, (item) => {
+					return now - item.createdAt > secondsToKeepItemOnTheGround * 1000;
+				}).forEach((item) => {
+					// check if item has a characterID
+					Item.deleteByID(item._id);
+					arr.push(item);
+					// Handle it client side?
+					// io.to(mapID).emit('removeItem', item);
+
+					// console.log(chalk.green(`[Map Factory] Removed ID: ${item._id} | Item ID: ${item.itemID}`));
+				});
+				console.log(chalk.green(`[Map Factory] Removed ${arr.length} item(s) from Map ID: ${mapID}`));
+				io.to(mapID).emit('removeItems', arr);
+			}
+		},
+
+		removeInactiveMaps: (maxInactiveTimeinMinutes) => {
+			Object.keys(world).forEach((mapID) => {
+				if (world[mapID].characters.length === 0) {
+					if (world[mapID].inactivity === 0) {
+						world[mapID].inactivity = Date.now();
+						console.log(chalk.green(`[Map Factory] Map ID: ${mapID} has been marked for deletion.`));
+					} else if (Date.now() - world[mapID].inactivity > maxInactiveTimeinMinutes * 60 * 1000) {
+						delete world[mapID];
+						console.log(chalk.green(`[Map Factory] Map ID: ${mapID} has been removed due to inactivity.`));
+					}
+				} else if (world[mapID].characters.length > 0 && world[mapID].inactivity !== 0) {
+					world[mapID].inactivity = 0;
+					console.log(chalk.green(`[Map Factory] Map ID: ${mapID} removed from pending deletion.`));
+				}
 			});
-
-			socketsinMap.forEach((socketID) => {
-				playersInMap.push(
-					io.sockets.sockets.get(socketID).character
-				);
-			});
-		} else {
-			console.log(`Map: ${mapID} is empty`);
 		}
-
-		return _.keyBy(playersInMap, 'name');
-	},
-
-	getActiveMaps: () => {
-		const arr = Array.from(io.sockets.adapter.rooms);
-		const filtered = arr.filter((room) => !room[1].has(room[0]));
-
-		const res = filtered.map((i) => i[0]);
-		return res;
-	}
-});
+	};
+	return MapFactory;
+};

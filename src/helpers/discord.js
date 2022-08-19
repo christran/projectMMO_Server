@@ -1,10 +1,10 @@
-const discordHook = require('webhook-discord');
-const moment = require('moment');
-const randomColor = require('random-color')();
+import discordHook from 'webhook-discord';
+import moment from 'moment';
+import randomcolor from 'randomcolor';
 
-const Account = require('../models/Account');
+import Account from '../models/Account.js';
 
-module.exports = {
+export default {
 	/*
 	Player Login Message
 	- Optional - Let player choose to opt out of this
@@ -19,7 +19,7 @@ module.exports = {
 				.setName(`${character.name}`)
 				.setAvatar('https://i.imgur.com/HLZ0Hq5.png') // Get Character Image from Database / Custom Char Emotion Set by Player
 				// .setAuthor(`${character.name}`, 'https://i.imgur.com/shh9J3J.jpeg')
-				.setColor(randomColor.hexString())
+				.setColor(randomcolor())
 				.setDescription('Hello. This is my message.'); // Custom Message Set by Player
 				// .setText(`${character.name} logged in`);
 			newDiscordHook.send(discordMsg);

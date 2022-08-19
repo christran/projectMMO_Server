@@ -1,12 +1,13 @@
-const bcrypt = require('bcrypt');
-const moment = require('moment');
-const chalk = require('chalk');
+import bcrypt from 'bcrypt';
+import moment from 'moment';
+import chalk from 'chalk';
 
-const db = require('../../../db');
-const Account = require('../../models/Account');
-const Character = require('../../models/Character');
+import db from '../../../db.js';
 
-module.exports = (io, socket, clients) => {
+import Account from '../../models/Account.js';
+import Character from '../../models/Character.js';
+
+export default (io, socket, clients) => {
 	socket.on('login', async (data, callback) => {
 		const account = await Account.getAccount(data.username).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
 

@@ -1,9 +1,7 @@
 /* eslint-disable func-names */
-// const uniqueValidator = require('mongoose-unique-validator');
-const chalk = require('chalk');
-const db = require('../../db');
+import mongoose from 'mongoose';
 
-const itemSchema = new db.mongoose.Schema(
+const itemSchema = new mongoose.Schema(
 	{
 		_id: String,
 		itemID: { type: Number, required: true },
@@ -34,7 +32,7 @@ const itemSchema = new db.mongoose.Schema(
 
 itemSchema.statics.createItem = async function (item) {
 	const newItem = new this({
-		_id: new db.mongoose.Types.ObjectId().toHexString(),
+		_id: new mongoose.Types.ObjectId().toHexString(),
 		itemID: item.itemID,
 		characterID: item.characterID,
 		// stats: item.stats,
@@ -43,7 +41,6 @@ itemSchema.statics.createItem = async function (item) {
 	try {
 		await newItem.save();
 
-		console.log(chalk.yellow(`[Item Factory] Created ID: ${newItem._id} | Item ID: ${newItem.itemID} | Character ID: ${newItem.characterID}`));
 		return newItem;
 	} catch (err) {
 		console.log(err);
@@ -68,7 +65,4 @@ itemSchema.statics.getCharacterItems = async function (characterID) {
 	return this.model('items').find({ characterID }).sort({ createdAt: 'asc' });
 };
 
-/** @type {Item.statics} */
-const Item = db.mongoose.model('items', itemSchema);
-
-module.exports = Item;
+export default mongoose.model('items', itemSchema);
