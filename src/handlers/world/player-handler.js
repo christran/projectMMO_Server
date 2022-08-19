@@ -1,30 +1,39 @@
-// const jsonfile = require('jsonfile');
-const _ = require('lodash');
-const moment = require('moment');
-const jsonfile = require('jsonfile');
-const chalk = require('chalk');
+import _ from 'lodash';
+import moment from 'moment';
+import jsonfile from 'jsonfile';
+import chalk from 'chalk';
+import * as fs from 'fs';
 
-const Account = require('../../models/Account');
-const Character = require('../../models/Character');
-const Item = require('../../models/Item');
+import Account from '../../models/Account.js';
+import Character from '../../models/Character.js';
+import Item from '../../models/Item.js';
 
-const Discord = require('../../helpers/discord');
-const susLog = require('../../models/susLogger');
+import Discord from '../../helpers/discord.js';
+import susLog from '../../models/susLogger.js';
+
+import PlayerHelper from '../../helpers/player-helper.js';
+import MapFactory from '../../world/MapFactory.js';
+import ItemFactory from '../../world/ItemFactory.js';
 
 const itemsDataTable = './game/items.json';
 
-module.exports = (io, socket, clients, worldSnapshot) => {
-	const Player = require('../../helpers/player-helper')(io, clients);
-	const Map = require('../../world/MapFactory')(io);
-	const ItemFactory = require('../../world/ItemFactory')(io, worldSnapshot);
+const config = JSON.parse(fs.readFileSync('./_config.json'));
+const { serverMessage } = config.worldserver;
+
+export default (io, socket, clients, world) => {
+	const Player = PlayerHelper(io, clients);
+	const Map = MapFactory(io, world);
+	// const Item = ItemFactory(io, socket, clients, world); // conflicting variable name
 
 	socket.on('characterState', (data) => {
-		if (data.location.z < -5000) {
-			// Get nearest portal on server side and set charPos to it
-			// does the server even need to do this? just let the client handle it unless they can abuse it somehow?
-			socket.emit('character_ZLimit');
-		}
+		// if (data.location.z < -5000) {
+		// 	// Get nearest portal on server side and set charPos to it
+		// 	// does the server even need to do this? just let the client handle it unless they can abuse it somehow?
+		// 	socket.emit('character_ZLimit');
+		// }
+
 		const snapshot = {
+			_id: socket.character._id,
 			name: socket.character.name,
 			location: data.location,
 			rotation: data.rotation,
@@ -33,6 +42,7 @@ module.exports = (io, socket, clients, worldSnapshot) => {
 			timestamp: Date.now().toString()
 		};
 
+		// eslint-disable-next-line default-param-last
 		function addOrReplaceBy(arr = [], predicate, getItem) {
 			const index = _.findIndex(arr, predicate);
 			return index === -1
@@ -42,11 +52,11 @@ module.exports = (io, socket, clients, worldSnapshot) => {
 					getItem(arr[index]),
 					...arr.slice(index + 1)];
 		}
-		// add or replace snapshot in worldSnapshotByMapID array of snapshots for the map
-		if (worldSnapshot[socket.character.mapID]) {
-			worldSnapshot[socket.character.mapID].characterStates = addOrReplaceBy(worldSnapshot[socket.character.mapID].characterStates, (character) => character.name === socket.character.name, () => snapshot);
+		// add or replace snapshot in world array of snapshots for the map
+		if (world[socket.character.mapID]) {
+			world[socket.character.mapID].characterStates = addOrReplaceBy(world[socket.character.mapID].characterStates, (character) => character._id === socket.character._id, () => snapshot);
 		} else {
-			console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in worldSnapshotByMapID`));
+			console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
 		}
 		// Simulate on the Server Side
 		socket.character.location = data.location;
@@ -62,7 +72,7 @@ module.exports = (io, socket, clients, worldSnapshot) => {
 		socket.character.appearance = appearanceData;
 
 		socket.to(socket.character.mapID).emit('updateAppearance', {
-			name: socket.character.name,
+			_id: socket.character._id,
 			appearance: appearanceData
 		});
 
@@ -212,8 +222,8 @@ module.exports = (io, socket, clients, worldSnapshot) => {
 		Character.saveCharacter(socket);
 	});
 
-	socket.on('player_LootItem', (data, callback) => {
-		const itemsInMapID = worldSnapshot[socket.character.mapID].itemsOnTheGround;
+	socket.on('player_PickUp', (data, callback) => {
+		const itemsInMapID = world[socket.character.mapID].itemsOnTheGround;
 		const findItemInMapID = _.find(itemsInMapID, { _id: data._id });
 
 		if (findItemInMapID) {
@@ -236,7 +246,11 @@ module.exports = (io, socket, clients, worldSnapshot) => {
 						.then((fileData) => {
 							const itemsKeyByID = _.keyBy(fileData, 'Name');
 
-							console.log(chalk.yellow(`[Item Factory] ${socket.character.name} looted: ${itemsKeyByID[itemInDB.itemID].item_name}`));
+							if (itemsKeyByID[itemInDB.itemID]) {
+								console.log(chalk.yellow(`[Item Factory] ${socket.character.name} picked up: ${itemsKeyByID[itemInDB.itemID].item_name}`));
+							} else {
+								console.log(chalk.yellow(`[Item Factory] ${socket.character.name} picked up Item ID: ${itemInDB.itemID} | No item name was found in the Items Data Table`));
+							}
 						}).catch((err) => console.log(err));
 				});
 			}).catch((err) => {
@@ -244,9 +258,8 @@ module.exports = (io, socket, clients, worldSnapshot) => {
 				// Tell client that item doesn't exist and they're hacking
 				io.to(socket.id).emit('removeItem', { _id: data._id });
 
-				susLog.newEntry({
-					accountID: socket.character.accountID,
-					characterName: socket.character.name,
+				susLog.new({
+					character: socket.character,
 					reason: 'Tried to loot an item that does not exist in the database.',
 				});
 
@@ -291,21 +304,11 @@ module.exports = (io, socket, clients, worldSnapshot) => {
 				});
 			});
 
-			if (!worldSnapshot[socket.character.mapID]) {
-				worldSnapshot[socket.character.mapID] = { characterStates: [], itemsOnTheGround: [] };
-
-				const mapState = {
-					charactersInMap,
-					itemsOnTheGround: worldSnapshot[socket.character.mapID].itemsOnTheGround
-				};
-				callback(mapState);
-			} else {
-				const mapState = {
-					charactersInMap,
-					itemsOnTheGround: worldSnapshot[socket.character.mapID].itemsOnTheGround
-				};
-				callback(mapState);
-			}
+			const mapState = {
+				charactersInMap,
+				itemsOnTheGround: world[socket.character.mapID].itemsOnTheGround
+			};
+			callback(mapState);
 		} else {
 			// No other players in the map, don't do anything
 			// console.log('No other players in map to know about');
@@ -318,7 +321,10 @@ module.exports = (io, socket, clients, worldSnapshot) => {
 		if (_.findIndex(clients, { name: data.name }) >= 0) {
 			// Pawn is already spawned/possessed
 			socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a character (${data.name}) that is already spawned.`;
-			socket.emit('dc', 'Stop hacking');
+			socket.emit('worldService', {
+				error: true,
+				reason: 'cheating'
+			});
 		} else {
 			const character = await Character.getCharacterByID(data._id).catch((err) => console.log(`[Player Handler] spawnPlayer | Error: ${err}`));
 			const account = await Account.getAccountByID(character.accountID).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
@@ -332,122 +338,140 @@ module.exports = (io, socket, clients, worldSnapshot) => {
 				// io.of('/').connected[socket.id].character = character;
 				io.sockets.sockets.get(socket.id).character = character;
 
-				clients.push({
-					name: character.name,
-					socketID: socket.id,
-				});
+				const spawnCharacter = () => {
+					clients.push({
+						name: character.name,
+						socketID: socket.id,
+					});
 
-				// Add player to map and spawn them in the map
-				socket.join(character.mapID);
-				socket.emit('changeMap', character.mapID);
+					// Add player to map and spawn them in the map
+					socket.join(character.mapID);
+					socket.emit('changeMap', character.mapID);
 
-				// Default velocity
-				character.velocity = {
-					x: 0,
-					y: 0,
-					z: 0
+					// Default velocity
+					character.velocity = {
+						x: 0,
+						y: 0,
+						z: 0
+					};
+
+					// Send to other players in the map
+					socket.to(character.mapID).emit('addCharacter', {
+						characterInfo: character,
+					});
+
+					socket.emit('serverMessage', { update: false, message: serverMessage });
+
+					// Discord Login Message
+					Discord.LoginNotify(character);
+
+					account.lastLoginDate = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
+					account.save();
+
+					susLog.new({
+						socket,
+						reason: 'no reason xD',
+					});
+
+					console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${io.engine.clientsCount}`);
 				};
 
-				// Send to other players in the map
-				socket.to(character.mapID).emit('addCharacter', {
-					characterInfo: character,
-				});
+				// Check if the mapID exists in the world
+				if (!world[socket.character.mapID]) {
+					// eslint-disable-next-line no-unused-vars
+					Map.loadMap(socket.character.mapID).then((map) => {
+						world[socket.character.mapID].characters.push(socket.character);
 
-				// Discord Login Message
-				Discord.LoginNotify(character);
-
-				account.lastLoginDate = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
-				account.save();
-
-				console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${io.engine.clientsCount}`);
+						spawnCharacter();
+					});
+				} else {
+					world[socket.character.mapID].characters.push(socket.character);
+					spawnCharacter();
+				}
 			} else {
 				socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a invaild Character ID (${data._id})`;
-				socket.emit('dc', 'Stop hacking');
+				socket.emit('worldService', {
+					error: true,
+					reason: 'cheating'
+				});
 			}
 		}
 	});
 
-	socket.on('player_UsePortal', async (data) => {
-		const currentMap = await Map.getMap(socket.character.mapID).catch((err) => console.log(`[Player Handler] player_UsePortal | ${err}`));
+	socket.on('player_UsePortal', (data) => {
+		Map.getMap(socket.character.mapID).then((currentMap) => {
+			const currentPortal = Map.getPortalByName(data.portalName, socket.character.mapID);
 
-		if (currentMap) {
-			const currentPortal = currentMap.getPortalByName(data.portalName);
-			// Check if portal exists in the current map
 			if (!currentPortal) {
-				console.log(`[World Server] ${socket.character.name} tried using Portal: ${data.portalName} from Map ID: ${socket.character.mapID}`);
-				// socket.emit('dc', 'Stop hacking');
-			} else if (currentPortal.portalType === 1) { // Regular Portal (Map to Map)
-				const targetPortal = await Map.getMap(currentPortal.toMapID).catch((err) => console.log(`[Player Handler] player_UsePortal | ${err}`));
+				console.log('portal does not exist');
+			} else if (currentPortal.portalType === 1) {
+				Map.getMap(currentPortal.toMapID).then(() => {
+					const targetPortal = Map.getPortalByName(currentPortal.toPortalName, currentPortal.toMapID);
 
-				if (socket.character.mapID) {
-					const newPosition = targetPortal.portals[currentPortal.toPortalName];
-
-					if (newPosition) {
-						// Tell all players in the map to remove the player that disconnected.
-						// Expect for this socket client
+					if (targetPortal) {
 						socket.to(socket.character.mapID).emit('removeCharacter', {
-							name: socket.character.name,
+							_id: socket.character._id,
 						});
 
-						// Join new map then leave old map
 						socket.leave(socket.character.mapID);
 						socket.join(currentPortal.toMapID);
 
-						socket.character.mapID = currentPortal.toMapID;
-						socket.character.location = newPosition.location;
-						socket.character.rotation = newPosition.rotation;
+						_.remove(world[socket.character.mapID].characters, { name: socket.character.name });
+						world[currentPortal.toMapID].characters.push(socket.character);
 
-						// Tell client to change map
+						socket.character.mapID = currentPortal.toMapID;
+						socket.character.location = targetPortal.location;
+						socket.character.rotation = targetPortal.rotation;
+
 						socket.emit('changeMap', currentPortal.toMapID);
 
-						// Tell all players currently in the new map to add the player that joined
 						socket.to(socket.character.mapID).emit('addCharacter', {
 							characterInfo: socket.character
 						});
 
 						Character.saveCharacter(socket);
 
-						console.log(`[World Server] ${socket.character.name} moved to Map: ${targetPortal.mapInfo.mapName}`);
+						console.log(`[World Server] ${socket.character.name} moved to Map: ${currentMap.mapInfo.mapName} | Map ID: ${currentPortal.toMapID}`);
 					}
-				} else {
-					console.log(`[World Server] Player: ${socket.character.name} doesn't have a mapID`);
-				}
-			} else if (currentPortal.portalType === 2) { // Teleport Portals (Portals in the same map that just change location)
-				const targetPortal = currentMap.getPortalByName(data.portalName);
+				}).catch((err) => {
+					console.log(err);
+				});
+			} else if (currentPortal.portalType === 2) {
+				const targetPortal = Map.getPortalByName(currentPortal.toPortalName, socket.character.mapID);
 
-				const newPosition = currentMap.getPortalByName(targetPortal.toPortalName);
-
-				if (newPosition) {
+				if (targetPortal) {
 					const response = {
-						location: newPosition.location,
-						rotation: newPosition.rotation,
+						location: targetPortal.location,
+						rotation: targetPortal.rotation,
 						portal: true,
 					};
 
-					socket.character.location = newPosition.location;
-					socket.character.rotation = newPosition.rotation;
+					socket.character.location = targetPortal.location;
+					socket.character.rotation = targetPortal.rotation;
 					socket.character.action = 2;
 					socket.emit('teleportCharacter', response);
 
 					console.log(`[World Server] ${socket.character.name} used portal: ${data.portalName} in Map: ${currentMap.mapInfo.mapName}`);
 				}
 			}
-		}
+		}).catch((err) => {
+			console.log(err);
+		});
 	});
 
 	// Disconnect a player with given name (GM Command - !dc {playername})
 	socket.on('player_DC', (data) => {
 		if (Player.getSocketByName(data.name)) {
-			const player = Player.getSocketByName(data.name);
+			const targetCharacter = Player.getSocketByName(data.name).character;
 
-			io.to(`${player.id}`).emit('dc', 'D/Ced by a GM');
+			io.to(`${targetCharacter._id}`).emit('dc', 'D/Ced by a GM');
 
 			// Tell all clients in the map to remove the player that disconnected.
-			socket.to(player.mapID).emit('removeCharacter', {
-				name: data.name
+			socket.to(targetCharacter.mapID).emit('removeCharacter', {
+				_id: targetCharacter._id
 			});
 
-			console.log(`[World Server] ${player.character.name} was dced by a GM`);
+			console.log(`[World Server] ${targetCharacter.name} was dced by a GM`);
 		} else {
 			console.log(`[World Server] Can't find player: ${data.name}`);
 		}
@@ -473,8 +497,10 @@ module.exports = (io, socket, clients, worldSnapshot) => {
 		if (socket.character) {
 			// Tell all clients in the map to remove the player that disconnected.
 			socket.to(socket.character.mapID).emit('removeCharacter', {
-				name: socket.character.name
+				_id: socket.character._id
 			});
+
+			_.remove(world[socket.character.mapID].characters, { name: socket.character.name });
 
 			const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
 			clients.splice(socketIndex, 1);

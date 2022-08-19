@@ -1,8 +1,8 @@
 /* eslint-disable func-names */
-const uniqueValidator = require('mongoose-unique-validator');
-const db = require('../../db');
+import mongoose from 'mongoose';
+import uniqueValidator from 'mongoose-unique-validator';
 
-const characterSchema = new db.mongoose.Schema(
+const characterSchema = new mongoose.Schema(
 	{
 		accountID: { type: String, required: true },
 		_id: String,
@@ -14,6 +14,10 @@ const characterSchema = new db.mongoose.Schema(
 			unique: true,
 			uniqueCaseInsensitive: true
 		},
+		// tagline: {
+		// 	type: String,
+		// 	required: true,
+		// },
 		location: {
 			x: Number,
 			y: Number,
@@ -82,7 +86,4 @@ characterSchema.statics.saveCharacter = async function (socket) {
 	}
 };
 
-/** @type {characterSchema.statics} */
-const Character = db.mongoose.model('characters', characterSchema);
-
-module.exports = Character;
+export default mongoose.model('characters', characterSchema);

@@ -2,6 +2,7 @@
   "name": "projectmmo",
   "version": "0.1.0",
   "description": "NodeJS/SocketIO MMO Server",
+  "type": "module",
   "scripts": {
     "start": "node world.js"
   },
@@ -11,6 +12,7 @@
     "chalk": "^3.0.0",
     "express": "^4.17.1",
     "jsonfile": "^5.0.0",
+    "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.20",
     "moment": "^2.24.0",
     "mongoose": "^5.7.14",
@@ -18,23 +20,27 @@
     "msgpack-lite": "^0.1.26",
     "path": "^0.12.7",
     "pretty-error": "^2.1.1",
-    "random-color": "^1.0.1",
+    "randomcolor": "^0.6.2",
     "request": "^2.88.0",
     "socket.io": "^4.4.0",
     "three": "^0.143.0",
     "webhook-discord": "^3.7.8"
   },
   "devDependencies": {
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb": "^18.0.1",
-    "eslint-config-standard": "^14.1.0",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-jsx-a11y": "^6.2.3",
-    "eslint-plugin-node": "^11.0.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-react": "^7.14.3",
-    "eslint-plugin-react-hooks": "^1.7.0",
-    "eslint-plugin-standard": "^4.0.1",
-    "jshint": "^2.11.0-rc1"
+    "@babel/core": "^7.18.10",
+    "@babel/eslint-parser": "^7.18.9",
+    "@babel/plugin-syntax-import-assertions": "^7.18.6",
+    "@babel/preset-env": "^7.18.10",
+    "eslint": "^8.22.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-node": "^4.1.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.28.0",
+    "eslint-plugin-react-hooks": "^4.3.0",
+    "prettier": "^2.7.1"
   }
 }

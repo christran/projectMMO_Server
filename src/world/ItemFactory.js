@@ -1,9 +1,8 @@
-const _ = require('lodash');
-const chalk = require('chalk');
+import chalk from 'chalk';
 
-const Item = require('../models/Item');
+import Item from '../models/Item.js';
 
-module.exports = (io, worldSnapshot) => {
+export default (io, world) => {
 	const ItemFactory = {
 		/**
 		 * Spawns an item into a map
@@ -17,7 +16,7 @@ module.exports = (io, worldSnapshot) => {
 		 *
 		 */
 		spawnItem: (data) => {
-			if (worldSnapshot[data.mapID]) {
+			if (world[data.mapID]) {
 				Item.createItem({
 					itemID: data.itemID
 				}).then((item) => {
@@ -35,20 +34,25 @@ module.exports = (io, worldSnapshot) => {
 						zHeight: data.zHeight
 					});
 
-					worldSnapshot[data.mapID].itemsOnTheGround.push({
-						_id: item._id,
-						itemID: item.itemID,
-						// Caculate actual landing location
-						location: {
-							x: 0,
-							y: 0,
-							z: 100
-						},
-						createdAt: new Date(item.createdAt).getTime().toString(),
-					});
+					if (world[data.mapID]) {
+						world[data.mapID].itemsOnTheGround.push({
+							_id: item._id,
+							itemID: item.itemID,
+							// Caculate actual landing location
+							location: {
+								x: 0,
+								y: 0,
+								z: 100
+							},
+							createdAt: new Date(item.createdAt).getTime().toString(),
+						});
+					}
+					console.log(chalk.yellow(`[Item Factory] Created ID: ${item._id} | Item ID: ${item.itemID} | Map ID: ${data.mapID}`));
 				}).catch((err) => {
 					console.log(err);
 				});
+			} else {
+				console.log(chalk.red(`[Item Factory] Trying to spawn an item in Map ID: ${data.mapID} doesn't exist`));
 			}
 		},
 		/**
@@ -77,7 +81,7 @@ module.exports = (io, worldSnapshot) => {
 					zHeight: 3000
 				});
 
-				worldSnapshot[character.mapID].itemsOnTheGround.push({
+				world[character.mapID].itemsOnTheGround.push({
 					_id: item._id,
 					itemID: item.itemID,
 					location: {
@@ -91,18 +95,6 @@ module.exports = (io, worldSnapshot) => {
 				console.log(err);
 			});
 		},
-		clearItemsOnTheGround: (mapID, secondsToKeepItemOnTheGround) => {
-			const now = Date.now();
-
-			_.remove(worldSnapshot[mapID].itemsOnTheGround, (item) => {
-				return now - item.createdAt > secondsToKeepItemOnTheGround * 1000;
-			}).forEach((item) => {
-				Item.deleteByID(item._id);
-				io.to(mapID).emit('removeItem', item);
-
-				console.log(chalk.yellow(`[Item Factory] Removed ID: ${item._id} | Item ID: ${item.itemID}`));
-			});
-		}
 	};
 
 	return ItemFactory;

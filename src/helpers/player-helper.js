@@ -1,6 +1,6 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = (io, clients) => ({
+export default (io, clients) => ({
 	/**
 	 * Gets a character's socket object given their name.
 	 * @param {string} name The character's name

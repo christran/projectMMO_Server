@@ -1,21 +1,28 @@
-require('pretty-error').start();
+import PrettyError from 'pretty-error';
+import express from 'express';
+import bodyParser from 'body-parser';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken';
 
-const express = require('express');
-const bodyParser = require('body-parser');
+import chalk from 'chalk';
+import * as fs from 'fs';
 
+import db from './db.js';
+
+import chatHandler from './src/handlers/chat/chat-handler.js';
+
+// eslint-disable-next-line no-unused-vars
+const PE = new PrettyError();
 const app = express();
-const http = require('http').Server(app);
-const io = require('socket.io')(http, {
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
 	transports: ['websocket'],
 	allowUpgrades: false
 });
 
-// const _ = require('lodash');
-const chalk = require('chalk');
-
-const config = require('./_config.json');
-
-const { port } = config.chatserver;
+const config = JSON.parse(fs.readFileSync('./_config.json'));
+const port = process.env.PORT || config.chatserver.port;
 
 const clients = [];
 
@@ -28,13 +35,25 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-	// Require all Handlers
-	require('./src/handlers/world/chat-handler')(io, socket, clients);
+	// eslint-disable-next-line no-unused-vars
+	jwt.verify(socket.handshake.auth.token, 'projectMMOisAwesome', (err, decoded) => {
+		if (err) {
+			// console.log(err);
+			console.log(chalk.red(`[Chat Server] Invalid Token | IP: ${socket.handshake.address}`));
+			socket.emit('chatService', {
+				error: true,
+				reason: 'token'
+			});
+			socket.disconnect();
+		} else {
+			// Require all handlers
+			chatHandler(io, socket, clients, decoded);
+		}
+	});
 });
 
-http.listen(port, () => {
-	// Connect to DB
-	require('./db');
+httpServer.listen(port, () => {
+	db.connect();
 
 	console.log(chalk.greenBright(`[Chat Server] Starting Chat Server... Port: ${port}`));
 });

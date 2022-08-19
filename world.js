@@ -1,35 +1,41 @@
-require('pretty-error').start();
+import PrettyError from 'pretty-error';
+import express from 'express';
+import bodyParser from 'body-parser';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import jwt from 'jsonwebtoken';
 
-const express = require('express');
-const bodyParser = require('body-parser');
+import _ from 'lodash';
+import chalk from 'chalk';
+import * as fs from 'fs';
 
+import db from './db.js';
+import MapFactory from './src/world/MapFactory.js';
+import ItemFactory from './src/world/ItemFactory.js';
+
+import playerHandler from './src/handlers/world/player-handler.js';
+
+// eslint-disable-next-line no-unused-vars
+const PE = new PrettyError();
 const app = express();
-const http = require('http').Server(app);
-const io = require('socket.io')(http, {
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
 	transports: ['websocket'],
 	allowUpgrades: false
 });
-
-const _ = require('lodash');
-const chalk = require('chalk');
 
 const TICK_RATE = 10; // 0.1sec or 100ms
 // eslint-disable-next-line no-unused-vars
 let tick = 0;
 
-const config = require('./_config.json');
-// const _ = require('lodash');
-
-const { serverMessage } = config.worldserver;
-const port = process.env.PORT || 7575;
+const config = JSON.parse(fs.readFileSync('./_config.json'));
+const port = process.env.PORT || config.worldserver.port;
 
 const clients = [];
-const worldSnapshot = {};
+const world = {};
 
-const Map = require('./src/world/MapFactory')(io);
-const ItemFactory = require('./src/world/ItemFactory')(io, worldSnapshot);
-
-global.loadedMaps = [];
+const Map = MapFactory(io, world);
+const Item = ItemFactory(io, world);
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -39,18 +45,38 @@ app.get('/', (req, res) => {
 	res.status(403).end();
 });
 
-// Load Maps into Memory
-Map.loadMaps().then((maps) => {
-	global.loadedMaps = maps;
-
-	console.log(chalk.yellow('[Map] Loaded Maps'));
+app.get('/status', (req, res) => {
+	res.json(
+		{
+			status: 'ONLINE',
+			totalClients: clients.length,
+			totalMaps: Object.keys(world).length
+		}
+	);
 });
 
 io.on('connection', (socket) => {
-	// Require all Handlers
-	require('./src/handlers/world/player-handler')(io, socket, clients, worldSnapshot);
+	// eslint-disable-next-line no-unused-vars
+	jwt.verify(socket.handshake.auth.token, 'projectMMOisAwesome', (err, decoded) => {
+		if (err) {
+			// console.log(err);
+			console.log(chalk.red(`[World Server] Invalid Token | IP: ${socket.handshake.address}`));
+			socket.emit('worldService', {
+				error: true,
+				reason: 'token'
+			});
+			socket.disconnect();
+		} else {
+			// Require all handlers
+			playerHandler(io, socket, clients, world);
 
-	io.emit('updateServerMessage', serverMessage);
+			socket.on('helloworld', (data) => {
+				console.log(data);
+			});
+
+			// io.emit('updateServerMessage', serverMessage);
+		}
+	});
 });
 
 // Game Logic
@@ -58,62 +84,51 @@ const update = () => {
 	// Send update only to maps with players in them (SocketIO Rooms)
 	// Sent to (GameState_MMO)
 	Map.getActiveMaps().forEach((mapID) => {
-		// if the mapID doesn't exist in the worldSnapshotByMapID create it
-		if (!worldSnapshot[mapID]) {
-			worldSnapshot[mapID] = { characterStates: [], itemsOnTheGround: [] };
-
-			io.to(parseInt(mapID, 10)).emit('newSnapshot', {
+		if (world[mapID]) {
+			io.to(parseInt(mapID, 10)).emit('snapshot', {
 				timestamp: Date.now().toString(),
-				worldSnapshot: worldSnapshot[parseInt(parseInt(mapID, 10), 10)].characterStates
+				mapSnapshot: world[parseInt(parseInt(mapID, 10), 10)].characterStates
 			});
 
 			// Remove worldSnapshot after processing states
-			worldSnapshot[parseInt(mapID, 10)].characterStates = [];
-		} else {
-			io.to(parseInt(mapID, 10)).emit('newSnapshot', {
-				timestamp: Date.now().toString(),
-				worldSnapshot: worldSnapshot[parseInt(parseInt(mapID, 10), 10)].characterStates
-			});
+			world[parseInt(mapID, 10)].characterStates = [];
 
-			// Remove worldSnapshot after processing states
-			worldSnapshot[parseInt(mapID, 10)].characterStates = [];
-
-			// Client receives newSnapshot of each character in the map
-			// worldSnapshotByMapID[mapID].forEach((characterSnapshot) => {
-			// 	io.to(parseInt(mapID, 10)).emit('newSnapshot', characterSnapshot);
-
-			// 	// Remove a characterSnapshot from worldSnapshotByMapID by character name after sending to clients
-			// 	_.remove(worldSnapshotByMapID[mapID], (character) => character.name === characterSnapshot.name);
-
-			// 	// console.log(characterSnapshot);
-			// });
+			// Map.clearItemsOnTheGround(mapID, 30);
 		}
-
-		ItemFactory.clearItemsOnTheGround(mapID, 60);
 	});
 
-	// console.log(worldSnapshotByMapID);
+	// Run cleanup every minute to remove inactive maps from the world
+	Map.removeInactiveMaps(1);
 };
 
-const cleanup = () => {
-	// Remove inactive maps after 60 seconds
-};
-
-// Run cleanup every 10 seconds to remove inactive maps from worldSnapshotByMapID
-setInterval(cleanup, 60000);
-
-// Item Spawning Test
+// Run Item Cleanup every 30 seconds
+// Remove items that have been on the ground for more than 30 seconds
 setInterval(() => {
-	ItemFactory.spawnItem({
-		itemID: _.random(10, 13),
-		mapID: 1,
-		x: 0,
-		y: 0,
-		z: 100,
-		randomXY: true,
-		zHeight: 3000
+	Map.getActiveMaps().forEach((mapID) => {
+		Map.clearItemsOnTheGround(mapID, 60);
 	});
 }, 30000);
+
+// Item Spawning Test
+const spawnAItem = () => {
+	const mapID = 1;
+
+	if (world[mapID]) {
+		Item.spawnItem({
+			itemID: _.random(10, 14),
+			mapID,
+			x: 0,
+			y: 0,
+			z: 100,
+			randomXY: true,
+			zHeight: 3000
+		});
+	}
+
+	setTimeout(spawnAItem, _.random(1, 10) * 1000);
+};
+
+spawnAItem();
 
 // Game Loop
 const tickLengthMs = 1000 / TICK_RATE;
@@ -147,9 +162,9 @@ const gameLoop = () => {
 	}
 };
 
-http.listen(port, () => {
+httpServer.listen(port, () => {
 	// Connect to DB
-	require('./db');
+	db.connect();
 
 	// Start the Game LOop
 	gameLoop();
