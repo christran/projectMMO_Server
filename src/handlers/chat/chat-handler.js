@@ -5,7 +5,7 @@ import Account from '../../models/Account.js';
 import Character from '../../models/Character.js';
 
 // eslint-disable-next-line no-unused-vars
-export default (io, socket, clients, decoded) => {
+export default (io, socket, clients) => {
 	// add chat messages to database
 	socket.on('chat', (data) => {
 		const { character } = socket;
@@ -54,7 +54,7 @@ export default (io, socket, clients, decoded) => {
 
 	// Authenticate User to Chat Server
 	socket.on('helloworld', async () => {
-		const character = await Character.getCharacterByID(decoded.characterID).catch((err) => console.log(`[Chat Server] helloworld | Error: ${err}`));
+		const character = await Character.getCharacterByID(socket.handshake.query.characterID).catch((err) => console.log(`[Chat Server] helloworld | Error: ${err}`));
 
 		// Get buddy list
 

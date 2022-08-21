@@ -12,6 +12,8 @@ import * as fs from 'fs';
 import db from './db.js';
 import MapFactory from './src/world/MapFactory.js';
 import ItemFactory from './src/world/ItemFactory.js';
+import MobFactory from './src/world/MobFactory.js';
+import NPCFactory from './src/world/NPCFactory.js';
 
 import playerHandler from './src/handlers/world/player-handler.js';
 
@@ -36,6 +38,8 @@ const world = {};
 
 const Map = MapFactory(io, world);
 const Item = ItemFactory(io, world);
+const Mob = MobFactory(io, world);
+const NPC = NPCFactory(io, world);
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -55,14 +59,60 @@ app.get('/status', (req, res) => {
 	);
 });
 
+// Mob Spawning Test
+const mobSpawnTest = () => {
+	const mapID = 1;
+
+	if (world[mapID]) {
+		Mob.spawn(mapID, {
+			mobs:
+			[
+				{
+					mobID: 100100,
+					location: {
+						x: 0,
+						y: 0,
+						z: 0
+					},
+					rotation: 0,
+					amount: 1
+				}
+			]
+		});
+	}
+
+	// setInterval(mobSpawnTest, 30 * 1000);
+};
+
+const npcSpawnTest = () => {
+	const mapID = 1;
+
+	if (world[mapID]) {
+		NPC.spawn(mapID, {
+			npcs:
+			[
+				{
+					npcID: 1337,
+					location: {
+						x: 0,
+						y: 100,
+						z: 0
+					},
+					rotation: 90
+				}
+			]
+		});
+	}
+};
+
 io.on('connection', (socket) => {
 	// eslint-disable-next-line no-unused-vars
-	jwt.verify(socket.handshake.auth.token, 'projectMMOisAwesome', (err, decoded) => {
+	jwt.verify(socket.handshake.query.token, 'projectMMOisAwesome', (err, decoded) => {
 		if (err) {
 			// console.log(err);
 			console.log(chalk.red(`[World Server] Invalid Token | IP: ${socket.handshake.address}`));
 			socket.emit('worldService', {
-				error: true,
+				type: 'error',
 				reason: 'token'
 			});
 			socket.disconnect();
@@ -70,11 +120,16 @@ io.on('connection', (socket) => {
 			// Require all handlers
 			playerHandler(io, socket, clients, world);
 
+			setTimeout(() => {
+				npcSpawnTest();
+				// mobSpawnTest();
+				// io.emit('worldService', { type: 'billboardURL', billboardURL: 'https://reddit.com', update: true });
+				// io.emit('worldService', { type: 'server_message', message: 'the quick brown fox jumped of the lazy dog', update: true });
+			}, 1000);
+
 			socket.on('helloworld', (data) => {
 				console.log(data);
 			});
-
-			// io.emit('updateServerMessage', serverMessage);
 		}
 	});
 });
@@ -92,9 +147,9 @@ const update = () => {
 
 			// Remove worldSnapshot after processing states
 			world[parseInt(mapID, 10)].characterStates = [];
-
-			// Map.clearItemsOnTheGround(mapID, 30);
 		}
+
+		// console.log(world[mapID].mobs.length);
 	});
 
 	// Run cleanup every minute to remove inactive maps from the world
@@ -102,33 +157,42 @@ const update = () => {
 };
 
 // Run Item Cleanup every 30 seconds
-// Remove items that have been on the ground for more than 30 seconds
+// Remove items that have been on the ground for more than 60 seconds
 setInterval(() => {
-	Map.getActiveMaps().forEach((mapID) => {
-		Map.clearItemsOnTheGround(mapID, 60);
+	Object.keys(world).forEach((mapID) => {
+		if (world[mapID].itemsOnTheGround.length > 0) {
+			Map.clearItemsOnTheGround(mapID, 60);
+		}
 	});
 }, 30000);
 
 // Item Spawning Test
-const spawnAItem = () => {
+const itemSpawnTest = () => {
 	const mapID = 1;
 
 	if (world[mapID]) {
-		Item.spawnItem({
-			itemID: _.random(10, 14),
-			mapID,
-			x: 0,
-			y: 0,
+		Item.spawn(mapID, {
+			items: [
+				{
+					id: _.random(10, 14),
+					amount: 1
+				},
+				{
+					id: _.random(10, 14),
+					amount: 2
+				}],
+			x: -100,
+			y: 250,
 			z: 100,
 			randomXY: true,
 			zHeight: 3000
 		});
 	}
 
-	setTimeout(spawnAItem, _.random(1, 10) * 1000);
+	setTimeout(itemSpawnTest, _.random(1, 10) * 1000);
 };
 
-spawnAItem();
+itemSpawnTest();
 
 // Game Loop
 const tickLengthMs = 1000 / TICK_RATE;

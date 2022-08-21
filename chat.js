@@ -36,7 +36,7 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
 	// eslint-disable-next-line no-unused-vars
-	jwt.verify(socket.handshake.auth.token, 'projectMMOisAwesome', (err, decoded) => {
+	jwt.verify(socket.handshake.query.token, 'projectMMOisAwesome', (err, decoded) => {
 		if (err) {
 			// console.log(err);
 			console.log(chalk.red(`[Chat Server] Invalid Token | IP: ${socket.handshake.address}`));
@@ -47,7 +47,7 @@ io.on('connection', (socket) => {
 			socket.disconnect();
 		} else {
 			// Require all handlers
-			chatHandler(io, socket, clients, decoded);
+			chatHandler(io, socket, clients);
 		}
 	});
 });

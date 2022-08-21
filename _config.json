@@ -9,7 +9,8 @@
     },
     "worldserver": {
 		"port": 7575,
-		"serverMessage": "Welcome to the Pre Pre Pre Alpha Test."
+		"serverMessage": "Welcome to the Pre Pre Pre Alpha Test.",
+		"billboardURL": "https://google.com/"
     },
     "mongoDB": {
 		"dbUrl": "mongodb://127.0.0.1:27017/",

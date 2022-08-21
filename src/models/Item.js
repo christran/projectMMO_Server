@@ -1,5 +1,6 @@
 /* eslint-disable func-names */
 import mongoose from 'mongoose';
+import chalk from 'chalk';
 
 const itemSchema = new mongoose.Schema(
 	{
@@ -39,9 +40,10 @@ itemSchema.statics.createItem = async function (item) {
 	});
 
 	try {
+		// eslint-disable-next-line no-await-in-loop
 		await newItem.save();
 
-		return newItem;
+		console.log(chalk.yellow(`[Item Factory] New Item Created | ID: ${newItem._id} | Item ID: ${newItem.itemID} ${newItem.characterID ? `| Character ID: ${newItem.characterID}` : ''}`));
 	} catch (err) {
 		console.log(err);
 	}

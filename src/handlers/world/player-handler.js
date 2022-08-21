@@ -18,7 +18,7 @@ import ItemFactory from '../../world/ItemFactory.js';
 const itemsDataTable = './game/items.json';
 
 const config = JSON.parse(fs.readFileSync('./_config.json'));
-const { serverMessage } = config.worldserver;
+const { serverMessage, billboardURL } = config.worldserver;
 
 export default (io, socket, clients, world) => {
 	const Player = PlayerHelper(io, clients);
@@ -237,7 +237,10 @@ export default (io, socket, clients, world) => {
 					_.remove(itemsInMapID, { _id: data._id });
 
 					// Emit to all clients in mapID that an item has been looted and to remove it
-					io.to(socket.character.mapID).emit('removeItem', { _id: data._id });
+					io.to(socket.character.mapID).emit('removeEntity', {
+						type: 'item',
+						data: [{ _id: data._id }]
+					});
 
 					/// Tell Client that the item has been looted
 					callback(true);
@@ -256,7 +259,10 @@ export default (io, socket, clients, world) => {
 			}).catch((err) => {
 				// Remove Item from Client's map
 				// Tell client that item doesn't exist and they're hacking
-				io.to(socket.id).emit('removeItem', { _id: data._id });
+				io.to(socket.character.mapID).emit('removeEntity', {
+					type: 'item',
+					data: [{ _id: data._id }]
+				});
 
 				susLog.new({
 					character: socket.character,
@@ -322,7 +328,7 @@ export default (io, socket, clients, world) => {
 			// Pawn is already spawned/possessed
 			socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a character (${data.name}) that is already spawned.`;
 			socket.emit('worldService', {
-				error: true,
+				type: 'error',
 				reason: 'cheating'
 			});
 		} else {
@@ -360,7 +366,8 @@ export default (io, socket, clients, world) => {
 						characterInfo: character,
 					});
 
-					socket.emit('serverMessage', { update: false, message: serverMessage });
+					socket.emit('worldService', { type: 'server_message', message: serverMessage, update: false });
+					socket.emit('worldService', { type: 'billboardURL', billboardURL, update: false });
 
 					// Discord Login Message
 					Discord.LoginNotify(character);
@@ -391,7 +398,7 @@ export default (io, socket, clients, world) => {
 			} else {
 				socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a invaild Character ID (${data._id})`;
 				socket.emit('worldService', {
-					error: true,
+					type: 'error',
 					reason: 'cheating'
 				});
 			}
