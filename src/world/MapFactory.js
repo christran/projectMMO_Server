@@ -19,10 +19,10 @@ class Map {
 		this.characterStates = [];
 		this.itemsOnTheGround = [];
 
-		this.npcs = map.npcs;
-		this.mobs = map.mobs;
+		this.npcs = []; // should be an array of npc objects
+		this.mobs = [];
 
-		this.portals = map.portals;
+		this.portals = map.portals; // should be an array of portal objects
 
 		this.inactivity = 0;
 	}
@@ -98,7 +98,7 @@ export default (io, world) => {
 		},
 
 		clearItemsOnTheGround: (mapID, secondsToKeepItemOnTheGround) => {
-			const arr = [];
+			const itemsToRemove = [];
 
 			if (world[mapID]) {
 				const now = Date.now();
@@ -106,16 +106,16 @@ export default (io, world) => {
 				_.remove(world[mapID].itemsOnTheGround, (item) => {
 					return now - item.createdAt > secondsToKeepItemOnTheGround * 1000;
 				}).forEach((item) => {
-					// check if item has a characterID
 					Item.deleteByID(item._id);
-					arr.push(item);
-					// Handle it client side?
-					// io.to(mapID).emit('removeItem', item);
-
-					// console.log(chalk.green(`[Map Factory] Removed ID: ${item._id} | Item ID: ${item.itemID}`));
+					itemsToRemove.push(item);
 				});
-				console.log(chalk.green(`[Map Factory] Removed ${arr.length} item(s) from Map ID: ${mapID}`));
-				io.to(mapID).emit('removeItems', arr);
+
+				io.emit('removeEntity', {
+					type: 'item',
+					data: itemsToRemove
+				});
+
+				console.log(chalk.green(`[Map Factory] Removed ${itemsToRemove.length} item(s) from Map ID: ${mapID}`));
 			}
 		},
 

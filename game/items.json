@@ -7,6 +7,7 @@
 		"icon": "None",
 		"mesh": "None",
 		"skeletal_mesh": "None",
+		"animation_blueprint": "None",
 		"material": "None",
 		"actor_ref": "None",
 		"stats": "",
@@ -43,7 +44,8 @@
 		"icon": "None",
 		"mesh": "None",
 		"skeletal_mesh": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/PlainWhiteTShirt1/M_PlainWhiteTShirt.M_PlainWhiteTShirt'",
+		"animation_blueprint": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/PlainWhiteTShirt1/M_PlainWhiteTee.M_PlainWhiteTee'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -79,7 +81,8 @@
 		"icon": "None",
 		"mesh": "None",
 		"skeletal_mesh": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/BlackDetroitTShirt/M_BlackDetroitTShirt.M_BlackDetroitTShirt'",
+		"animation_blueprint": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/BlackDetroitTShirt/M_DetroitTee.M_DetroitTee'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -115,7 +118,8 @@
 		"icon": "None",
 		"mesh": "None",
 		"skeletal_mesh": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/Sakura/M_Sakura.M_Sakura'",
+		"animation_blueprint": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/Sakura/M_SakuraTee.M_SakuraTee'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -151,7 +155,8 @@
 		"icon": "None",
 		"mesh": "None",
 		"skeletal_mesh": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/HappySad/M_HappySad.M_HappySad'",
+		"animation_blueprint": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/HappySad/M_HappySadTee.M_HappySadTee'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -187,7 +192,8 @@
 		"icon": "None",
 		"mesh": "None",
 		"skeletal_mesh": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/SquidGameTShirt/M_SquidGameTShirt.M_SquidGameTShirt'",
+		"animation_blueprint": "None",
+		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/SquidGameTShirt/M_SquidGameTee.M_SquidGameTee'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -223,6 +229,7 @@
 		"icon": "None",
 		"mesh": "None",
 		"skeletal_mesh": "None",
+		"animation_blueprint": "None",
 		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeans/M_BlackJeans.M_BlackJeans'",
 		"actor_ref": "None",
 		"stats": "",
@@ -259,6 +266,7 @@
 		"icon": "None",
 		"mesh": "None",
 		"skeletal_mesh": "None",
+		"animation_blueprint": "None",
 		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeansVisibleAnkle/M_BlackJeansVisibleAnkle.M_BlackJeansVisibleAnkle'",
 		"actor_ref": "None",
 		"stats": "",
@@ -295,6 +303,7 @@
 		"icon": "None",
 		"mesh": "None",
 		"skeletal_mesh": "None",
+		"animation_blueprint": "None",
 		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/Shoes/Vans/M_Vans.M_Vans'",
 		"actor_ref": "None",
 		"stats": "",
@@ -331,6 +340,7 @@
 		"icon": "None",
 		"mesh": "StaticMesh'/Game/Materials/Clothing/Hats/KonkonKityuneCasketHat/KonkonKityuneCasketHat.KonkonKityuneCasketHat'",
 		"skeletal_mesh": "None",
+		"animation_blueprint": "None",
 		"material": "None",
 		"actor_ref": "None",
 		"stats": "",
@@ -365,8 +375,9 @@
 		"item_type": "hat",
 		"weapon_type": "None",
 		"icon": "None",
-		"mesh": "None",
+		"mesh": "StaticMesh'/Game/Materials/Clothing/Hats/BunnyEars/SM_BunnyEars1.SM_BunnyEars1'",
 		"skeletal_mesh": "SkeletalMesh'/Game/Materials/Clothing/Hats/BunnyEars/insamoza.insamoza'",
+		"animation_blueprint": "AnimBlueprintGeneratedClass'/Game/Materials/Clothing/Hats/BunnyEars/ABP_BunnyEars.ABP_BunnyEars_C'",
 		"material": "None",
 		"actor_ref": "None",
 		"stats": "",
@@ -403,6 +414,7 @@
 		"icon": "None",
 		"mesh": "StaticMesh'/Game/Materials/Items/picopico/picohan.picohan'",
 		"skeletal_mesh": "None",
+		"animation_blueprint": "None",
 		"material": "None",
 		"actor_ref": "None",
 		"stats": "",
@@ -439,6 +451,7 @@
 		"icon": "None",
 		"mesh": "StaticMesh'/Game/Materials/Items/katana/katana_prototype2_katana.katana_prototype2_katana'",
 		"skeletal_mesh": "None",
+		"animation_blueprint": "None",
 		"material": "None",
 		"actor_ref": "None",
 		"stats": "",
@@ -465,6 +478,43 @@
 			"Pitch": -85.020420000000001,
 			"Yaw": -169.06937099999999,
 			"Roll": -78.556353999999999
+		}
+	},
+	{
+		"Name": "14",
+		"item_name": "Wolf Hat (ookami boushi)",
+		"item_type": "hat",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "StaticMesh'/Game/Materials/Clothing/Hats/ookamiboushi/ookami.ookami'",
+		"skeletal_mesh": "SkeletalMesh'/Game/Materials/Clothing/Hats/ookamiboushi/ookamiboushi.ookamiboushi'",
+		"animation_blueprint": "AnimBlueprintGeneratedClass'/Game/Materials/Clothing/Hats/ookamiboushi/ABP_Ookami.ABP_Ookami_C'",
+		"material": "None",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
 		}
 	}
 ]
