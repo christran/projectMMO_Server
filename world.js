@@ -3,6 +3,11 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+
+import { createAdapter } from '@socket.io/redis-adapter';
+import { Emitter } from '@socket.io/redis-emitter';
+import { createClient } from 'redis';
+
 import jwt from 'jsonwebtoken';
 
 import _ from 'lodash';
@@ -21,10 +26,16 @@ import playerHandler from './src/handlers/world/player-handler.js';
 const PE = new PrettyError();
 const app = express();
 const httpServer = createServer(app);
+
 const io = new Server(httpServer, {
 	transports: ['websocket'],
 	allowUpgrades: false
 });
+
+const pubClient = createClient({ url: 'redis://127.0.0.1:6379' });
+const subClient = pubClient.duplicate();
+
+const emitter = new Emitter(pubClient);
 
 const TICK_RATE = 10; // 0.1sec or 100ms
 // eslint-disable-next-line no-unused-vars
@@ -36,8 +47,8 @@ const port = process.env.PORT || config.worldserver.port;
 const clients = [];
 const world = {};
 
-const Map = MapFactory(io, world);
-const Item = ItemFactory(io, world);
+const Map = MapFactory(io, world, pubClient);
+const Item = ItemFactory(io, world, pubClient);
 const Mob = MobFactory(io, world);
 const NPC = NPCFactory(io, world);
 
@@ -60,6 +71,7 @@ app.get('/status', (req, res) => {
 });
 
 // Mob Spawning Test
+// eslint-disable-next-line no-unused-vars
 const mobSpawnTest = () => {
 	const mapID = 1;
 
@@ -92,7 +104,7 @@ const npcSpawnTest = () => {
 			npcs:
 			[
 				{
-					npcID: 1337,
+					npcID: 1234,
 					location: {
 						x: 0,
 						y: 100,
@@ -118,7 +130,7 @@ io.on('connection', (socket) => {
 			socket.disconnect();
 		} else {
 			// Require all handlers
-			playerHandler(io, socket, clients, world);
+			playerHandler(io, socket, clients, world, pubClient);
 
 			setTimeout(() => {
 				npcSpawnTest();
@@ -135,21 +147,23 @@ io.on('connection', (socket) => {
 });
 
 // Game Logic
-const update = () => {
-	// Send update only to maps with players in them (SocketIO Rooms)
-	// Sent to (GameState_MMO)
-	Map.getActiveMaps().forEach((mapID) => {
-		if (world[mapID]) {
-			io.to(parseInt(mapID, 10)).emit('snapshot', {
-				timestamp: Date.now().toString(),
-				mapSnapshot: world[parseInt(parseInt(mapID, 10), 10)].characterStates
+const update = () => {	// Sent to (GameState_MMO)
+	pubClient.KEYS('*').then((keys) => {
+		keys.forEach((key) => {
+			// remove 'world:' from the key
+			const mapID = key.split(':')[1];
+
+			pubClient.json.get(key).then((map) => {
+				io.to(parseInt(mapID, 10)).emit('snapshot', {
+					timestamp: Date.now().toString(),
+					mapSnapshot: map.characterStates
+				});
+			}).catch((err) => {
+				console.log(err);
 			});
+		});
 
-			// Remove worldSnapshot after processing states
-			world[parseInt(mapID, 10)].characterStates = [];
-		}
-
-		// console.log(world[mapID].mobs.length);
+		// Clear character states
 	});
 
 	// Run cleanup every minute to remove inactive maps from the world
@@ -159,40 +173,15 @@ const update = () => {
 // Run Item Cleanup every 30 seconds
 // Remove items that have been on the ground for more than 60 seconds
 setInterval(() => {
-	Object.keys(world).forEach((mapID) => {
-		if (world[mapID].itemsOnTheGround.length > 0) {
-			Map.clearItemsOnTheGround(mapID, 60);
-		}
-	});
-}, 30000);
+	pubClient.KEYS('*').then((keys) => {
+		keys.forEach((key) => {
+			// remove 'world:' from the key
+			const mapID = key.split(':')[1];
 
-// Item Spawning Test
-const itemSpawnTest = () => {
-	const mapID = 1;
-
-	if (world[mapID]) {
-		Item.spawn(mapID, {
-			items: [
-				{
-					id: _.random(10, 14),
-					amount: 1
-				},
-				{
-					id: _.random(10, 14),
-					amount: 2
-				}],
-			x: -100,
-			y: 250,
-			z: 100,
-			randomXY: true,
-			zHeight: 3000
+			Map.clearItemsOnTheGround(mapID, 10);
 		});
-	}
-
-	setTimeout(itemSpawnTest, _.random(1, 10) * 1000);
-};
-
-itemSpawnTest();
+	});
+}, 5000);
 
 // Game Loop
 const tickLengthMs = 1000 / TICK_RATE;
@@ -226,12 +215,45 @@ const gameLoop = () => {
 	}
 };
 
-httpServer.listen(port, () => {
-	// Connect to DB
-	db.connect();
+pubClient.on('error', (err) => {
+	console.log(err);
+});
 
-	// Start the Game LOop
-	gameLoop();
+Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+	io.adapter(createAdapter(pubClient, subClient));
+	httpServer.listen(port, () => {
+		// Connect to DB
+		db.connect();
 
-	console.log(chalk.greenBright(`[World Server] Starting World Server... Port: ${port}`));
+		// Start the Game LOop
+		gameLoop();
+
+		// Item Spawning Test
+		const itemSpawnTest = () => {
+			const mapID = 1;
+
+			Item.spawn(mapID, {
+				items: [
+					{
+						id: _.random(10, 14),
+						amount: 1
+					},
+					{
+						id: _.random(10, 14),
+						amount: 2
+					}],
+				x: -100,
+				y: 250,
+				z: 100,
+				randomXY: true,
+				zHeight: 3000
+			});
+
+			setTimeout(itemSpawnTest, _.random(20, 20) * 1000);
+		};
+
+		itemSpawnTest();
+
+		console.log(chalk.greenBright(`[World Server] Starting World Server... Port: ${port}`));
+	});
 });

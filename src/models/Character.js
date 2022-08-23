@@ -9,15 +9,12 @@ const characterSchema = new mongoose.Schema(
 		worldId: Number,
 		name: {
 			type: String,
-			required: true,
-			index: true,
-			unique: true,
-			uniqueCaseInsensitive: true
+			required: true
 		},
-		// tagline: {
-		// 	type: String,
-		// 	required: true,
-		// },
+		tagline: {
+			type: String,
+			required: true
+		},
 		location: {
 			x: Number,
 			y: Number,
@@ -84,6 +81,26 @@ characterSchema.statics.saveCharacter = async function (socket) {
 		socket.emit('dc', 'Character Error');
 		console.log(`[World Server] Saving Character | Error: ${err}`);
 	}
+};
+
+characterSchema.statics.generateTagline = async function (name) {
+	const nameExists = await this.findOne({ name });
+
+	if (!nameExists) {
+		console.log('name doesnt exist yet setting tagline to NA1');
+		// Set tagline to country code
+		return 'NA1';
+	}
+
+	// Random number with a max length of 4
+	const randomNumber = Math.floor(Math.random() * 9000) + 1000;
+	// const randomNumber = Math.floor(Math.random() * 10000);
+	const findACharacter = await this.findOne({ name, tagline: randomNumber });
+
+	if (findACharacter) {
+		return randomNumber;
+	}
+	return randomNumber;
 };
 
 export default mongoose.model('characters', characterSchema);

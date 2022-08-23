@@ -7,6 +7,8 @@
     "start": "node world.js"
   },
   "dependencies": {
+    "@socket.io/redis-adapter": "^7.2.0",
+    "@socket.io/redis-emitter": "^4.1.1",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.19.0",
     "chalk": "^3.0.0",
@@ -21,6 +23,8 @@
     "path": "^0.12.7",
     "pretty-error": "^2.1.1",
     "randomcolor": "^0.6.2",
+    "redis": "^4.3.0",
+    "redis-om": "^0.1.5",
     "request": "^2.88.0",
     "socket.io": "^4.4.0",
     "three": "^0.143.0",

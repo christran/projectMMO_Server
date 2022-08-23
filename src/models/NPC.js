@@ -1,6 +1,6 @@
 class NPC {
 	constructor(npc) {
-		this._id = '1232dsahi231'; // generate unique id that isnt in the mobs list for that mapID
+		this._id = '1232dsahi231'; // generate unique id that isnt in the npc list for that mapID
 		this.npcID = npc.npcID;
 		this.location = {
 			x: npc.location.x,

@@ -41,7 +41,7 @@ io.on('connection', (socket) => {
 			// console.log(err);
 			console.log(chalk.red(`[Chat Server] Invalid Token | IP: ${socket.handshake.address}`));
 			socket.emit('chatService', {
-				error: true,
+				type: 'error',
 				reason: 'token'
 			});
 			socket.disconnect();
