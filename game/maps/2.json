@@ -5,22 +5,24 @@
         "town": 1,
         "returnMapID": 1
     },
-    "portals": {
-        "map_2_portal_1": {
+    "portals": [
+        {
 			"id": 1,
+			"name": "map_2_portal_1",
 			"portalType": 1,
             "toMapID": 1,
             "toPortalName": "map_1_portal_1",
 			"location": { "x": 60, "y": -30, "z": 140 },
 			"rotation": 90
 		},
-		"map_2_portal_2": {
+		{
 			"id": 2,
+			"name": "map_2_portal_2",
 			"portalType": 1,
             "toMapID": 3,
             "toPortalName": "map_3_portal_1",
 			"location": { "x": 70, "y": 2460.0, "z": 200 },
 			"rotation": -90
         }
-    }
+	]
 }

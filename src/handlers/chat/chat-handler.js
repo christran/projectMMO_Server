@@ -65,7 +65,7 @@ export default (io, socket, clients) => {
 			socket.character.mapID = character.mapID;
 
 			socket.emit('chatService', {
-				error: false,
+				type: 'connected'
 			});
 
 			console.log(chalk.magenta(`[Chat Server] ${socket.character.name} connected to the chat server`));
@@ -73,7 +73,7 @@ export default (io, socket, clients) => {
 			console.log(chalk.magenta(`[Chat Server] IP: ${socket.handshake.address} tried to connect to the chat server with a charater that does not exist.`));
 
 			socket.emit('chatService', {
-				error: true,
+				type: 'error',
 				reason: 'characterID'
 			});
 			// socket.disconnect();

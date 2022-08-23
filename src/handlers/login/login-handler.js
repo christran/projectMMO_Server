@@ -17,7 +17,7 @@ export default (io, socket, clients) => {
 					if (account.ban.banType > 0) {
 						// Account is banned
 						const response = {
-							result: 'Banned',
+							result: 'banned',
 							banType: account.ban.banType,
 							reason: account.ban.banReason
 						};
@@ -28,7 +28,7 @@ export default (io, socket, clients) => {
 						// } else if (account.isOnline == true || _.find(clients, {username: account.username})) {
 						// Account is already online
 						const response = {
-							result: 'Online',
+							result: 'alreadyOnline',
 							reason: 'This account is already logged in.'
 						};
 
@@ -36,7 +36,7 @@ export default (io, socket, clients) => {
 						callback(response);
 					} else {
 						const response = {
-							result: 'Handshaked',
+							result: 'success',
 							accountID: account._id,
 							lastLogin: moment(account.lastLoginDate, 'YYYY-MM-DD HH:mm:ss').fromNow() // Remove this later, only send necessary data
 						};
@@ -59,7 +59,7 @@ export default (io, socket, clients) => {
 					}
 				} else {
 					const response = {
-						result: 'InvalidPW',
+						result: 'invalidPW',
 						reason: 'Incorrect Password'
 					};
 					callback(response);
@@ -67,8 +67,8 @@ export default (io, socket, clients) => {
 			});
 		} else {
 			const response = {
-				result: 'Invalid',
-				reason: 'Username not found'
+				result: 'invalidUser',
+				reason: 'Account does not exist'
 			};
 
 			callback(response);
@@ -77,60 +77,67 @@ export default (io, socket, clients) => {
 	});
 
 	socket.on('createCharacter', async (data, callback) => {
-		const newChar = new Character({
-			accountID: data.accountID,
-			_id: new db.mongoose.Types.ObjectId().toHexString(),
-			name: data.name,
-			gender: 0,
-			skin: 1,
-			hair: 1,
-			eyes: 1,
-			top: 1,
-			bottom: 1,
-			shoes: 1,
-			mapID: 1,
-			location: { x: 0, y: 0, z: 0 },
-			rotation: 90,
+		const tagline = await Character.generateTagline(data.name);
 
-			stats: {
-				level: 1,
-				job: 100,
-				str: 5,
-				dex: 5,
-				int: 5,
-				luk: 5,
-				hp: 50,
-				mhp: 50,
-				mp: 100,
-				mmp: 100,
-			},
+		if (tagline) {
+			const newChar = new Character({
+				accountID: data.accountID,
+				_id: new db.mongoose.Types.ObjectId().toHexString(),
+				name: data.name,
+				tagline,
+				gender: 0,
+				skin: 1,
+				hair: 1,
+				eyes: 1,
+				top: 1,
+				bottom: 1,
+				shoes: 1,
+				mapID: 1,
+				location: { x: 0, y: 0, z: 0 },
+				rotation: 90,
 
-			inventory: {
-				mesos: 0,
-				maxSlots: [96, 96, 96, 96, 96]
-			}
-		});
+				stats: {
+					level: 1,
+					job: 100,
+					str: 5,
+					dex: 5,
+					int: 5,
+					luk: 5,
+					hp: 50,
+					mhp: 50,
+					mp: 100,
+					mmp: 100,
+				},
 
-		try {
-			const saveChar = await newChar.save();
+				inventory: {
+					mesos: 0,
+					maxSlots: [96, 96, 96, 96, 96]
+				}
+			});
 
-			const response = {
-				result: 'Character Created'
-			};
+			try {
+				const saveChar = await newChar.save();
 
-			callback(response);
-			console.log(chalk.yellow('[Login Server]'), `New Character | Name: ${saveChar.name}`);
-		} catch (err) {
-			if (err.name === 'ValidationError') {
-				// Name taken
 				const response = {
-					result: 'Username Taken',
-					reason: 'Name is already taken'
+					result: 'success'
 				};
 
 				callback(response);
-			} else {
-				console.log(`[Login Server] createCharacter | Error: ${err}`);
+				console.log(chalk.yellow('[Login Server]'), `New Character | Name: ${saveChar.name}`);
+			} catch (err) {
+				console.log(err);
+				// players can have the same charcater name with a unique tagline
+				if (err.name === 'ValidationError') {
+					// Name taken
+					const response = {
+						result: 'nameTaken',
+						reason: 'charcater name is already taken'
+					};
+
+					callback(response);
+				} else {
+					console.log(`[Login Server] createCharacter | Error: ${err}`);
+				}
 			}
 		}
 	});

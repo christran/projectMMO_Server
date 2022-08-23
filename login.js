@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
 			// console.log(err);
 			console.log(chalk.red(`[Login Server] Invalid Token | IP: ${socket.handshake.address}`));
 			socket.emit('loginService', {
-				error: true,
+				type: 'error',
 				reason: 'token'
 			});
 			socket.disconnect();
