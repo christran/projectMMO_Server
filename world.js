@@ -47,8 +47,8 @@ const port = process.env.PORT || config.worldserver.port;
 const clients = [];
 const world = {};
 
-const Map = MapFactory(io, world, pubClient);
-const Item = ItemFactory(io, world, pubClient);
+const Map = MapFactory(io, world);
+const Item = ItemFactory(io, world);
 const Mob = MobFactory(io, world);
 const NPC = NPCFactory(io, world);
 
@@ -130,7 +130,7 @@ io.on('connection', (socket) => {
 			socket.disconnect();
 		} else {
 			// Require all handlers
-			playerHandler(io, socket, clients, world, pubClient);
+			playerHandler(io, socket, clients, world);
 
 			setTimeout(() => {
 				npcSpawnTest();
@@ -147,23 +147,21 @@ io.on('connection', (socket) => {
 });
 
 // Game Logic
-const update = () => {	// Sent to (GameState_MMO)
-	pubClient.KEYS('*').then((keys) => {
-		keys.forEach((key) => {
-			// remove 'world:' from the key
-			const mapID = key.split(':')[1];
-
-			pubClient.json.get(key).then((map) => {
-				io.to(parseInt(mapID, 10)).emit('snapshot', {
-					timestamp: Date.now().toString(),
-					mapSnapshot: map.characterStates
-				});
-			}).catch((err) => {
-				console.log(err);
+const update = () => {
+	// Send update only to maps with players in them (SocketIO Rooms)
+	// Sent to (GameState_MMO)
+	Map.getActiveMaps().forEach((mapID) => {
+		if (world[mapID]) {
+			io.to(parseInt(mapID, 10)).emit('snapshot', {
+				timestamp: Date.now().toString(),
+				mapSnapshot: world[parseInt(parseInt(mapID, 10), 10)].characterStates
 			});
-		});
 
-		// Clear character states
+			// Remove worldSnapshot after processing states
+			world[parseInt(mapID, 10)].characterStates = [];
+		}
+
+		// console.log(world[mapID].mobs.length);
 	});
 
 	// Run cleanup every minute to remove inactive maps from the world
@@ -173,15 +171,38 @@ const update = () => {	// Sent to (GameState_MMO)
 // Run Item Cleanup every 30 seconds
 // Remove items that have been on the ground for more than 60 seconds
 setInterval(() => {
-	pubClient.KEYS('*').then((keys) => {
-		keys.forEach((key) => {
-			// remove 'world:' from the key
-			const mapID = key.split(':')[1];
-
-			Map.clearItemsOnTheGround(mapID, 10);
-		});
+	Object.keys(world).forEach((mapID) => {
+		if (world[mapID].itemsOnTheGround.length > 0) {
+			Map.clearItemsOnTheGround(mapID, 60);
+		}
 	});
-}, 5000);
+}, 30000);
+
+// Item Spawning Test
+const itemSpawnTest = () => {
+	const mapID = 1;
+
+	Item.spawn(mapID, {
+		items: [
+			{
+				id: _.random(10, 14),
+				amount: 1
+			},
+			{
+				id: _.random(10, 14),
+				amount: 2
+			}],
+		x: -100,
+		y: 250,
+		z: 100,
+		randomXY: true,
+		zHeight: 3000
+	});
+
+	setTimeout(itemSpawnTest, _.random(1, 10) * 1000);
+};
+
+itemSpawnTest();
 
 // Game Loop
 const tickLengthMs = 1000 / TICK_RATE;
@@ -227,32 +248,6 @@ Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
 
 		// Start the Game LOop
 		gameLoop();
-
-		// Item Spawning Test
-		const itemSpawnTest = () => {
-			const mapID = 1;
-
-			Item.spawn(mapID, {
-				items: [
-					{
-						id: _.random(10, 14),
-						amount: 1
-					},
-					{
-						id: _.random(10, 14),
-						amount: 2
-					}],
-				x: -100,
-				y: 250,
-				z: 100,
-				randomXY: true,
-				zHeight: 3000
-			});
-
-			setTimeout(itemSpawnTest, _.random(20, 20) * 1000);
-		};
-
-		itemSpawnTest();
 
 		console.log(chalk.greenBright(`[World Server] Starting World Server... Port: ${port}`));
 	});

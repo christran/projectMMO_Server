@@ -20,9 +20,9 @@ const itemsDataTable = './game/items.json';
 const config = JSON.parse(fs.readFileSync('./_config.json'));
 const { serverMessage, billboardURL } = config.worldserver;
 
-export default (io, socket, clients, world, pubClient) => {
+export default (io, socket, clients, world) => {
 	const Player = PlayerHelper(io, clients);
-	const Map = MapFactory(io, world, pubClient);
+	const Map = MapFactory(io, world);
 	// const Item = ItemFactory(io, socket, clients, world); // conflicting variable name
 
 	socket.on('characterState', (data) => {
@@ -53,20 +53,11 @@ export default (io, socket, clients, world, pubClient) => {
 					...arr.slice(index + 1)];
 		}
 		// add or replace snapshot in world array of snapshots for the map
-		// if (world[socket.character.mapID]) {
-		// 	world[socket.character.mapID].characterStates = addOrReplaceBy(world[socket.character.mapID].characterStates, (character) => character._id === socket.character._id, () => snapshot);
-		// } else {
-		// 	console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
-		// }
-
-		// Redis
-		pubClient.json.get(`world:${socket.character.mapID}`).then((map) => {
-			if (map) {
-				pubClient.json.set(`world:${socket.character.mapID}`, '.characterStates', addOrReplaceBy(map.characterStates, (character) => character._id === socket.character._id, () => snapshot));
-			} else {
-				console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in Redis World State`));
-			}
-		});
+		if (world[socket.character.mapID]) {
+			world[socket.character.mapID].characterStates = addOrReplaceBy(world[socket.character.mapID].characterStates, (character) => character._id === socket.character._id, () => snapshot);
+		} else {
+			console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
+		}
 
 		// Simulate on the Server Side
 		socket.character.location = data.location;
@@ -233,111 +224,58 @@ export default (io, socket, clients, world, pubClient) => {
 	});
 
 	socket.on('player_PickUp', (data, callback) => {
-		pubClient.json.get(`world:${socket.character.mapID}`).then((map) => {
-			const findItemInMapID = _.find(map.itemsOnTheGround, { _id: data._id });
-			if (findItemInMapID) {
-				// Update item's owner with socket.characterID in the Items database
-				Item.findItemByID(data._id).then((itemInDB) => {
-					itemInDB.characterID = socket.character.id;
-					itemInDB.lootable = false;
+		const itemsInMapID = world[socket.character.mapID].itemsOnTheGround;
+		const findItemInMapID = _.find(itemsInMapID, { _id: data._id });
 
-					itemInDB.save().then(() => {
-					// Remove Item from worldSnapshotByID.itemsOnTheGround
-						_.remove(map.itemsOnTheGround, { _id: data._id });
+		if (findItemInMapID) {
+			// Update item's owner with socket.characterID in the Items database
+			Item.findItemByID(data._id).then((itemInDB) => {
+				itemInDB.characterID = socket.character.id;
+				itemInDB.lootable = false;
 
-						// Emit to all clients in mapID that an item has been looted and to remove it
-						io.to(socket.character.mapID).emit('removeEntity', {
-							type: 'item',
-							data: [{ _id: data._id }]
-						});
+				itemInDB.save().then(() => {
+				// Remove Item from worldSnapshotByID.itemsOnTheGround
+					_.remove(itemsInMapID, { _id: data._id });
 
-						/// Tell Client that the item has been looted
-						callback(true);
-
-						jsonfile.readFile(itemsDataTable)
-							.then((fileData) => {
-								const itemsKeyByID = _.keyBy(fileData, 'Name');
-
-								if (itemsKeyByID[itemInDB.itemID]) {
-									console.log(chalk.yellow(`[Item Factory] ${socket.character.name} picked up: ${itemsKeyByID[itemInDB.itemID].item_name}`));
-								} else {
-									console.log(chalk.yellow(`[Item Factory] ${socket.character.name} picked up Item ID: ${itemInDB.itemID} | No item name was found in the Items Data Table`));
-								}
-							}).catch((err) => console.log(err));
-					});
-				}).catch((err) => {
-					// Remove Item from Client's map
-					// Tell client that item doesn't exist and they're hacking
+					// Emit to all clients in mapID that an item has been looted and to remove it
 					io.to(socket.character.mapID).emit('removeEntity', {
 						type: 'item',
 						data: [{ _id: data._id }]
 					});
 
-					susLog.new({
-						character: socket.character,
-						reason: 'Tried to loot an item that does not exist in the database.',
-					});
+					/// Tell Client that the item has been looted
+					callback(true);
 
-					console.log(err);
-					console.log(chalk.red('[Item Factory] Item does not exist in the database.'));
+					jsonfile.readFile(itemsDataTable)
+						.then((fileData) => {
+							const itemsKeyByID = _.keyBy(fileData, 'Name');
+
+							if (itemsKeyByID[itemInDB.itemID]) {
+								console.log(chalk.yellow(`[Item Factory] ${socket.character.name} picked up: ${itemsKeyByID[itemInDB.itemID].item_name}`));
+							} else {
+								console.log(chalk.yellow(`[Item Factory] ${socket.character.name} picked up Item ID: ${itemInDB.itemID} | No item name was found in the Items Data Table`));
+							}
+						}).catch((err) => console.log(err));
 				});
-			} else if (findItemInMapID === undefined) {
-				console.log(chalk.yellow(`[Item Factory] ID: ${socket.character.id} | Name : ${socket.character.name} | tried to loot an item: ${findItemInMapID}`));
-			}
-		});
+			}).catch((err) => {
+				// Remove Item from Client's map
+				// Tell client that item doesn't exist and they're hacking
+				io.to(socket.character.mapID).emit('removeEntity', {
+					type: 'item',
+					data: [{ _id: data._id }]
+				});
 
-		// const itemsInMapID = world[socket.character.mapID].itemsOnTheGround;
-		// const findItemInMapID = _.find(itemsInMapID, { _id: data._id });
+				susLog.new({
+					character: socket.character,
+					reason: 'Tried to loot an item that does not exist in the database.',
+				});
 
-		// if (findItemInMapID) {
-		// 	// Update item's owner with socket.characterID in the Items database
-		// 	Item.findItemByID(data._id).then((itemInDB) => {
-		// 		itemInDB.characterID = socket.character.id;
-		// 		itemInDB.lootable = false;
-
-		// 		itemInDB.save().then(() => {
-		// 		// Remove Item from worldSnapshotByID.itemsOnTheGround
-		// 			_.remove(itemsInMapID, { _id: data._id });
-
-		// 			// Emit to all clients in mapID that an item has been looted and to remove it
-		// 			io.to(socket.character.mapID).emit('removeEntity', {
-		// 				type: 'item',
-		// 				data: [{ _id: data._id }]
-		// 			});
-
-		// 			/// Tell Client that the item has been looted
-		// 			callback(true);
-
-		// 			jsonfile.readFile(itemsDataTable)
-		// 				.then((fileData) => {
-		// 					const itemsKeyByID = _.keyBy(fileData, 'Name');
-
-		// 					if (itemsKeyByID[itemInDB.itemID]) {
-		// 						console.log(chalk.yellow(`[Item Factory] ${socket.character.name} picked up: ${itemsKeyByID[itemInDB.itemID].item_name}`));
-		// 					} else {
-		// 						console.log(chalk.yellow(`[Item Factory] ${socket.character.name} picked up Item ID: ${itemInDB.itemID} | No item name was found in the Items Data Table`));
-		// 					}
-		// 				}).catch((err) => console.log(err));
-		// 		});
-		// 	}).catch((err) => {
-		// 		// Remove Item from Client's map
-		// 		// Tell client that item doesn't exist and they're hacking
-		// 		io.to(socket.character.mapID).emit('removeEntity', {
-		// 			type: 'item',
-		// 			data: [{ _id: data._id }]
-		// 		});
-
-		// 		susLog.new({
-		// 			character: socket.character,
-		// 			reason: 'Tried to loot an item that does not exist in the database.',
-		// 		});
-
-		// 		console.log(err);
-		// 		console.log(chalk.red('[Item Factory] Item does not exist in the database.'));
-		// 	});
-		// } else if (findItemInMapID === undefined) {
-		// 	console.log(chalk.yellow(`[Item Factory] ID: ${socket.character.id} | Name : ${socket.character.name} | tried to loot an item: ${findItemInMapID}`));
-		// }
+				console.log(err);
+				console.log(chalk.red('[Item Factory] Item does not exist in the database.'));
+			});
+		} else if (findItemInMapID === undefined) {
+			console.log(chalk.yellow(`[Item Factory] ID: ${socket.character.id} | Name : ${socket.character.name} | tried to loot an item: ${findItemInMapID}`));
+		}
 	});
 
 	socket.on('player_DropItem', (data, callback) => {
@@ -364,8 +302,7 @@ export default (io, socket, clients, world, pubClient) => {
 		// Send client any other players in the map including themselves
 		// Portal logic runs before this? casuing the character to spawn at the wrong location
 
-		// Redis
-		pubClient.json.get(`world:${socket.character.mapID}`).then((map) => {
+		if (Map.getAllPlayersInMap(socket.character.mapID)) {
 			const charactersInMap = [];
 			const players = Map.getAllPlayersInMap(socket.character.mapID);
 
@@ -377,30 +314,13 @@ export default (io, socket, clients, world, pubClient) => {
 
 			const mapState = {
 				charactersInMap,
-				itemsOnTheGround: map.itemsOnTheGround
+				itemsOnTheGround: world[socket.character.mapID].itemsOnTheGround
 			};
 			callback(mapState);
-		});
-
-		// if (Map.getAllPlayersInMap(socket.character.mapID)) {
-		// 	const charactersInMap = [];
-		// 	const players = Map.getAllPlayersInMap(socket.character.mapID);
-
-		// 	_.forOwn(players, (value, name) => {
-		// 		charactersInMap.push({
-		// 			characterInfo: players[name]
-		// 		});
-		// 	});
-
-		// 	const mapState = {
-		// 		charactersInMap,
-		// 		itemsOnTheGround: world[socket.character.mapID].itemsOnTheGround
-		// 	};
-		// 	callback(mapState);
-		// } else {
-		// 	// No other players in the map, don't do anything
-		// 	// console.log('No other players in map to know about');
-		// }
+		} else {
+			// No other players in the map, don't do anything
+			// console.log('No other players in map to know about');
+		}
 	});
 
 	// Spawn Player after they select a character
@@ -465,45 +385,17 @@ export default (io, socket, clients, world, pubClient) => {
 					console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${io.engine.clientsCount}`);
 				};
 
-				// Check if the mapID exists in the redis world state
-				await pubClient.json.get(`world:${character.mapID}`).then((map) => {
-					if (!map) {
-						// array append redis
-						Map.loadMap(socket.character.mapID).then((map) => {
-							pubClient.json.get(`world:${socket.character.mapID}`).then((map) => {
-								const currentCharacterList = map.characters;
+				if (!world[socket.character.mapID]) {
+					// eslint-disable-next-line no-unused-vars
+					Map.loadMap(socket.character.mapID).then((map) => {
+						world[socket.character.mapID].characters.push(socket.character);
 
-								currentCharacterList.push(socket.character);
-
-								pubClient.json.set(`world:${socket.character.mapID}`, '.characters', currentCharacterList).then(() => {
-									spawnCharacter();
-								});
-							});
-						});
-					} else {
-						pubClient.json.get(`world:${socket.character.mapID}`, '.characters').then((map) => {
-							const currentCharacterList = map.characters;
-
-							currentCharacterList.push(socket.character);
-
-							pubClient.json.set(`world:${socket.character.mapID}`, '.characters', currentCharacterList).then(() => {
-								spawnCharacter();
-							});
-						});
-					}
-				});
-
-				// if (!world[socket.character.mapID]) {
-				// 	// eslint-disable-next-line no-unused-vars
-				// 	Map.loadMap(socket.character.mapID).then((map) => {
-				// 		world[socket.character.mapID].characters.push(socket.character);
-
-				// 		spawnCharacter();
-				// 	});
-				// } else {
-				// 	world[socket.character.mapID].characters.push(socket.character);
-				// 	spawnCharacter();
-				// }
+						spawnCharacter();
+					});
+				} else {
+					world[socket.character.mapID].characters.push(socket.character);
+					spawnCharacter();
+				}
 			} else {
 				socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a invaild Character ID (${data._id})`;
 				socket.emit('worldService', {
@@ -527,12 +419,8 @@ export default (io, socket, clients, world, pubClient) => {
 							socket.leave(socket.character.mapID);
 							socket.join(currentPortal.toMapID);
 
-							// Redis
-							pubClient.json.ARRPOP(`world:${socket.character.mapID}`, '.characters', socket.character);
-							pubClient.json.ARRAPPEND(`world:${currentPortal.toMapID}`, '.characters', socket.character);
-
-							// _.remove(world[socket.character.mapID].characters, { name: socket.character.name });
-							// world[currentPortal.toMapID].characters.push(socket.character);
+							_.remove(world[socket.character.mapID].characters, { name: socket.character.name });
+							world[currentPortal.toMapID].characters.push(socket.character);
 
 							socket.character.mapID = currentPortal.toMapID;
 							socket.character.location = targetPortal.location;
@@ -613,20 +501,12 @@ export default (io, socket, clients, world, pubClient) => {
 	socket.on('disconnect', (reason) => {
 		// Save Character Data to Database on disconnection
 		if (socket.character) {
-			// Redis
-			pubClient.json.get(`world:${socket.character.mapID}`).then((map) => {
-				let currentCharacterList = map.characters;
-
-				// remove character name from the current character list
-				currentCharacterList = currentCharacterList.filter((character) => character.name !== socket.character.name);
-
-				pubClient.json.set(`world:${socket.character.mapID}`, '.characters', currentCharacterList).then(() => {
-					// Tell all clients in the map to remove the player that disconnected.
-					socket.to(socket.character.mapID).emit('removeCharacter', {
-						_id: socket.character._id
-					});
-				});
+			// Tell all clients in the map to remove the player that disconnected.
+			socket.to(socket.character.mapID).emit('removeCharacter', {
+				_id: socket.character._id
 			});
+
+			_.remove(world[socket.character.mapID].characters, { name: socket.character.name });
 
 			const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
 			clients.splice(socketIndex, 1);
