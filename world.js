@@ -32,7 +32,7 @@ const io = new Server(httpServer, {
 	allowUpgrades: false
 });
 
-const pubClient = createClient({ url: 'redis://172.23.48.1:6379' });
+const pubClient = createClient({ url: 'redis://192.168.86.14:6379' });
 const subClient = pubClient.duplicate();
 
 const emitter = new Emitter(pubClient);
