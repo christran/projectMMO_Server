@@ -8,30 +8,41 @@ import Character from '../../models/Character.js';
 export default (io, socket, clients) => {
 	// add chat messages to database
 	socket.on('chat', (data) => {
-		const arr = Array.from(io.sockets.adapter.rooms);
-		const filtered = arr.filter((room) => !room[1].has(room[0]));
-
-		const res = filtered.map((i) => i[0]);
-
 		const { character } = socket;
 
 		const combinedMsg = `${character.name}: ${data.message}`;
 
 		// GM Commands
+		// on the client side if the character is not GM then don't send the message and just clear it client side
+		// check if account is GM
 		if (data.message.charAt(0) === '!') {
-			const gmCommand = data.message.substr(1);
+			// remove the ! from the message
+			const msg = data.message.slice(1);
+			const command = msg.split(' ')[0];
+			const args = msg.split(' ').slice(1);
 
 			// Teleport to Map Command
-			if (gmCommand.startsWith('goto')) {
-				const mapID = data.message.slice(6);
-				if (mapID && mapID.match(/^[0-9]+$/)) {
-					console.log(`Teleported to Map ID: ${mapID}`);
+			switch (command) {
+			case 'map':
+				if (args[0] && args[0].match(/^[0-9]+$/)) {
+					console.log(`[GM Command] ${socket.character.name} teleported to Map ID: ${args[0]}`);
 					// Teleport player to map
 				} else {
-					console.log('Please provide a Map ID');
+					console.log(`[GM Command] ${socket.character.name}  No Map ID Provided`);
 				}
-			} else {
-				console.log(`Invalid GM Command: ${gmCommand}`);
+				break;
+			case 'spawn':
+				console.log(`[GM Command] Spawning Mob ID: ${args[0]} | Amount: ${args[1]} | Map ID: ${socket.character.mapID}`);
+				break;
+			case 'item':
+				console.log(`[GM Command] Spawning Item ID: ${args[0]} | Amount: ${args[1]} | Map ID: ${socket.character.mapID}`);
+				break;
+			case 'dc':
+				console.log(`[GM Command] Disconnecting Character: ${args[0]}`);
+				break;
+			default:
+				console.log(`[GM Command] ${socket.character.name}  Invalid Command: !${command} ${args}`);
+				break;
 			}
 		} else {
 			switch (data.type) {
@@ -44,7 +55,6 @@ export default (io, socket, clients) => {
 				console.log(`[All Chat] ${combinedMsg}`);
 				break;
 			case 'local':
-				console.log(res);
 				socket.to(socket.character.mapID).emit('newMessage', {
 					type: 'local',
 					name: character.name,
