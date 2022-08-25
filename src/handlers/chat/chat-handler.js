@@ -8,6 +8,11 @@ import Character from '../../models/Character.js';
 export default (io, socket, clients) => {
 	// add chat messages to database
 	socket.on('chat', (data) => {
+		const arr = Array.from(io.sockets.adapter.rooms);
+		const filtered = arr.filter((room) => !room[1].has(room[0]));
+
+		const res = filtered.map((i) => i[0]);
+
 		const { character } = socket;
 
 		const combinedMsg = `${character.name}: ${data.message}`;
@@ -29,7 +34,7 @@ export default (io, socket, clients) => {
 				console.log(`Invalid GM Command: ${gmCommand}`);
 			}
 		} else {
-			switch (data.msgtype) {
+			switch (data.type) {
 			case 'all':
 				socket.broadcast.emit('newMessage', {
 					type: 'all',
@@ -39,12 +44,13 @@ export default (io, socket, clients) => {
 				console.log(`[All Chat] ${combinedMsg}`);
 				break;
 			case 'local':
+				console.log(res);
 				socket.to(socket.character.mapID).emit('newMessage', {
 					type: 'local',
 					name: character.name,
 					message: data.message
 				});
-				console.log(`[Local Chat] ${combinedMsg}`);
+				console.log(`[Local Chat | MapID: ${character.mapID}] ${combinedMsg}`);
 				break;
 			default:
 				break;
@@ -60,9 +66,11 @@ export default (io, socket, clients) => {
 
 		if (character) {
 			socket.character = {};
-			socket.character.id = character.accountID;
+			socket.character.id = character._id;
 			socket.character.name = character.name;
 			socket.character.mapID = character.mapID;
+
+			socket.join(parseInt(character.mapID, 10));
 
 			socket.emit('chatService', {
 				type: 'connected'
@@ -78,6 +86,22 @@ export default (io, socket, clients) => {
 			});
 			// socket.disconnect();
 		}
+	});
+
+	socket.on('setMapID', (mapID) => {
+		const newMapID = parseInt(mapID, 10);
+
+		if (!socket.character) {
+			socket.character = {};
+			socket.leave(socket.character.mapID);
+			socket.join(newMapID);
+			socket.character.mapID = newMapID;
+		}
+
+		socket.leave(socket.character.mapID);
+		socket.join(newMapID);
+		socket.character.mapID = newMapID;
+		console.log(`[Chat Server] ${socket.character.name} moved to Map ID: ${mapID}`);
 	});
 
 	socket.on('disconnect', () => {

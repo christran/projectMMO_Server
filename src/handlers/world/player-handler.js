@@ -326,9 +326,9 @@ export default (io, socket, clients, world) => {
 	// Spawn Player after they select a character
 	socket.on('spawnRequest', async (data) => {
 		// Check if player is trying to spawn a character that is already spawned ingame
-		if (_.findIndex(clients, { name: data.name }) >= 0) {
+		if (_.findIndex(clients, { id: data._id }) >= 0) {
 			// Pawn is already spawned/possessed
-			socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a character (${data.name}) that is already spawned.`;
+			socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a character (${data._id}) that is already spawned.`;
 			socket.emit('worldService', {
 				type: 'error',
 				reason: 'cheating'
@@ -348,6 +348,7 @@ export default (io, socket, clients, world) => {
 
 				const spawnCharacter = () => {
 					clients.push({
+						id: character._id,
 						name: character.name,
 						socketID: socket.id,
 					});
@@ -440,9 +441,7 @@ export default (io, socket, clients, world) => {
 						console.log(err);
 					});
 				} else if (currentPortal.portalType === 2) {
-					const targetPortal = Map.getPortalByName(currentPortal.toPortalName, socket.character.mapID);
-
-					if (targetPortal) {
+					Map.getPortalByName(currentPortal.toPortalName, socket.character.mapID).then((targetPortal) => {
 						const response = {
 							location: targetPortal.location,
 							rotation: targetPortal.rotation,
@@ -455,7 +454,9 @@ export default (io, socket, clients, world) => {
 						socket.emit('teleportCharacter', response);
 
 						console.log(`[World Server] ${socket.character.name} used portal: ${data.portalName} in Map: ${currentMap.mapInfo.mapName}`);
-					}
+					}).catch((err) => {
+						console.log(err);
+					});
 				}
 			}).catch((err) => {
 				console.log(err);

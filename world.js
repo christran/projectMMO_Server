@@ -182,22 +182,24 @@ setInterval(() => {
 const itemSpawnTest = () => {
 	const mapID = 1;
 
-	Item.spawn(mapID, {
-		items: [
-			{
-				id: _.random(10, 14),
-				amount: 1
-			},
-			{
-				id: _.random(10, 14),
-				amount: 2
-			}],
-		x: -100,
-		y: 250,
-		z: 100,
-		randomXY: true,
-		zHeight: 3000
-	});
+	if (world[mapID]) {
+		Item.spawn(mapID, {
+			items: [
+				{
+					id: _.random(10, 14),
+					amount: 1
+				},
+				{
+					id: _.random(10, 14),
+					amount: 2
+				}],
+			x: -100,
+			y: 250,
+			z: 100,
+			randomXY: true,
+			zHeight: 3000
+		});
+	}
 
 	setTimeout(itemSpawnTest, _.random(1, 10) * 1000);
 };
@@ -243,6 +245,8 @@ pubClient.on('error', (err) => {
 Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
 	io.adapter(createAdapter(pubClient, subClient));
 	httpServer.listen(port, () => {
+		// Register World Server to Master Server
+
 		// Connect to DB
 		db.connect();
 
