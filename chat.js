@@ -10,6 +10,7 @@ import * as fs from 'fs';
 
 import db from './db.js';
 
+import Character from './src/models/Character.js';
 import chatHandler from './src/handlers/chat/chat-handler.js';
 
 // eslint-disable-next-line no-unused-vars
@@ -36,7 +37,7 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
 	// eslint-disable-next-line no-unused-vars
-	jwt.verify(socket.handshake.query.token, 'projectMMOisAwesome', (err, decoded) => {
+	jwt.verify(socket.handshake.query.token, 'projectMMOisAwesome', async (err, decoded) => {
 		if (err) {
 			// console.log(err);
 			console.log(chalk.red(`[Chat Server] Invalid Token | IP: ${socket.handshake.address}`));
@@ -48,6 +49,32 @@ io.on('connection', (socket) => {
 		} else {
 			// Require all handlers
 			chatHandler(io, socket, clients);
+
+			// Authenticate User to Chat Server
+			const character = await Character.getCharacterByID(socket.handshake.query.characterID).catch((err) => console.log(`[Chat Server] helloworld | Error: ${err}`));
+
+			if (character) {
+				socket.character = {};
+				socket.character.id = character._id;
+				socket.character.name = character.name;
+				socket.character.mapID = character.mapID;
+
+				socket.join(parseInt(character.mapID, 10));
+
+				socket.emit('chatService', {
+					type: 'connected'
+				});
+
+				console.log(chalk.magenta(`[Chat Server] ${socket.character.name} connected to the chat server`));
+			} else {
+				console.log(chalk.magenta(`[Chat Server] IP: ${socket.handshake.address} tried to connect to the chat server with a charater that does not exist.`));
+
+				socket.emit('chatService', {
+					type: 'error',
+					reason: 'characterID'
+				});
+				// socket.disconnect();
+			}
 		}
 	});
 });

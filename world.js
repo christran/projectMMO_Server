@@ -201,7 +201,7 @@ const itemSpawnTest = () => {
 		});
 	}
 
-	setTimeout(itemSpawnTest, _.random(1, 10) * 1000);
+	setTimeout(itemSpawnTest, _.random(3, 10) * 1000);
 };
 
 itemSpawnTest();
