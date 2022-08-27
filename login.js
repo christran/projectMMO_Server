@@ -57,8 +57,8 @@ io.on('connection', (socket) => {
 			- config.md5_hash
 			*/
 			socket.on('handshakeWS', (clientVersion, callback) => {
-				request(`http://127.0.0.1:${config.worldserver.port}/status`, (err, res, body) => {
-				// request('https://projectmmo-test.herokuapp.com', (err) => {
+				// request(`http://127.0.0.1:${config.worldserver.port}/status`, (err, res, body) => {
+				request('https://projectmmo-8x5py.ondigitalocean.app/status', (err, res, body) => {
 					const data = JSON.parse(body);
 					if (data.status === 'ONLINE') {
 						callback({

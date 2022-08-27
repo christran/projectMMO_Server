@@ -163,6 +163,11 @@ io.on('connection', (socket) => {
 			// Require all handlers
 			playerHandler(io, socket, world);
 
+			socket.on('ping', (data, callback) => {
+				// socket.emit('pong');
+				callback();
+			});
+
 			setTimeout(() => {
 				npcSpawnTest();
 				// mobSpawnTest();

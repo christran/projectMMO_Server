@@ -4,7 +4,11 @@
   "description": "NodeJS/SocketIO MMO Server",
   "type": "module",
   "scripts": {
-    "start": "node world.js"
+    "start": "npm run login & startnpm run world & start npm run chat",
+    "login": "node login",
+    "world": "node world",
+    "chat": "node chat"
+
   },
   "dependencies": {
     "@socket.io/redis-adapter": "^7.2.0",
