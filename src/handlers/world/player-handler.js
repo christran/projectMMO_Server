@@ -247,7 +247,6 @@ export default (io, socket, world) => {
 						/// Tell Client that the item has been looted
 						callback(true);
 
-
 						jsonfile.readFile(itemsDataTable)
 							.then((fileData) => {
 								const itemsKeyByID = _.keyBy(fileData, 'Name');
