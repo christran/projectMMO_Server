@@ -165,7 +165,7 @@ io.on('connection', (socket) => {
 
 			socket.on('ping', (data, callback) => {
 				// socket.emit('pong');
-				callback();
+				callback({ pong: true });
 			});
 
 			setTimeout(() => {
