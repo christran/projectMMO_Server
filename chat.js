@@ -54,10 +54,7 @@ io.on('connection', (socket) => {
 			const character = await Character.getCharacterByID(socket.handshake.query.characterID).catch((err) => console.log(`[Chat Server] helloworld | Error: ${err}`));
 
 			if (character) {
-				socket.character = {};
-				socket.character.id = character._id;
-				socket.character.name = character.name;
-				socket.character.mapID = character.mapID;
+				socket.character = character;
 
 				socket.join(parseInt(character.mapID, 10));
 
@@ -65,7 +62,7 @@ io.on('connection', (socket) => {
 					type: 'connected'
 				});
 
-				console.log(chalk.magenta(`[Chat Server] ${socket.character.name} connected to the chat server`));
+				console.log(chalk.magenta(`[Chat Server] ${character.name}${chalk.green(`#${character.tagline}`)} connected to the chat server`));
 			} else {
 				console.log(chalk.magenta(`[Chat Server] IP: ${socket.handshake.address} tried to connect to the chat server with a charater that does not exist.`));
 

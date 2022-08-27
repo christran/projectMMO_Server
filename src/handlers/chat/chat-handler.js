@@ -9,26 +9,25 @@ export default (io, socket, clients) => {
 	// add chat messages to database
 	socket.on('chat', (data) => {
 		const { character } = socket;
+		const nameAndTagline = `${character.name}${chalk.green(`#${character.tagline}`)}`;
 
-		const combinedMsg = `${character.name}: ${data.message}`;
+		const combinedMsg = `${nameAndTagline}: ${data.message}`;
+
+		const msg = data.message.slice(1);
+		const command = msg.split(' ')[0];
+		const args = msg.split(' ').slice(1);
 
 		// GM Commands
 		// on the client side if the character is not GM then don't send the message and just clear it client side
 		// check if account is GM
 		if (data.message.charAt(0) === '!') {
-			// remove the ! from the message
-			const msg = data.message.slice(1);
-			const command = msg.split(' ')[0];
-			const args = msg.split(' ').slice(1);
-
-			// Teleport to Map Command
 			switch (command) {
 			case 'map':
 				if (args[0] && args[0].match(/^[0-9]+$/)) {
-					console.log(`[GM Command] ${socket.character.name} teleported to Map ID: ${args[0]}`);
+					console.log(`[GM Command] ${nameAndTagline} teleported to Map ID: ${args[0]}`);
 					// Teleport player to map
 				} else {
-					console.log(`[GM Command] ${socket.character.name}  No Map ID Provided`);
+					console.log(`[GM Command] ${nameAndTagline} No Map ID Provided`);
 				}
 				break;
 			case 'spawn':
@@ -41,7 +40,16 @@ export default (io, socket, clients) => {
 				console.log(`[GM Command] Disconnecting Character: ${args[0]}`);
 				break;
 			default:
-				console.log(`[GM Command] ${socket.character.name}  Invalid Command: !${command} ${args}`);
+				console.log(`[GM Command] ${nameAndTagline} Invalid Command: !${command} ${args}`);
+				break;
+			}
+		} else if (data.message.charAt(0) === '/') {
+			switch (command) {
+			case 'find':
+				console.log(`[GM Command] Finding Character: ${args[0]}`);
+				break;
+			default:
+				console.log(`[GM Command] ${nameAndTagline} Invalid Player Command: /${command} ${args}`);
 				break;
 			}
 		} else {
@@ -50,6 +58,7 @@ export default (io, socket, clients) => {
 				socket.broadcast.emit('newMessage', {
 					type: 'all',
 					name: character.name,
+					tagline: character.tagline,
 					message: data.message
 				});
 				console.log(`[All Chat] ${combinedMsg}`);
@@ -58,6 +67,7 @@ export default (io, socket, clients) => {
 				socket.to(socket.character.mapID).emit('newMessage', {
 					type: 'local',
 					name: character.name,
+					tagline: character.tagline,
 					message: data.message
 				});
 				console.log(`[Local Chat | MapID: ${character.mapID}] ${combinedMsg}`);
@@ -66,6 +76,7 @@ export default (io, socket, clients) => {
 				socket.to(socket.character.mapID).emit('newMessage', {
 					type: 'party',
 					name: character.name,
+					tagline: character.tagline,
 					message: data.message
 				});
 				console.log(`[Party Chat | Party ID: ${character.mapID}] ${combinedMsg}`);
@@ -74,9 +85,19 @@ export default (io, socket, clients) => {
 				socket.to(socket.character.mapID).emit('newMessage', {
 					type: 'guild',
 					name: character.name,
+					tagline: character.tagline,
 					message: data.message
 				});
 				console.log(`[Guild Chat | Guild ID: ${character.mapID}] ${combinedMsg}`);
+				break;
+			case 'private':
+				socket.to(socket.character.mapID).emit('newMessage', {
+					type: 'private',
+					name: character.name,
+					tagline: character.tagline,
+					message: data.message
+				});
+				console.log(`[Private Chat | Chat ID: ${character.mapID}] ${combinedMsg}`);
 				break;
 			default:
 				break;
