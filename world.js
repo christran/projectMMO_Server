@@ -99,6 +99,8 @@ const mobSpawnTest = () => {
 	// setInterval(mobSpawnTest, 30 * 1000);
 };
 
+mobSpawnTest();
+
 const npcSpawnTest = () => {
 	const mapID = 1;
 
