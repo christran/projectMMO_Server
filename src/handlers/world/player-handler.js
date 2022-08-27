@@ -20,8 +20,8 @@ const itemsDataTable = './game/items.json';
 const config = JSON.parse(fs.readFileSync('./_config.json'));
 const { serverMessage, billboardURL } = config.worldserver;
 
-export default (io, socket, clients, world) => {
-	const Player = PlayerHelper(io, clients);
+export default (io, socket, world) => {
+	const Player = PlayerHelper(io, world);
 	const Map = MapFactory(io, world);
 	// const Item = ItemFactory(io, socket, clients, world); // conflicting variable name
 
@@ -297,7 +297,6 @@ export default (io, socket, clients, world) => {
 	});
 
 	// When a player enters a map (GameState_MMO) will emit this event
-	// Shouldn't need this because of how the client is also getting sent world snapshots that contain the same information in world.js update loop
 	socket.on('requestMapState', (data, callback) => {
 		// Send client any other players in the map including themselves
 		// Portal logic runs before this? casuing the character to spawn at the wrong location
@@ -325,15 +324,8 @@ export default (io, socket, clients, world) => {
 
 	// Spawn Player after they select a character
 	socket.on('spawnRequest', async (data) => {
-		// Check if player is trying to spawn a character that is already spawned ingame
-		if (_.findIndex(clients, { id: data._id }) >= 0) {
-			// Pawn is already spawned/possessed
-			socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a character (${data._id}) that is already spawned.`;
-			socket.emit('worldService', {
-				type: 'error',
-				reason: 'cheating'
-			});
-		} else {
+		// Check if a character id already exists in the characters array in the world object
+		Player.checkIfAlreadySpawned(data._id).then(async () => {
 			const character = await Character.getCharacterByID(data._id).catch((err) => console.log(`[Player Handler] spawnPlayer | Error: ${err}`));
 			const account = await Account.getAccountByID(character.accountID).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
 
@@ -347,12 +339,6 @@ export default (io, socket, clients, world) => {
 				io.sockets.sockets.get(socket.id).character = character;
 
 				const spawnCharacter = () => {
-					clients.push({
-						id: character._id,
-						name: character.name,
-						socketID: socket.id,
-					});
-
 					// Add player to map and spawn them in the map
 					socket.join(character.mapID);
 					socket.emit('changeMap', character.mapID);
@@ -383,7 +369,7 @@ export default (io, socket, clients, world) => {
 						reason: 'no reason xD',
 					});
 
-					console.log(`[World Server] User: ${character.name} | Map ID: ${character.mapID} | Total Online: ${io.engine.clientsCount}`);
+					console.log(`[World Server] ${character.name}${chalk.green(`#${character.tagline}`)} | Map ID: ${character.mapID} | Total Online: ${io.engine.clientsCount}`);
 				};
 
 				if (!world[socket.character.mapID]) {
@@ -404,7 +390,14 @@ export default (io, socket, clients, world) => {
 					reason: 'cheating'
 				});
 			}
-		}
+		}).catch(() => {
+			socket.emit('worldService', {
+				type: 'error',
+				reason: 'cheating'
+			});
+
+			console.log(`[Player Handler] Character ID (${data._id}) already exists in the world`);
+		});
 	});
 
 	socket.on('player_UsePortal', (data) => {
@@ -468,8 +461,8 @@ export default (io, socket, clients, world) => {
 
 	// Disconnect a player with given name (GM Command - !dc {playername})
 	socket.on('player_DC', (data) => {
-		if (Player.getSocketByName(data.name)) {
-			const targetCharacter = Player.getSocketByName(data.name).character;
+		if (Player.getSocketByCharID(data._id)) {
+			const targetCharacter = Player.getSocketByCharID(data._id).character;
 
 			io.to(`${targetCharacter._id}`).emit('dc', 'D/Ced by a GM');
 
@@ -509,10 +502,7 @@ export default (io, socket, clients, world) => {
 
 			_.remove(world[socket.character.mapID].characters, { name: socket.character.name });
 
-			const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
-			clients.splice(socketIndex, 1);
-
-			console.log(`[World Server] User: ${socket.character.name} logged off`);
+			console.log(`[World Server] ${socket.character.name}${chalk.green(`#${socket.character.tagline}`)} logged off`);
 		} else {
 			console.log(`[World Server] IP: ${socket.handshake.address} disconnected | Reason: ${socket.dcReason} | ${reason}`);
 		}

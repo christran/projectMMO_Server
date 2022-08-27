@@ -1,26 +1,27 @@
 import _ from 'lodash';
 
-export default (io, clients) => ({
-	/**
-	 * Gets a character's socket object given their name.
-	 * @param {string} name The character's name
-	 * @return {Object} Returns an socket object.
-	 */
-	getSocketByName: (name) => {
-		const player = _.find(clients, (client) => client.name.toLowerCase() === name.toLowerCase());
-
-		if (player) {
-			return io.of('/').connected[player.socketID];
-		}
-		return null;
+export default (io, world) => ({
+	checkIfAlreadySpawned: async (_id) => {
+		return new Promise((resolve, reject) => {
+			if (Object.keys(world).length === 0) {
+				resolve();
+			} else {
+				Object.keys(world).forEach((mapID) => {
+					if (_.findIndex(world[mapID].characters, { _id }) > -1) {
+						reject();
+					}
+					resolve();
+				});
+			}
+		});
 	},
 
-	getSocketID: (socketID) => {
-		const player = _.find(clients, { socketID });
+	// getSocketByCharID: (_id) => {
+	// 	const character = _.find(clients, (client) => client._id === _id);
 
-		if (player) {
-			return player;
-		}
-		return null;
-	},
+	// 	if (character) {
+	// 		return io.of('/').connected[character.socketID];
+	// 	}
+	// 	return null;
+	// },
 });

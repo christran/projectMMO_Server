@@ -44,8 +44,8 @@ let tick = 0;
 const config = JSON.parse(fs.readFileSync('./_config.json'));
 const port = process.env.PORT || config.worldserver.port;
 
-const clients = [];
 const world = {};
+const serverStartTime = Date.now();
 
 const Map = MapFactory(io, world);
 const Item = ItemFactory(io, world);
@@ -64,8 +64,11 @@ app.get('/status', (req, res) => {
 	res.json(
 		{
 			status: 'ONLINE',
-			totalClients: clients.length,
-			totalMaps: Object.keys(world).length
+			ip: httpServer.address().address,
+			port: httpServer.address().port,
+			totalClients: io.engine.clientsCount,
+			totalMaps: Object.keys(world).length,
+			uptime: Math.floor((Date.now() - serverStartTime) / 1000),
 		}
 	);
 });
@@ -117,6 +120,34 @@ const npcSpawnTest = () => {
 	}
 };
 
+// Item Spawning Test
+const itemSpawnTest = () => {
+	const mapID = 1;
+
+	if (world[mapID]) {
+		Item.spawn(mapID, {
+			items: [
+				{
+					id: _.random(10, 14),
+					amount: 1
+				},
+				{
+					id: _.random(10, 14),
+					amount: 2
+				}],
+			x: -100,
+			y: 250,
+			z: 100,
+			randomXY: true,
+			zHeight: 3000
+		});
+	}
+
+	setTimeout(itemSpawnTest, _.random(3, 10) * 1000);
+};
+
+itemSpawnTest();
+
 io.on('connection', (socket) => {
 	// eslint-disable-next-line no-unused-vars
 	jwt.verify(socket.handshake.query.token, 'projectMMOisAwesome', (err, decoded) => {
@@ -130,7 +161,7 @@ io.on('connection', (socket) => {
 			socket.disconnect();
 		} else {
 			// Require all handlers
-			playerHandler(io, socket, clients, world);
+			playerHandler(io, socket, world);
 
 			setTimeout(() => {
 				npcSpawnTest();
@@ -138,10 +169,6 @@ io.on('connection', (socket) => {
 				// io.emit('worldService', { type: 'billboardURL', billboardURL: 'https://reddit.com', update: true });
 				// io.emit('worldService', { type: 'server_message', message: 'the quick brown fox jumped of the lazy dog', update: true });
 			}, 1000);
-
-			socket.on('helloworld', (data) => {
-				console.log(data);
-			});
 		}
 	});
 });
@@ -177,34 +204,6 @@ setInterval(() => {
 		}
 	});
 }, 30000);
-
-// Item Spawning Test
-const itemSpawnTest = () => {
-	const mapID = 1;
-
-	if (world[mapID]) {
-		Item.spawn(mapID, {
-			items: [
-				{
-					id: _.random(10, 14),
-					amount: 1
-				},
-				{
-					id: _.random(10, 14),
-					amount: 2
-				}],
-			x: -100,
-			y: 250,
-			z: 100,
-			randomXY: true,
-			zHeight: 3000
-		});
-	}
-
-	setTimeout(itemSpawnTest, _.random(3, 10) * 1000);
-};
-
-itemSpawnTest();
 
 // Game Loop
 const tickLengthMs = 1000 / TICK_RATE;
