@@ -99,8 +99,6 @@ const mobSpawnTest = () => {
 	// setInterval(mobSpawnTest, 30 * 1000);
 };
 
-mobSpawnTest();
-
 const npcSpawnTest = () => {
 	const mapID = 1;
 
@@ -243,17 +241,30 @@ pubClient.on('error', (err) => {
 	console.log(err);
 });
 
-Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
-	io.adapter(createAdapter(pubClient, subClient));
-	httpServer.listen(port, () => {
-		// Register World Server to Master Server
+httpServer.listen(port, () => {
+	// Register World Server to Master Server
 
-		// Connect to DB
-		db.connect();
+	// Connect to DB
+	db.connect();
 
-		// Start the Game LOop
-		gameLoop();
+	// Start the Game LOop
+	gameLoop();
 
-		console.log(chalk.greenBright(`[World Server] Starting World Server... Port: ${port}`));
-	});
+	console.log(chalk.greenBright(`[World Server] Starting World Server... Port: ${port}`));
 });
+
+// Redis
+// Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+// 	io.adapter(createAdapter(pubClient, subClient));
+// 	httpServer.listen(port, () => {
+// 		// Register World Server to Master Server
+
+// 		// Connect to DB
+// 		db.connect();
+
+// 		// Start the Game LOop
+// 		gameLoop();
+
+// 		console.log(chalk.greenBright(`[World Server] Starting World Server... Port: ${port}`));
+// 	});
+// });
