@@ -30,6 +30,7 @@ export default (io, world) => {
 						// eslint-disable-next-line no-await-in-loop
 						await Item.createItem({
 							itemID: item.id,
+							lootable: true
 						}).then((itemFromDB) => {
 							itemsToSpawn.push({
 								_id: itemFromDB._id,

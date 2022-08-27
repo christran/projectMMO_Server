@@ -36,6 +36,7 @@ itemSchema.statics.createItem = async function (item) {
 		_id: new mongoose.Types.ObjectId().toHexString(),
 		itemID: item.itemID,
 		characterID: item.characterID,
+		lootable: item.lootable
 		// stats: item.stats,
 	});
 
