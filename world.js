@@ -226,25 +226,26 @@ setInterval(() => {
 const tickLengthMs = 1000 / TICK_RATE;
 
 const hrtimeMs = () => {
-    let time = process.hrtime()
-    return time[0] * 1000 + time[1] / 1000000
-}
+	const time = process.hrtime();
+	return time[0] * 1000 + time[1] / 1000000;
+};
 
+// eslint-disable-next-line no-unused-vars
 let tick = 0;
-let previous = hrtimeMs()
+let previous = hrtimeMs();
 
 const gameLoop = () => {
-    setTimeout(gameLoop, tickLengthMs)
-    let now = hrtimeMs()
-    let delta = (now - previous) / 1000
-    // console.log('delta', delta)
+	setTimeout(gameLoop, tickLengthMs);
+	const now = hrtimeMs();
+	const delta = (now - previous) / 1000;
+	// console.log('delta', delta)
 
 	// Update Loop
-    update();
+	update();
 
-    previous = now
-    tick++
-}
+	previous = now;
+	tick += 1;
+};
 
 pubClient.on('error', (err) => {
 	console.log(err);
