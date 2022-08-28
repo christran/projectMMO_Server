@@ -276,6 +276,12 @@ export default (io, socket, world) => {
 				console.log(chalk.red('[Item Factory] Item does not exist in the database.'));
 			});
 		} else if (findItemInMapID === undefined) {
+			// Tell the client to remove that item because it doesn't exist on the server
+			socket.emit('removeEntity', {
+				type: 'item',
+				data: [{ _id: data._id }]
+			});
+			
 			console.log(chalk.yellow(`[Item Factory] ID: ${socket.character.id} | Name : ${socket.character.name} | tried to loot an item: ${findItemInMapID}`));
 		}
 	});

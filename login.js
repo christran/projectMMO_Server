@@ -58,7 +58,7 @@ io.on('connection', (socket) => {
 			*/
 			socket.on('handshakeWS', (clientVersion, callback) => {
 				// request(`http://127.0.0.1:${config.worldserver.port}/status`, (err, res, body) => {
-				request('http://64.227.104.61:7575/status', (err, res, body) => {
+				request('http://5.161.155.210:7575/status', (err, res, body) => {
 					const data = JSON.parse(body);
 					if (data.status === 'ONLINE') {
 						callback({

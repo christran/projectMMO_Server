@@ -37,9 +37,7 @@ const subClient = pubClient.duplicate();
 
 const emitter = new Emitter(pubClient);
 
-const TICK_RATE = 10; // 0.1sec or 100ms
-// eslint-disable-next-line no-unused-vars
-let tick = 0;
+const TICK_RATE = 20; // 0.1sec or 100ms
 
 const config = JSON.parse(fs.readFileSync('./_config.json'));
 const port = process.env.PORT || config.worldserver.port;
@@ -213,34 +211,26 @@ setInterval(() => {
 // Game Loop
 const tickLengthMs = 1000 / TICK_RATE;
 
-let previousTick = Date.now();
-// eslint-disable-next-line no-unused-vars
-let actualTicks = 0;
+const hrtimeMs = () => {
+    let time = process.hrtime()
+    return time[0] * 1000 + time[1] / 1000000
+}
+
+let tick = 0;
+let previous = hrtimeMs()
 
 const gameLoop = () => {
-	const now = Date.now();
+    setTimeout(gameLoop, tickLengthMs)
+    let now = hrtimeMs()
+    let delta = (now - previous) / 1000
+    // console.log('delta', delta)
 
-	actualTicks += 1;
-	if (previousTick + tickLengthMs <= now) {
-		// eslint-disable-next-line no-unused-vars
-		const delta = (now - previousTick) / 1000;
-		previousTick = now;
+	// Update Loop
+    update();
 
-		// Update Loop
-		update();
-
-		// eslint-disable-next-line no-undef
-		tick += 1;
-
-		actualTicks = 0;
-	}
-
-	if (Date.now() - previousTick < tickLengthMs - 16) {
-		setTimeout(gameLoop);
-	} else {
-		setImmediate(gameLoop);
-	}
-};
+    previous = now
+    tick++
+}
 
 pubClient.on('error', (err) => {
 	console.log(err);
