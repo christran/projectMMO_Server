@@ -3,6 +3,7 @@ import chalk from 'chalk';
 // eslint-disable-next-line no-unused-vars
 import Account from '../../models/Account.js';
 // import Character from '../../models/Character.js';
+import Chat from '../../models/Chat.js';
 
 // eslint-disable-next-line no-unused-vars
 export default (io, socket, clients) => {
@@ -53,6 +54,12 @@ export default (io, socket, clients) => {
 				break;
 			}
 		} else {
+			// Add message to database
+			Chat.new({
+				type: data.type,
+				message: data.message,
+			}, character);
+
 			switch (data.type) {
 			case 'all':
 				socket.broadcast.emit('newMessage', {
