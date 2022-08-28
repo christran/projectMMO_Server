@@ -62,7 +62,7 @@ io.on('connection', (socket) => {
 					type: 'connected'
 				});
 
-				console.log(chalk.magenta(`[Chat Server] ${character.name}${chalk.green(`#${character.tagline}`)} connected to the chat server`));
+				console.log(chalk.magenta(`[Chat Server] ${character.name} ${chalk.green(`#${character.tagline}`)} connected to the chat server`));
 			} else {
 				console.log(chalk.magenta(`[Chat Server] IP: ${socket.handshake.address} tried to connect to the chat server with a charater that does not exist.`));
 

@@ -13,6 +13,7 @@ import jwt from 'jsonwebtoken';
 import _ from 'lodash';
 import chalk from 'chalk';
 import * as fs from 'fs';
+import pm2IO from '@pm2/io';
 
 import db from './db.js';
 import MapFactory from './src/world/MapFactory.js';
@@ -70,6 +71,19 @@ app.get('/status', (req, res) => {
 		}
 	);
 });
+
+const totalClients = pm2IO.metric({
+	name: 'Clients'
+});
+
+const activeMaps = pm2IO.metric({
+	name: 'Active Maps'
+});
+
+setInterval((() => {
+	totalClients.set(io.engine.clientsCount);
+	activeMaps.set(Object.keys(world).length);
+}), 1000);
 
 // Mob Spawning Test
 // eslint-disable-next-line no-unused-vars

@@ -12,7 +12,7 @@ mongoose.set('useCreateIndex', true);
 mongoose.Promise = Promise;
 
 const connect = async () => {
-	mongoose.connect(url + dbName, mongoOptions)
+	mongoose.connect(url + dbName + '?authSource=admin', mongoOptions)
 		.then(() => {
 			console.log(chalk.blueBright('[Database] Connected to Database'));
 		})

@@ -108,22 +108,15 @@ export default (io, socket, clients) => {
 	socket.on('setMapID', (mapID) => {
 		const newMapID = parseInt(mapID, 10);
 
-		if (!socket.character) {
-			socket.character = {};
-			socket.leave(socket.character.mapID);
-			socket.join(newMapID);
-			socket.character.mapID = newMapID;
-		}
-
 		socket.leave(socket.character.mapID);
 		socket.join(newMapID);
 		socket.character.mapID = newMapID;
-		console.log(`[Chat Server] ${socket.character.name} moved to Map ID: ${mapID}`);
+		console.log(`[Chat Server] ${socket.character.name} ${chalk.green(`#${socket.character.tagline}`)} moved to Map ID: ${mapID}`);
 	});
 
 	socket.on('disconnect', () => {
 		if (socket.character) {
-			console.log(chalk.magenta(`[Chat Server] ${socket.character.name} disconnected from the chat server`));
+			console.log(chalk.magenta(`[Chat Server] ${socket.character.name} ${chalk.green(`#${socket.character.tagline}`)} disconnected from the chat server`));
 		} else {
 			console.log(chalk.magenta(`[Chat Server] IP: ${socket.handshake.address} disconnected from the chat server`));
 		}
