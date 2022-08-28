@@ -100,6 +100,13 @@ export default (io, world) => {
 						world[mapID].inactivity = Date.now();
 						console.log(chalk.green(`[Map Factory] Map ID: ${mapID} has been marked for deletion.`));
 					} else if (Date.now() - world[mapID].inactivity > maxInactiveTimeinMinutes * 60 * 1000) {
+						// remove the items from database before deleting the map
+						world[mapID].itemsOnTheGround.forEach((item) => {
+							Item.deleteByID(item._id);
+						});
+
+						// make sure this is garbage collected
+						world[mapID] = {};
 						delete world[mapID];
 						console.log(chalk.green(`[Map Factory] Map ID: ${mapID} has been removed due to inactivity.`));
 					}

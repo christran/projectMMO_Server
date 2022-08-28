@@ -1,14 +1,6 @@
 /* eslint-disable func-names */
 import mongoose from 'mongoose';
 
-/*
-// How to add a new entry
-	susLog.new({
-		socket,
-		reason: 'speed hacking'
-	});
-*/
-
 const ChatSchema = new mongoose.Schema(
 	{
 		accountID: { type: String, required: true },

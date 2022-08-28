@@ -141,11 +141,11 @@ const itemSpawnTest = () => {
 			items: [
 				{
 					id: _.random(10, 14),
-					amount: 1
+					amount: _.random(0, 3)
 				},
 				{
 					id: _.random(10, 14),
-					amount: 2
+					amount: _.random(0, 3)
 				}],
 			x: -100,
 			y: 250,
