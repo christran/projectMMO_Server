@@ -235,8 +235,8 @@ export default (io, socket, world) => {
 					itemInDB.lootable = false;
 
 					itemInDB.save().then(() => {
-						// Emit to all clients in mapID that an item has been looted and to remove it
-						io.to(socket.character.mapID).emit('removeEntity', {
+						// Emit to all other clients in mapID that an item has been looted and to remove it
+						socket.to(socket.character.mapID).emit('removeEntity', {
 							type: 'item',
 							data: [{ _id: data._id }]
 						});
