@@ -80,7 +80,8 @@ export default (io, socket, clients) => {
 				console.log(`[Local Chat | MapID: ${character.mapID}] ${combinedMsg}`);
 				break;
 			case 'party':
-				socket.to(socket.character.mapID).emit('newMessage', {
+				// send to partty members
+				socket.broadcast.emit('newMessage', {
 					type: 'party',
 					name: character.name,
 					tagline: character.tagline,
@@ -89,7 +90,8 @@ export default (io, socket, clients) => {
 				console.log(`[Party Chat | Party ID: ${character.mapID}] ${combinedMsg}`);
 				break;
 			case 'guild':
-				socket.to(socket.character.mapID).emit('newMessage', {
+				// send to guild members
+				socket.broadcast.emit('newMessage', {
 					type: 'guild',
 					name: character.name,
 					tagline: character.tagline,
@@ -98,6 +100,7 @@ export default (io, socket, clients) => {
 				console.log(`[Guild Chat | Guild ID: ${character.mapID}] ${combinedMsg}`);
 				break;
 			case 'private':
+				// send to private chat id
 				socket.to(socket.character.mapID).emit('newMessage', {
 					type: 'private',
 					name: character.name,
