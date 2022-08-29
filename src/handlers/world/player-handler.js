@@ -281,7 +281,7 @@ export default (io, socket, world) => {
 				type: 'item',
 				data: [{ _id: data._id }]
 			});
-			
+
 			console.log(chalk.yellow(`[Item Factory] ID: ${socket.character.id} | Name : ${socket.character.name} | tried to loot an item: ${findItemInMapID}`));
 		}
 	});
