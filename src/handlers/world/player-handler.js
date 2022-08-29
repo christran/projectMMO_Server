@@ -323,6 +323,7 @@ export default (io, socket, world) => {
 				charactersInMap,
 				itemsOnTheGround: world[socket.character.mapID].itemsOnTheGround
 			};
+
 			callback(mapState);
 		} else {
 			// No other players in the map, don't do anything
@@ -428,13 +429,13 @@ export default (io, socket, world) => {
 							socket.character.location = targetPortal.location;
 							socket.character.rotation = targetPortal.rotation;
 
+							Character.saveCharacter(socket);
+
 							socket.emit('changeMap', currentPortal.toMapID);
 
 							socket.to(socket.character.mapID).emit('addCharacter', {
 								characterInfo: socket.character
 							});
-
-							Character.saveCharacter(socket);
 
 							console.log(`[World Server] ${socket.character.name} moved to Map: ${targetMap.mapInfo.mapName} | Map ID: ${currentPortal.toMapID}`);
 						}).catch((err) => console.log(`[Player Handler] player_UsePortal | Error: ${err}`));
@@ -452,6 +453,9 @@ export default (io, socket, world) => {
 						socket.character.location = targetPortal.location;
 						socket.character.rotation = targetPortal.rotation;
 						socket.character.action = 2;
+
+						Character.saveCharacter(socket);
+
 						socket.emit('teleportCharacter', response);
 
 						console.log(`[World Server] ${socket.character.name} used portal: ${data.portalName} in Map: ${currentMap.mapInfo.mapName}`);

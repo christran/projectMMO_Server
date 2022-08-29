@@ -35,23 +35,23 @@
 			"portalType": 1,
             "toMapID": 2,
             "toPortalName": "map_2_portal_1",
-			"location": { "x": -20, "y": 600, "z": 140 },
-			"rotation": -90
+			"location": { "x": 905, "y": 106, "z": 2 },
+			"rotation": -180
 		},
 		{
 			"id": 2,
 			"name": "map_1_portal_2",
 			"portalType": 2,
             "toPortalName": "map_1_portal_3",
-			"location": { "x": -530, "y": 1740, "z": 140 },
-			"rotation": -90
+			"location": { "x": 3015, "y": 116, "z": 1201 },
+			"rotation": -180
         },
 		{
 			"id": 3,
 			"name": "map_1_portal_3",
 			"portalType": 2,
             "toPortalName": "map_1_portal_2",
-			"location": { "x": -180, "y": 760, "z": -1410 },
+			"location": { "x": -239, "y": 7396, "z": -1623 },
 			"rotation": 0
         }
     ]
