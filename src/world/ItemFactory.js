@@ -53,7 +53,7 @@ export default (io, world) => {
 								location: {
 									x: 0,
 									y: 0,
-									z: -85
+									z: 25 // z: 25 is ground level
 								},
 								createdAt: new Date(itemFromDB.createdAt).getTime().toString(),
 							});

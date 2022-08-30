@@ -123,7 +123,7 @@ const npcSpawnTest = () => {
 					location: {
 						x: 0,
 						y: 100,
-						z: 0
+						z: 25
 					},
 					rotation: 90
 				}

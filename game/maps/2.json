@@ -12,7 +12,7 @@
 			"portalType": 1,
             "toMapID": 1,
             "toPortalName": "map_1_portal_1",
-			"location": { "x": -834, "y": 106, "z": 2 },
+			"location": { "x": -834, "y": 106, "z": 92 },
 			"rotation": 0
 		}
 	]
