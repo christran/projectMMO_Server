@@ -20,7 +20,7 @@ const itemsDataTable = './game/items.json';
 const config = JSON.parse(fs.readFileSync('./_config.json'));
 const { serverMessage, billboardURL } = config.worldserver;
 
-export default (io, socket, world) => {
+export default (io, socket, world, clients) => {
 	const Player = PlayerHelper(io, world);
 	const Map = MapFactory(io, world);
 	// const Item = ItemFactory(io, socket, clients, world); // conflicting variable name
@@ -346,6 +346,7 @@ export default (io, socket, world) => {
 
 				// io.of('/').connected[socket.id].character = character;
 				io.sockets.sockets.get(socket.id).character = character;
+				socket.character.socketID = socket.id;
 
 				const spawnCharacter = () => {
 					// Add player to map and spawn them in the map
@@ -366,6 +367,8 @@ export default (io, socket, world) => {
 
 					socket.emit('worldService', { type: 'server_message', message: serverMessage, update: false });
 					socket.emit('worldService', { type: 'billboardURL', billboardURL, update: false });
+
+					clients.push({ socketID: socket.id, characterID: character._id });
 
 					// Discord Login Message
 					Discord.LoginNotify(character);

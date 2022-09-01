@@ -6,7 +6,7 @@ import Account from '../../models/Account.js';
 import Chat from '../../models/Chat.js';
 
 // eslint-disable-next-line no-unused-vars
-export default (io, socket, clients) => {
+export default (io, socket, clients, clientSocket) => {
 	// add chat messages to database
 	socket.on('chat', (data) => {
 		const { character } = socket;
@@ -15,7 +15,7 @@ export default (io, socket, clients) => {
 		const combinedMsg = `${nameAndTagline}: ${data.message}`;
 
 		const msg = data.message.slice(1);
-		const command = msg.split(' ')[0];
+		const command = msg.split(' ')[0].toLowerCase();
 		const args = msg.split(' ').slice(1);
 
 		// GM Commands
@@ -25,7 +25,13 @@ export default (io, socket, clients) => {
 			switch (command) {
 			case 'map':
 				if (args[0] && args[0].match(/^[0-9]+$/)) {
-					console.log(`[GM Command] ${nameAndTagline} teleported to Map ID: ${args[0]}`);
+					clientSocket.emit('chatServer', {
+						type: 'changeMap',
+						_id: character._id,
+						mapID: args[0]
+					});
+
+					console.log(`[GM Command] ${nameAndTagline} | !${command} ${args}`);
 					// Teleport player to map
 				} else {
 					console.log(`[GM Command] ${nameAndTagline} No Map ID Provided`);

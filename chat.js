@@ -44,6 +44,15 @@ app.get('/', (req, res) => {
 	res.status(403).end();
 });
 
+const worldServerIP = 'https://world.projectmmo.dev';
+
+const clientSocket = clientIO(worldServerIP, {
+	transports: ['websocket'],
+	query: {
+		'token': jwt.sign({}, 'projectMMOisAwesome')
+	}
+});
+
 io.on('connection', (socket) => {
 	// eslint-disable-next-line no-unused-vars
 	jwt.verify(socket.handshake.query.token, 'projectMMOisAwesome', async (err, decoded) => {
@@ -57,7 +66,7 @@ io.on('connection', (socket) => {
 			socket.disconnect();
 		} else {
 			// Require all handlers
-			chatHandler(io, socket, clients);
+			chatHandler(io, socket, clients, clientSocket);
 
 			// Authenticate User to Chat Server
 			const character = await Character.getCharacterByID(socket.handshake.query.characterID).catch((err) => console.log(`[Chat Server] helloworld | Error: ${err}`));
@@ -89,15 +98,6 @@ httpsServer.listen(port, () => {
 	db.connect();
 
 	console.log(chalk.greenBright(`[Chat Server] Starting Chat Server... Port: ${port}`));
-
-	const worldServerIP = 'https://world.projectmmo.dev';
-
-	const clientSocket = clientIO(worldServerIP, {
-		transports: ['websocket'],
-		query: {
-			'token': jwt.sign({}, 'projectMMOisAwesome')
-		}
-	});
 	
 	clientSocket.on('connect', () => {
 		console.log(`[Chat Server] Connected to World Server: ${worldServerIP}`);

@@ -19,18 +19,25 @@ export default (io, world) => {
 				world[mapID].mobs = world[mapID].mobs.concat(myMap.mobs);
 				world[mapID].portals = world[mapID].portals.concat(myMap.portals);
 
+				console.log(`[Map Factory] Loaded Map ID: ${chalk.green(mapID)}`);
+
 				return world[mapID];
 			} catch (err) {
-				console.log(err);
+				throw err;
 			}
 		},
 
 		getMap: async (mapID) => {
 			if (!world[mapID]) {
-				const myMap = await MapFactory.loadMap(mapID);
-				return myMap;
+				try {
+					const myMap = await MapFactory.loadMap(mapID);
+					return myMap;
+				} catch (err) {
+					throw err;
+				}
+			} else {
+				return world[mapID];
 			}
-			return world[mapID];
 		},
 
 		getPortalByID: async (portalID, mapID) => {

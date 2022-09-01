@@ -23,6 +23,7 @@ import MobFactory from './src/world/MobFactory.js';
 import NPCFactory from './src/world/NPCFactory.js';
 
 import playerHandler from './src/handlers/world/player-handler.js';
+import chatHandler from './src/handlers/world/chat-handler.js';
 
 const options = {
 	key: fs.readFileSync('certs/world/privkey1.pem'),
@@ -51,6 +52,7 @@ const config = JSON.parse(fs.readFileSync('./_config.json'));
 const port = process.env.PORT || config.worldserver.port;
 
 const world = {};
+const clients = [];
 const serverStartTime = Date.now();
 
 const Map = MapFactory(io, world);
@@ -171,7 +173,7 @@ io.on('connection', (socket) => {
 	// eslint-disable-next-line no-unused-vars
 	jwt.verify(socket.handshake.query.token, 'projectMMOisAwesome', (err, decoded) => {
 		if (err) {
-			console.log(err);
+			// console.log(err);
 			console.log(chalk.red(`[World Server] Invalid Token | IP: ${socket.handshake.address}`));
 			socket.emit('worldService', {
 				type: 'error',
@@ -180,7 +182,8 @@ io.on('connection', (socket) => {
 			socket.disconnect();
 		} else {
 			// Require all handlers
-			playerHandler(io, socket, world);
+			playerHandler(io, socket, world, clients);
+			chatHandler(io, socket, world, clients);
 
 			setTimeout(() => {
 				npcSpawnTest();
