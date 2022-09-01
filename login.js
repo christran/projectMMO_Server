@@ -1,7 +1,8 @@
 import PrettyError from 'pretty-error';
 import express from 'express';
 import bodyParser from 'body-parser';
-import { createServer } from 'http';
+// import { createServer } from 'http';
+import { createServer } from 'https';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 
@@ -12,13 +13,19 @@ import * as fs from 'fs';
 import db from './db.js';
 import loginHandler from './src/handlers/login/login-handler.js';
 
+const options = {
+	key: fs.readFileSync('loginCert/privkey1.pem'),
+	cert: fs.readFileSync('loginCert/cert1.pem'),
+	ca: fs.readFileSync('loginCert/chain1.pem')
+};
+
 // eslint-disable-next-line no-unused-vars
 const PE = new PrettyError();
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
+const httpsServer = createServer(options, app);
+const io = new Server(httpsServer, {
 	transports: ['websocket'],
-	allowUpgrades: false
+	allowUpgrades: true
 });
 
 const config = JSON.parse(fs.readFileSync('./_config.json'));
@@ -74,7 +81,7 @@ io.on('connection', (socket) => {
 	});
 });
 
-httpServer.listen(port, () => {
+httpsServer.listen(port, () => {
 	db.connect();
 
 	console.log(chalk.yellow('[Login Server] Starting Login Server... Port:', port));
