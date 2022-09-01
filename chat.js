@@ -1,7 +1,8 @@
 import PrettyError from 'pretty-error';
 import express from 'express';
 import bodyParser from 'body-parser';
-import { createServer } from 'http';
+// import { createServer } from 'http';
+import { createServer } from 'https';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 
@@ -13,11 +14,17 @@ import db from './db.js';
 import Character from './src/models/Character.js';
 import chatHandler from './src/handlers/chat/chat-handler.js';
 
+const options = {
+	key: fs.readFileSync('certs/chat/privkey1.pem'),
+	cert: fs.readFileSync('certs/chat/cert1.pem'),
+	ca: fs.readFileSync('certs/chat/chain1.pem')
+};
+
 // eslint-disable-next-line no-unused-vars
 const PE = new PrettyError();
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
+const httpsServer = createServer(options, app);
+const io = new Server(httpsServer, {
 	transports: ['websocket'],
 	allowUpgrades: false
 });
@@ -76,7 +83,7 @@ io.on('connection', (socket) => {
 	});
 });
 
-httpServer.listen(port, () => {
+httpsServer.listen(port, () => {
 	db.connect();
 
 	console.log(chalk.greenBright(`[Chat Server] Starting Chat Server... Port: ${port}`));

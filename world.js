@@ -1,7 +1,8 @@
 import PrettyError from 'pretty-error';
 import express from 'express';
 import bodyParser from 'body-parser';
-import { createServer } from 'http';
+// import { createServer } from 'http';
+import { createServer } from 'https';
 import { Server } from 'socket.io';
 
 import { createAdapter } from '@socket.io/redis-adapter';
@@ -21,14 +22,22 @@ import ItemFactory from './src/world/ItemFactory.js';
 import MobFactory from './src/world/MobFactory.js';
 import NPCFactory from './src/world/NPCFactory.js';
 
+import { io as clientIO } from "socket.io-client";
+
 import playerHandler from './src/handlers/world/player-handler.js';
+
+const options = {
+	key: fs.readFileSync('certs/world/privkey1.pem'),
+	cert: fs.readFileSync('certs/world/cert1.pem'),
+	ca: fs.readFileSync('certs/world/chain1.pem')
+};
 
 // eslint-disable-next-line no-unused-vars
 const PE = new PrettyError();
 const app = express();
-const httpServer = createServer(app);
+const httpsServer = createServer(options, app);
 
-const io = new Server(httpServer, {
+const io = new Server(httpsServer, {
 	transports: ['websocket'],
 	allowUpgrades: false
 });
@@ -63,8 +72,8 @@ app.get('/status', (req, res) => {
 	res.json(
 		{
 			status: 'ONLINE',
-			ip: httpServer.address().address,
-			port: httpServer.address().port,
+			ip: httpsServer.address().address,
+			port: httpsServer.address().port,
 			totalClients: io.engine.clientsCount,
 			totalMaps: Object.keys(world).length,
 			uptime: Math.floor((Date.now() - serverStartTime) / 1000),
@@ -243,7 +252,7 @@ pubClient.on('error', (err) => {
 	console.log(err);
 });
 
-httpServer.listen(port, () => {
+httpsServer.listen(port, () => {
 	// Register World Server to Master Server
 
 	// Connect to DB
@@ -253,12 +262,28 @@ httpServer.listen(port, () => {
 	gameLoop();
 
 	console.log(chalk.greenBright(`[World Server] Starting World Server... Port: ${port}`));
+
+	const clientSocket = clientIO('https://login.projectmmo.dev', {
+		transports: ['websocket'],
+		query: {
+			'token': 'projectMMOisAwesome'
+		  }
+	});
+	
+	clientSocket.on('connect', () => {
+		console.log('Connected to login server!!!!!');
+	});
+
+	clientSocket.on("connect_error", (err) => {
+		console.log(`connect_error due to ${err.message}`);
+	  });
+
 });
 
 // Redis
 // Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
 // 	io.adapter(createAdapter(pubClient, subClient));
-// 	httpServer.listen(port, () => {
+// 	httpsServer.listen(port, () => {
 // 		// Register World Server to Master Server
 
 // 		// Connect to DB

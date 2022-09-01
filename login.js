@@ -14,9 +14,9 @@ import db from './db.js';
 import loginHandler from './src/handlers/login/login-handler.js';
 
 const options = {
-	key: fs.readFileSync('loginCert/privkey1.pem'),
-	cert: fs.readFileSync('loginCert/cert1.pem'),
-	ca: fs.readFileSync('loginCert/chain1.pem')
+	key: fs.readFileSync('certs/login/privkey1.pem'),
+	cert: fs.readFileSync('certs//login/cert1.pem'),
+	ca: fs.readFileSync('certs/login/chain1.pem')
 };
 
 // eslint-disable-next-line no-unused-vars
@@ -25,7 +25,7 @@ const app = express();
 const httpsServer = createServer(options, app);
 const io = new Server(httpsServer, {
 	transports: ['websocket'],
-	allowUpgrades: true
+	allowUpgrades: false
 });
 
 const config = JSON.parse(fs.readFileSync('./_config.json'));
@@ -37,7 +37,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
-	res.status(403).end();
+	res.send('Login Server');
 });
 
 io.on('connection', (socket) => {
@@ -65,7 +65,7 @@ io.on('connection', (socket) => {
 			*/
 			socket.on('handshakeWS', (clientVersion, callback) => {
 				// request(`http://127.0.0.1:${config.worldserver.port}/status`, (err, res, body) => {
-				request('http://5.161.155.210:7575/status', (err, res, body) => {
+				request('https://world.projectmmo.dev/status', (err, res, body) => {
 					const data = JSON.parse(body);
 					if (data.status === 'ONLINE') {
 						callback({
