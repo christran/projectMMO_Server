@@ -52,7 +52,7 @@ export default (io, socket, world, clients) => {
 
                     resolve();
                 }).catch((err) => {
-                    console.log(`[World Server] Map ID: ${mapID} does not exist.`);
+                    console.log(`[Chat Handler] ${err}`);
                     reject();
                 });
         });

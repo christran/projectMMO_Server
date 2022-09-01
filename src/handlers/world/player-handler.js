@@ -517,6 +517,9 @@ export default (io, socket, world, clients) => {
 
 			_.remove(world[socket.character.mapID].characters, { name: socket.character.name });
 
+			// Remove from clients list
+			_.remove(clients, { characterID: socket.character._id });
+
 			console.log(`[World Server] ${socket.character.name}${chalk.green(`#${socket.character.tagline}`)} logged off`);
 		} else {
 			console.log(`[World Server] IP: ${socket.handshake.address} disconnected | Reason: ${socket.dcReason} | ${reason}`);
