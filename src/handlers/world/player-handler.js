@@ -65,7 +65,7 @@ export default (io, socket, world) => {
 		socket.character.velocity = data.velocity;
 		socket.character.action = parseInt(data.action, 10);
 
-		// console.log(data); // Check if client is sending indepedent of framerate
+		// console.log(data); // Check if client is sending independent of framerate
 	});
 
 	// Client sends data to server to update character appearance/clothing

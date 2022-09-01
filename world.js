@@ -38,7 +38,7 @@ const subClient = pubClient.duplicate();
 
 const emitter = new Emitter(pubClient);
 
-const TICK_RATE = 10; // 0.1sec or 100ms
+const TICK_RATE = 20; // 0.1sec or 100ms
 
 const config = JSON.parse(fs.readFileSync('./_config.json'));
 const port = process.env.PORT || config.worldserver.port;
@@ -187,50 +187,36 @@ io.on('connection', (socket) => {
 
 // Game Logic
 const update = () => {
-	// Send update only to maps with players in them (SocketIO Rooms)
 	// Sent to (GameState_MMO)
-	Map.getActiveMaps().forEach((mapID) => {
-		if (world[mapID]) {
+	Object.keys(world).forEach((mapID) => {
+	// Map.getActiveMaps().forEach((mapID) => {
 			io.to(parseInt(mapID, 10)).emit('snapshot', {
-				timestamp: Date.now().toString(),
+				// timestamp: Date.now().toString(),
 				mapSnapshot: world[parseInt(parseInt(mapID, 10), 10)].characterStates
 			});
 
-			// Remove worldSnapshot after processing states
+			// Remove after processing states
 			world[parseInt(mapID, 10)].characterStates = [];
-		}
-
-		// console.log(world[mapID].mobs.length);
 	});
 
 	// Run cleanup every minute to remove inactive maps from the world
 	Map.removeInactiveMaps(1);
 };
 
-// Run Item Cleanup every 30 seconds
-// Remove items that have been on the ground for more than 60 seconds
-setInterval(() => {
-	Object.keys(world).forEach((mapID) => {
-		if (world[mapID].itemsOnTheGround.length > 0) {
-			Map.clearItemsOnTheGround(mapID, 60);
-		}
-	});
-}, 30000);
-
 // Game Loop
-const tickLengthMs = 1000 / TICK_RATE;
-
 const hrtimeMs = () => {
 	const time = process.hrtime();
 	return time[0] * 1000 + time[1] / 1000000;
 };
 
+const tickLengthMs = 1000 / TICK_RATE;
 // eslint-disable-next-line no-unused-vars
 let tick = 0;
 let previous = hrtimeMs();
 
 const gameLoop = () => {
 	setTimeout(gameLoop, tickLengthMs);
+	
 	const now = hrtimeMs();
 	const delta = (now - previous) / 1000;
 	// console.log('delta', delta)
@@ -241,6 +227,17 @@ const gameLoop = () => {
 	previous = now;
 	tick += 1;
 };
+
+
+// Run Item Cleanup every 30 seconds
+// Remove items that have been on the ground for more than 60 seconds
+setInterval(() => {
+	Object.keys(world).forEach((mapID) => {
+		if (world[mapID].itemsOnTheGround.length > 0) {
+			Map.clearItemsOnTheGround(mapID, 60);
+		}
+	});
+}, 30000);
 
 pubClient.on('error', (err) => {
 	console.log(err);

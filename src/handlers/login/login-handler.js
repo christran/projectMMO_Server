@@ -93,7 +93,7 @@ export default (io, socket, clients) => {
 				bottom: 1,
 				shoes: 1,
 				mapID: 1,
-				location: { x: 0, y: 0, z: 0 }, // z: 25 is the ground level
+				location: { x: 0, y: 0, z: 25 }, // z: 25 is the ground level
 				rotation: 90,
 
 				stats: {
