@@ -9,33 +9,33 @@ export default (io, world) => {
 	const MapFactory = {
 		// eslint-disable-next-line consistent-return
 		loadMap: async (mapID) => {
-			try {
-				const myMap = await jsonfile.readFile(`game/maps/${mapID}.json`);
+			if (!world[mapID]) {
+				await jsonfile.readFile(`game/maps/${mapID}.json`).then((mapData) => {
+					world[mapID] = new Map(mapID, mapData);
 
-				world[mapID] = new Map(mapID, myMap);
-
-				// Add pre-defined entities to the map
-				world[mapID].npcs = world[mapID].npcs.concat(myMap.npcs);
-				world[mapID].mobs = world[mapID].mobs.concat(myMap.mobs);
-				world[mapID].portals = world[mapID].portals.concat(myMap.portals);
-
-				console.log(`[Map Factory] Loaded Map ID: ${chalk.green(mapID)}`);
-
-				return world[mapID];
-			} catch (err) {
-				throw err;
+					// Add pre-defined entities to the map
+					world[mapID].npcs = world[mapID].npcs.concat(mapData.npcs);
+					world[mapID].mobs = world[mapID].mobs.concat(mapData.mobs);
+					world[mapID].portals = world[mapID].portals.concat(mapData.portals);
+		
+					console.log(`[Map Factory] Loaded Map ID: ${chalk.green(mapID)}`);
+		
+					return world[mapID];
+				}).catch((err) => {
+					throw err;
+				});
 			}
 		},
 
 		getMap: async (mapID) => {
 			if (!world[mapID]) {
-				try {
-					const myMap = await MapFactory.loadMap(mapID);
-					return myMap;
-				} catch (err) {
+				await MapFactory.loadMap(mapID).then((map) => {
+					return map;
+				}).catch((err) => {
 					throw err;
-				}
+				});
 			} else {
+				// Map is already loaded
 				return world[mapID];
 			}
 		},
