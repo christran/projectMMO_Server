@@ -4,6 +4,8 @@ import bodyParser from 'body-parser';
 // import { createServer } from 'http';
 import { createServer } from 'https';
 import { Server } from 'socket.io';
+import { io as clientIO } from "socket.io-client";
+
 import jwt from 'jsonwebtoken';
 
 import chalk from 'chalk';
@@ -87,4 +89,22 @@ httpsServer.listen(port, () => {
 	db.connect();
 
 	console.log(chalk.greenBright(`[Chat Server] Starting Chat Server... Port: ${port}`));
+
+	const worldServerIP = 'https://world.projectmmo.dev';
+
+	const clientSocket = clientIO(worldServerIP, {
+		transports: ['websocket'],
+		query: {
+			'token': jwt.sign({}, 'projectMMOisAwesome')
+		}
+	});
+	
+	clientSocket.on('connect', () => {
+		console.log(`[Chat Server] Connected to World Server: ${worldServerIP}`);
+	});
+
+	clientSocket.on("connect_error", (err) => {
+		console.log(`[Chat Server] Error connecting to World Server: ${err.message}`);
+	  });
+
 });

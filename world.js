@@ -22,8 +22,6 @@ import ItemFactory from './src/world/ItemFactory.js';
 import MobFactory from './src/world/MobFactory.js';
 import NPCFactory from './src/world/NPCFactory.js';
 
-import { io as clientIO } from "socket.io-client";
-
 import playerHandler from './src/handlers/world/player-handler.js';
 
 const options = {
@@ -173,7 +171,7 @@ io.on('connection', (socket) => {
 	// eslint-disable-next-line no-unused-vars
 	jwt.verify(socket.handshake.query.token, 'projectMMOisAwesome', (err, decoded) => {
 		if (err) {
-			// console.log(err);
+			console.log(err);
 			console.log(chalk.red(`[World Server] Invalid Token | IP: ${socket.handshake.address}`));
 			socket.emit('worldService', {
 				type: 'error',
@@ -262,22 +260,6 @@ httpsServer.listen(port, () => {
 	gameLoop();
 
 	console.log(chalk.greenBright(`[World Server] Starting World Server... Port: ${port}`));
-
-	const clientSocket = clientIO('https://login.projectmmo.dev', {
-		transports: ['websocket'],
-		query: {
-			'token': 'projectMMOisAwesome'
-		  }
-	});
-	
-	clientSocket.on('connect', () => {
-		console.log('Connected to login server!!!!!');
-	});
-
-	clientSocket.on("connect_error", (err) => {
-		console.log(`connect_error due to ${err.message}`);
-	  });
-
 });
 
 // Redis
