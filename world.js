@@ -25,10 +25,11 @@ import NPCFactory from './src/world/NPCFactory.js';
 import playerHandler from './src/handlers/world/player-handler.js';
 import chatHandler from './src/handlers/world/chat-handler.js';
 
+// npm-4
 const options = {
-	key: fs.readFileSync('certs/world/privkey1.pem'),
-	cert: fs.readFileSync('certs/world/cert1.pem'),
-	ca: fs.readFileSync('certs/world/chain1.pem')
+	key: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-4/privkey1.pem'),
+	cert: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-4/cert1.pem'),
+	ca: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-4/chain1.pem')
 };
 
 // eslint-disable-next-line no-unused-vars
@@ -46,7 +47,7 @@ const subClient = pubClient.duplicate();
 
 const emitter = new Emitter(pubClient);
 
-const TICK_RATE = 20; // 0.1sec or 100ms
+const TICK_RATE = 10; // 0.1sec or 100ms
 
 const config = JSON.parse(fs.readFileSync('./_config.json'));
 const port = process.env.PORT || config.worldserver.port;

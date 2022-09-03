@@ -13,10 +13,11 @@ import * as fs from 'fs';
 import db from './db.js';
 import loginHandler from './src/handlers/login/login-handler.js';
 
+// npm-3
 const options = {
-	key: fs.readFileSync('certs/login/privkey1.pem'),
-	cert: fs.readFileSync('certs//login/cert1.pem'),
-	ca: fs.readFileSync('certs/login/chain1.pem')
+	key: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-3/privkey1.pem'),
+	cert: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-3/cert1.pem'),
+	ca: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-3/chain1.pem')
 };
 
 // eslint-disable-next-line no-unused-vars

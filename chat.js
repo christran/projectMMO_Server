@@ -16,10 +16,11 @@ import db from './db.js';
 import Character from './src/models/Character.js';
 import chatHandler from './src/handlers/chat/chat-handler.js';
 
+// npm-5
 const options = {
-	key: fs.readFileSync('certs/chat/privkey1.pem'),
-	cert: fs.readFileSync('certs/chat/cert1.pem'),
-	ca: fs.readFileSync('certs/chat/chain1.pem')
+	key: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-5/privkey1.pem'),
+	cert: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-5/cert1.pem'),
+	ca: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-5/chain1.pem')
 };
 
 // eslint-disable-next-line no-unused-vars
