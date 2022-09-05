@@ -47,7 +47,7 @@ const subClient = pubClient.duplicate();
 
 const emitter = new Emitter(pubClient);
 
-const TICK_RATE = 10; // 0.1sec or 100ms
+const TICK_RATE = 20; // 0.1sec or 100ms
 
 const config = JSON.parse(fs.readFileSync('./_config.json'));
 const port = process.env.PORT || config.worldserver.port;

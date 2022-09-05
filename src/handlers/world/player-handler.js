@@ -244,9 +244,6 @@ export default (io, socket, world, clients) => {
 						// Remove Item from worldSnapshotByID.itemsOnTheGround
 						_.remove(itemsInMapID, { _id: data._id });
 
-						/// Tell Client that the item has been looted
-						callback(true);
-
 						jsonfile.readFile(itemsDataTable)
 							.then((fileData) => {
 								const itemsKeyByID = _.keyBy(fileData, 'Name');
