@@ -15,9 +15,9 @@ import loginHandler from './src/handlers/login/login-handler.js';
 
 // npm-3
 const options = {
-	key: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-3/privkey1.pem'),
-	cert: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-3/cert1.pem'),
-	ca: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-3/chain1.pem')
+	key: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-3/privkey2.pem'),
+	cert: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-3/cert2.pem'),
+	ca: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-3/chain2.pem')
 };
 
 // eslint-disable-next-line no-unused-vars
@@ -66,17 +66,24 @@ io.on('connection', (socket) => {
 			*/
 			socket.on('handshakeWS', (clientVersion, callback) => {
 				// request(`http://127.0.0.1:${config.worldserver.port}/status`, (err, res, body) => {
-				request('https://world.projectmmo.dev/status', (err, res, body) => {
-					const data = JSON.parse(body);
-					if (data.status === 'ONLINE') {
-						callback({
-							worldServer: 'ONLINE',
-							serverVersion: config.version
-						});
-					} else {
-						callback('OFFLINE');
-					}
-				});
+				try {
+					request('https://world.projectmmo.dev/status', (err, res, body) => {
+						const data = JSON.parse(body);
+	
+						if (data.status === 'ONLINE') {
+							callback({
+								worldServer: 'ONLINE',
+								serverVersion: config.version
+							});
+						} else {
+							callback('OFFLINE');
+						}
+					});
+				} catch (err) {
+					callback('OFFLINE');
+
+					console.log(chalk.yellow('[Login Server]'), 'World Server is offline');
+				}
 			});
 		}
 	});

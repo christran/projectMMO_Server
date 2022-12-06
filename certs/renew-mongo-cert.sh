@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define variables
-DOMAIN=npm-6
+DOMAIN=npm-10
 
 # combine latest letsencrypt files for mongo
 
