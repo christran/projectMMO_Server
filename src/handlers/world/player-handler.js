@@ -223,7 +223,7 @@ export default (io, socket, world, clients) => {
 		Character.saveCharacter(socket);
 	});
 
-	socket.on('player_PickUp', (data, callback) => {
+	socket.on('player_PickUp', (data) => {
 		const itemsInMapID = world[socket.character.mapID].itemsOnTheGround;
 		const findItemInMapID = _.find(itemsInMapID, { _id: data._id });
 

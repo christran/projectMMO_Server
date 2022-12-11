@@ -69,7 +69,7 @@ io.on('connection', (socket) => {
 				try {
 					request('https://world.projectmmo.dev/status', (err, res, body) => {
 						const data = JSON.parse(body);
-	
+
 						if (data.status === 'ONLINE') {
 							callback({
 								worldServer: 'ONLINE',

@@ -20,56 +20,56 @@ export default (io, socket, world, clients) => {
 	const Map = MapFactory(io, world);
 	// const Item = ItemFactory(io, socket, clients, world); // conflicting variable name
 
-    // this function can be reused in the portal logic in player-helper.js
-    const changeMap = async (mapID, socketID) => {
-        return new Promise((resolve, reject) => {
-                Map.getMap(mapID).then((targetMap) => {
-                    const targetSocket = io.sockets.sockets.get(socketID);
+	// this function can be reused in the portal logic in player-helper.js
+	const changeMap = async (mapID, socketID) => {
+		return new Promise((resolve, reject) => {
+			Map.getMap(mapID).then((targetMap) => {
+				const targetSocket = io.sockets.sockets.get(socketID);
 
-                    targetSocket.to(targetSocket.character.mapID).emit('removeCharacter', {
-                        _id: targetSocket.character._id,
-                    });
-            
-                    targetSocket.leave(targetSocket.character.mapID);
-                    targetSocket.join(mapID);
-            
-                    _.remove(world[targetSocket.character.mapID].characters, { name: targetSocket.character.name });
+				targetSocket.to(targetSocket.character.mapID).emit('removeCharacter', {
+					_id: targetSocket.character._id,
+				});
 
-                    targetSocket.character.socketID = socketID;
-                    targetSocket.character.mapID = mapID;
-                    targetSocket.character.location = { x: 0, y: 0, z: 25 };
-                    targetSocket.character.rotation = 0;
+				targetSocket.leave(targetSocket.character.mapID);
+				targetSocket.join(mapID);
 
-                    world[mapID].characters.push(targetSocket.character);
-            
-                    // Character.saveCharacter(targetSocket);
-            
-                    // socket.emit('changeMap', mapID);
-            
-                    targetSocket.to(targetSocket.character.mapID).emit('addCharacter', {
-                        characterInfo: targetSocket.character
-                    });
+				_.remove(world[targetSocket.character.mapID].characters, { name: targetSocket.character.name });
 
-                    resolve();
-                }).catch((err) => {
-                    console.log(`[Chat Handler] ${err}`);
-                    reject();
-                });
-        });
-    }
+				targetSocket.character.socketID = socketID;
+				targetSocket.character.mapID = mapID;
+				targetSocket.character.location = { x: 0, y: 0, z: 25 };
+				targetSocket.character.rotation = 0;
 
-    socket.on('chatServer', (data) => {
-        switch (data.type) {
-            case 'changeMap':    
-                const toMapID = parseInt(data.mapID, 10);
-                const characterSocketID = _.find(clients, { characterID: data._id }).socketID;
-                
-                changeMap(toMapID, characterSocketID).then(() => {
-                    io.to(characterSocketID).emit('changeMap', toMapID);
-                });
-                break;
-            default:
-                break;
-        }
-    });
-}
+				world[mapID].characters.push(targetSocket.character);
+
+				// Character.saveCharacter(targetSocket);
+
+				// socket.emit('changeMap', mapID);
+
+				targetSocket.to(targetSocket.character.mapID).emit('addCharacter', {
+					characterInfo: targetSocket.character
+				});
+
+				resolve();
+			}).catch((err) => {
+				console.log(`[Chat Handler] ${err}`);
+				reject();
+			});
+		});
+	};
+
+	socket.on('chatServer', (data) => {
+		const toMapID = parseInt(data.mapID, 10);
+		const characterSocketID = _.find(clients, { characterID: data._id }).socketID;
+
+		switch (data.type) {
+		case 'changeMap':
+			changeMap(toMapID, characterSocketID).then(() => {
+				io.to(characterSocketID).emit('changeMap', toMapID);
+			});
+			break;
+		default:
+			break;
+		}
+	});
+};

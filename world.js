@@ -201,13 +201,13 @@ const update = () => {
 	// Sent to (GameState_MMO)
 	Object.keys(world).forEach((mapID) => {
 	// Map.getActiveMaps().forEach((mapID) => {
-			io.to(parseInt(mapID, 10)).emit('snapshot', {
-				// timestamp: Date.now().toString(),
-				mapSnapshot: world[parseInt(parseInt(mapID, 10), 10)].characterStates
-			});
+		io.to(parseInt(mapID, 10)).emit('snapshot', {
+			// timestamp: Date.now().toString(),
+			mapSnapshot: world[parseInt(parseInt(mapID, 10), 10)].characterStates
+		});
 
-			// Remove after processing states
-			world[parseInt(mapID, 10)].characterStates = [];
+		// Remove after processing states
+		world[parseInt(mapID, 10)].characterStates = [];
 	});
 
 	// Run cleanup every minute to remove inactive maps from the world
@@ -227,7 +227,7 @@ let previous = hrtimeMs();
 
 const gameLoop = () => {
 	setTimeout(gameLoop, tickLengthMs);
-	
+
 	const now = hrtimeMs();
 	const delta = (now - previous) / 1000;
 	// console.log('delta', delta)
@@ -238,7 +238,6 @@ const gameLoop = () => {
 	previous = now;
 	tick += 1;
 };
-
 
 // Run Item Cleanup every 30 seconds
 // Remove items that have been on the ground for more than 60 seconds
