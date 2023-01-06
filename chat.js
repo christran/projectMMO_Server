@@ -42,7 +42,7 @@ app.use(bodyParser.json());
 
 // Server Web Client
 app.get('/', (req, res) => {
-	res.status(403).end();
+	res.send('Chat Server');
 });
 
 const worldServerIP = 'https://world.projectmmo.dev';
