@@ -15,9 +15,9 @@ import loginHandler from './src/handlers/login/login-handler.js';
 
 // npm-3
 const options = {
-	key: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-3/privkey2.pem'),
-	cert: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-3/cert2.pem'),
-	ca: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-3/chain2.pem')
+	key: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-3/privkey2.pem'),
+	cert: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-3/cert2.pem'),
+	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-3/chain2.pem')
 };
 
 // eslint-disable-next-line no-unused-vars

@@ -18,9 +18,9 @@ import chatHandler from './src/handlers/chat/chat-handler.js';
 
 // npm-5
 const options = {
-	key: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-5/privkey2.pem'),
-	cert: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-5/cert2.pem'),
-	ca: fs.readFileSync('/root/nginx-pm/letsencrypt/archive/npm-5/chain2.pem')
+	key: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-5/privkey2.pem'),
+	cert: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-5/cert2.pem'),
+	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-5/chain2.pem')
 };
 
 // eslint-disable-next-line no-unused-vars
