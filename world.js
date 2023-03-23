@@ -1,8 +1,9 @@
 import PrettyError from 'pretty-error';
 import express from 'express';
 import bodyParser from 'body-parser';
-// import { createServer } from 'http';
-import { createServer } from 'https';
+import http from 'http';
+import https from 'https';
+
 import { Server } from 'socket.io';
 
 import { createAdapter } from '@socket.io/redis-adapter';
@@ -25,19 +26,22 @@ import NPCFactory from './src/world/NPCFactory.js';
 import playerHandler from './src/handlers/world/player-handler.js';
 import chatHandler from './src/handlers/world/chat-handler.js';
 
-// npm-4
-const options = {
-	key: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-4/privkey3.pem'),
-	cert: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-4/cert3.pem'),
-	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-4/chain3.pem')
-};
+const config = JSON.parse(fs.readFileSync('./_config.json'));
 
 // eslint-disable-next-line no-unused-vars
 const PE = new PrettyError();
 const app = express();
-const httpsServer = createServer(options, app);
 
-const io = new Server(httpsServer, {
+const server = config.dev ? http.createServer(app) : https.createServer({
+	// npm-4
+	key: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-4/privkey3.pem'),
+	cert: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-4/cert3.pem'),
+	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-4/chain3.pem')
+}, app);
+
+// const httpsServer = createServer(options, app);
+
+const io = new Server(server, {
 	transports: ['websocket'],
 	allowUpgrades: false
 });
@@ -49,7 +53,6 @@ const emitter = new Emitter(pubClient);
 
 const TICK_RATE = 20; // 0.1sec or 100ms
 
-const config = JSON.parse(fs.readFileSync('./_config.json'));
 const port = process.env.PORT || config.worldserver.port;
 
 const world = {};
@@ -73,8 +76,8 @@ app.get('/status', (req, res) => {
 	res.json(
 		{
 			status: 'ONLINE',
-			ip: httpsServer.address().address,
-			port: httpsServer.address().port,
+			ip: server.address().address,
+			port: server.address().port,
 			totalClients: io.engine.clientsCount,
 			totalMaps: Object.keys(world).length,
 			uptime: Math.floor((Date.now() - serverStartTime) / 1000),
@@ -253,7 +256,7 @@ pubClient.on('error', (err) => {
 	console.log(err);
 });
 
-httpsServer.listen(port, () => {
+server.listen(port, () => {
 	// Register World Server to Master Server
 
 	// Connect to DB

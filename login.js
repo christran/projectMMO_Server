@@ -1,8 +1,8 @@
 import PrettyError from 'pretty-error';
 import express from 'express';
 import bodyParser from 'body-parser';
-// import { createServer } from 'http';
-import { createServer } from 'https';
+import http from 'http';
+import https from 'https';
 import { Server } from 'socket.io';
 import jwt from 'jsonwebtoken';
 
@@ -13,23 +13,23 @@ import * as fs from 'fs';
 import db from './db.js';
 import loginHandler from './src/handlers/login/login-handler.js';
 
-// npm-3
-const options = {
-	key: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-3/privkey2.pem'),
-	cert: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-3/cert2.pem'),
-	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-3/chain2.pem')
-};
+const config = JSON.parse(fs.readFileSync('./_config.json'));
 
 // eslint-disable-next-line no-unused-vars
 const PE = new PrettyError();
 const app = express();
-const httpsServer = createServer(options, app);
-const io = new Server(httpsServer, {
+const server = config.dev ? http.createServer(app) : https.createServer({
+	// npm-3
+	key: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-3/privkey2.pem'),
+	cert: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-3/cert2.pem'),
+	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-3/chain2.pem')
+}, app);
+
+const io = new Server(server, {
 	transports: ['websocket'],
 	allowUpgrades: false
 });
 
-const config = JSON.parse(fs.readFileSync('./_config.json'));
 const port = process.env.PORT || config.loginserver.port;
 
 const clients = [];
@@ -89,7 +89,7 @@ io.on('connection', (socket) => {
 	});
 });
 
-httpsServer.listen(port, () => {
+server.listen(port, () => {
 	db.connect();
 
 	console.log(chalk.yellow('[Login Server] Starting Login Server... Port:', port));

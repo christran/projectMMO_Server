@@ -1,8 +1,8 @@
 import PrettyError from 'pretty-error';
 import express from 'express';
 import bodyParser from 'body-parser';
-// import { createServer } from 'http';
-import { createServer } from 'https';
+import http from 'http';
+import https from 'https';
 import { Server } from 'socket.io';
 import { io as clientIO } from 'socket.io-client';
 
@@ -16,23 +16,23 @@ import db from './db.js';
 import Character from './src/models/Character.js';
 import chatHandler from './src/handlers/chat/chat-handler.js';
 
-// npm-5
-const options = {
-	key: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-5/privkey2.pem'),
-	cert: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-5/cert2.pem'),
-	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-5/chain2.pem')
-};
+const config = JSON.parse(fs.readFileSync('./_config.json'));
 
 // eslint-disable-next-line no-unused-vars
 const PE = new PrettyError();
 const app = express();
-const httpsServer = createServer(options, app);
-const io = new Server(httpsServer, {
+const server = config.dev ? http.createServer(app) : https.createServer({
+	// npm-5
+	key: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-5/privkey2.pem'),
+	cert: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-5/cert2.pem'),
+	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-5/chain2.pem')
+}, app);
+
+const io = new Server(server, {
 	transports: ['websocket'],
 	allowUpgrades: false
 });
 
-const config = JSON.parse(fs.readFileSync('./_config.json'));
 const port = process.env.PORT || config.chatserver.port;
 
 const clients = [];
@@ -95,7 +95,7 @@ io.on('connection', (socket) => {
 	});
 });
 
-httpsServer.listen(port, () => {
+server.listen(port, () => {
 	db.connect();
 
 	console.log(chalk.greenBright(`[Chat Server] Starting Chat Server... Port: ${port}`));
