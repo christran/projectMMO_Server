@@ -41,6 +41,8 @@ app.get('/', (req, res) => {
 	res.send('Login Server');
 });
 
+const worldServerIP = config.dev ? 'http://127.0.0.1:7575' : 'https://world.projectmmo.dev';
+
 io.on('connection', (socket) => {
 	// eslint-disable-next-line no-unused-vars
 	jwt.verify(socket.handshake.query.token, 'projectMMOisAwesome', (err, decoded) => {
@@ -67,7 +69,7 @@ io.on('connection', (socket) => {
 			socket.on('handshakeWS', (clientVersion, callback) => {
 				// request(`http://127.0.0.1:${config.worldserver.port}/status`, (err, res, body) => {
 				try {
-					request('https://world.projectmmo.dev/status', (err, res, body) => {
+					request(`${worldServerIP}/status`, (err, res, body) => {
 						const data = JSON.parse(body);
 
 						if (data.status === 'ONLINE') {

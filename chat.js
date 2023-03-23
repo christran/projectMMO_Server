@@ -45,7 +45,7 @@ app.get('/', (req, res) => {
 	res.send('Chat Server');
 });
 
-const worldServerIP = 'https://world.projectmmo.dev';
+const worldServerIP = config.dev ? 'http://127.0.0.1:7575' : 'https://world.projectmmo.dev';
 
 const clientSocket = clientIO(worldServerIP, {
 	transports: ['websocket'],
