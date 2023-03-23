@@ -42,8 +42,14 @@ export default (io, socket, world, clients) => {
 			timestamp: Date.now().toString()
 		};
 
+		const characterIndex = world[socket.character.mapID].characterStates.findIndex((character) => character._id === socket.character._id);
+
+		world[socket.character.mapID].characterStates.push(snapshot);
+
+		console.log(characterIndex);
 		// eslint-disable-next-line default-param-last
-		function addOrReplaceBy(arr = [], predicate, getItem) {
+		/*
+		const addOrReplaceBy = (arr = [], predicate, getItem) => {
 			const index = _.findIndex(arr, predicate);
 			return index === -1
 				? [...arr, getItem()]
@@ -58,6 +64,7 @@ export default (io, socket, world, clients) => {
 		} else {
 			console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
 		}
+		*/
 
 		// Simulate on the Server Side
 		socket.character.location = data.location;
