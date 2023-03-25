@@ -201,14 +201,25 @@ io.on('connection', (socket) => {
 const update = () => {
 	// Sent to (GameState_MMO)
 	Object.keys(world).forEach((mapID) => {
-	// Map.getActiveMaps().forEach((mapID) => {
+		// for each character id if velocity x, y, z is not 0 then include that character in the snapshot
+
+		const arraytoSendToClient = [];
+
+		world[parseInt(parseInt(mapID, 10), 10)].characterStates.forEach((character) => {
+			if (character.velocity.x !== 0 || character.velocity.y !== 0 || character.velocity.z !== 0) {
+				arraytoSendToClient.push(character);
+			}
+		});
+
 		io.to(parseInt(mapID, 10)).emit('snapshot', {
-			// timestamp: Date.now().toString(),
 			mapSnapshot: world[parseInt(parseInt(mapID, 10), 10)].characterStates
+			// mapSnapshot: arraytoSendToClient
 		});
 
 		// Remove after processing states
 		world[parseInt(mapID, 10)].characterStates = [];
+
+		console.log(arraytoSendToClient.length);
 	});
 
 	// Run cleanup every minute to remove inactive maps from the world

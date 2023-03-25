@@ -36,21 +36,19 @@ export default (io, socket, world, clients) => {
 			timestamp: Date.now().toString()
 		};
 
-		const characterIndex = world[socket.character.mapID].characterStates.findIndex((character) => character._id === socket.character._id);
-
 		if (world[socket.character.mapID]) {
+			const characterIndex = world[socket.character.mapID].characterStates.findIndex((character) => character._id === socket.character._id);
+
 			// if characterID exists in world, update it instead of pushing a new one
+			// bad workaround for now
 			if (characterIndex !== -1) {
 				world[socket.character.mapID].characterStates[characterIndex] = snapshot;
 			} else {
 				world[socket.character.mapID].characterStates.push(snapshot);
 			}
-			// world[socket.character.mapID].characterStates.push(snapshot);
 		} else {
 			console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
 		}
-
-		console.log(world[socket.character.mapID].characterStates.length);
 
 		// Simulate on the Server Side?
 		socket.character.location = data.location;
@@ -506,6 +504,9 @@ export default (io, socket, world, clients) => {
 			});
 
 			_.remove(world[socket.character.mapID].characters, { name: socket.character.name });
+
+			// bad workaround for now
+			// _.remove(world[socket.character.mapID].characterStates, { _id: socket.character._id });
 
 			// Remove from clients list
 			_.remove(clients, { characterID: socket.character._id });
