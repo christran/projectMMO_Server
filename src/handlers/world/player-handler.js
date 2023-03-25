@@ -26,12 +26,6 @@ export default (io, socket, world, clients) => {
 	// const Item = ItemFactory(io, socket, clients, world); // conflicting variable name
 
 	socket.on('characterState', (data) => {
-		// if (data.location.z < -5000) {
-		// 	// Get nearest portal on server side and set charPos to it
-		// 	// does the server even need to do this? just let the client handle it unless they can abuse it somehow?
-		// 	socket.emit('character_ZLimit');
-		// }
-
 		const snapshot = {
 			_id: socket.character._id,
 			name: socket.character.name,
@@ -44,29 +38,21 @@ export default (io, socket, world, clients) => {
 
 		const characterIndex = world[socket.character.mapID].characterStates.findIndex((character) => character._id === socket.character._id);
 
-		world[socket.character.mapID].characterStates.push(snapshot);
-
-		console.log(characterIndex);
-		// eslint-disable-next-line default-param-last
-		/*
-		const addOrReplaceBy = (arr = [], predicate, getItem) => {
-			const index = _.findIndex(arr, predicate);
-			return index === -1
-				? [...arr, getItem()]
-				: [
-					...arr.slice(0, index),
-					getItem(arr[index]),
-					...arr.slice(index + 1)];
-		}
-		// add or replace snapshot in world array of snapshots for the map
 		if (world[socket.character.mapID]) {
-			world[socket.character.mapID].characterStates = addOrReplaceBy(world[socket.character.mapID].characterStates, (character) => character._id === socket.character._id, () => snapshot);
+			// if characterID exists in world, update it instead of pushing a new one
+			if (characterIndex !== -1) {
+				world[socket.character.mapID].characterStates[characterIndex] = snapshot;
+			} else {
+				world[socket.character.mapID].characterStates.push(snapshot);
+			}
+			// world[socket.character.mapID].characterStates.push(snapshot);
 		} else {
 			console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
 		}
-		*/
 
-		// Simulate on the Server Side
+		console.log(world[socket.character.mapID].characterStates.length);
+
+		// Simulate on the Server Side?
 		socket.character.location = data.location;
 		socket.character.rotation = data.rotation;
 		socket.character.velocity = data.velocity;

@@ -39,8 +39,6 @@ const server = config.dev ? http.createServer(app) : https.createServer({
 	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-4/chain3.pem')
 }, app);
 
-// const httpsServer = createServer(options, app);
-
 const io = new Server(server, {
 	transports: ['websocket'],
 	allowUpgrades: false
@@ -51,7 +49,7 @@ const subClient = pubClient.duplicate();
 
 const emitter = new Emitter(pubClient);
 
-const TICK_RATE = 20; // 0.1sec or 100ms
+const TICK_RATE = 10; // 0.1sec or 100ms
 
 const port = process.env.PORT || config.worldserver.port;
 
