@@ -1,0 +1,20 @@
+{
+  "dev": true,
+	"version": 1.0,
+	"md5_hash": "8930d83b6d68fd77e5b8bcda9f60cd8d",
+    "loginserver": {
+        "port": 8484
+	},
+	"chatserver": {
+        "port": 8485
+    },
+    "worldserver": {
+		"port": 7575,
+		"serverMessage": "Welcome to the Pre Pre Pre Alpha Test.",
+		"billboardURL": "https://google.com/"
+    },
+    "mongoDB": {
+		"dbUrl": "mongodb://USR:PWD@mongo0.projectmmo.dev/",
+        "dbName": "testDB"
+    }
+}

@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
 	res.send('Login Server');
 });
 
-const worldServerIP = config.dev ? 'http://127.0.0.1:7575' : 'https://world.projectmmo.dev';
+const worldServerIP = config.dev ? 'http://192.168.1.97:7575' : 'https://world.projectmmo.dev';
 
 io.on('connection', (socket) => {
 	// eslint-disable-next-line no-unused-vars
@@ -67,7 +67,7 @@ io.on('connection', (socket) => {
 			- config.md5_hash
 			*/
 			socket.on('handshakeWS', (clientVersion, callback) => {
-				// request(`http://127.0.0.1:${config.worldserver.port}/status`, (err, res, body) => {
+				// request(`http://192.168.1.97:${config.worldserver.port}/status`, (err, res, body) => {
 				try {
 					request(`${worldServerIP}/status`, (err, res, body) => {
 						const data = JSON.parse(body);
