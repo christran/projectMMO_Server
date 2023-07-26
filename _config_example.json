@@ -10,6 +10,7 @@
     },
     "worldserver": {
         "port": 7575,
+        "updateRate": 20,
         "serverMessage": "Welcome to the Pre Pre Pre Alpha Test.",
         "billboardURL": "https://google.com/"
     },
