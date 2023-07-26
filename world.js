@@ -201,13 +201,14 @@ io.on('connection', (socket) => {
 const update = () => {
 	// Sent to (GameState_MMO)
 	Object.keys(world).forEach((mapID) => {
-		io.to(parseInt(mapID, 10)).emit('snapshot', {
-			mapSnapshot: world[parseInt(parseInt(mapID, 10), 10)].characterStates,
-			timestamp: Date.now().toString()
-		});
-
-		// Remove after processing states
-		// world[parseInt(mapID, 10)].characterStates = [];
+		if (world[parseInt(mapID, 10)].characterStates.length > 0) {
+			io.to(parseInt(mapID, 10)).emit('snapshot', {
+				mapSnapshot: world[parseInt(parseInt(mapID, 10), 10)].characterStates,
+				timestamp: Date.now().toString()
+			});
+		} else {
+			console.log('nothing to send')
+		}
 	});
 
 	// Run cleanup every minute to remove inactive maps from the world

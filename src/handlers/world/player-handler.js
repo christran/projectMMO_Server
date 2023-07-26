@@ -26,31 +26,47 @@ export default (io, socket, world, clients) => {
 	// const Item = ItemFactory(io, socket, clients, world); // conflicting variable name
 
 	socket.on('characterState', (data) => {
-		const snapshot = {
-			_id: socket.character._id,
-			name: socket.character.name,
-			location: data.location,
-			rotation: data.rotation,
-			action: parseInt(data.action, 10),
-			velocity: data.velocity,
-			timestamp: Date.now().toString()
-		};
+		if (!data.isAFK) {
 
-		if (world[socket.character.mapID]) {
-			const characterIndex = world[socket.character.mapID].characterStates.findIndex((character) => character._id === socket.character._id);
+			const snapshot = {
+				_id: socket.character._id,
+				name: socket.character.name,
+				location: data.location,
+				rotation: data.rotation,
+				action: parseInt(data.action, 10),
+				velocity: data.velocity,
+				timestamp: Date.now().toString()
+			};
 
-			// if characterID exists in world, update it instead of pushing a new one
-			// bad workaround for now
-			if (characterIndex !== -1) {
-				world[socket.character.mapID].characterStates[characterIndex] = snapshot;
+			if (world[socket.character.mapID]) {
+				const characterIndex = world[socket.character.mapID].characterStates.findIndex((character) => character._id === socket.character._id);
+
+				// if characterID exists in world, update it instead of pushing a new one
+				// bad workaround for now
+				if (characterIndex !== -1) {
+					world[socket.character.mapID].characterStates[characterIndex] = snapshot;
+				} else {
+					world[socket.character.mapID].characterStates.push(snapshot);
+				}
 			} else {
-				world[socket.character.mapID].characterStates.push(snapshot);
+				console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
 			}
-		} else {
-			console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
-		}
 
-		// console.log(data); // Check if client is sending independent of framerate
+			// console.log(data); // Check if client is sending independent of framerate
+		} else {
+			if (world[socket.character.mapID]) {
+				const characterIndex = world[socket.character.mapID].characterStates.findIndex((character) => character._id === socket.character._id);
+
+				// if characterID exists in world remove it
+				if (characterIndex !== -1) {
+					world[socket.character.mapID].characterStates.splice(characterIndex, 1);
+				} else {
+
+				}
+			} else {
+				console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
+			}
+		}
 	});
 
 	// Client sends data to server to update character appearance/clothing
@@ -501,7 +517,7 @@ export default (io, socket, world, clients) => {
 			_.remove(world[socket.character.mapID].characters, { name: socket.character.name });
 
 			// bad workaround for now
-			// _.remove(world[socket.character.mapID].characterStates, { _id: socket.character._id });
+			_.remove(world[socket.character.mapID].characterStates, { _id: socket.character._id });
 
 			// Remove from clients list
 			_.remove(clients, { characterID: socket.character._id });
