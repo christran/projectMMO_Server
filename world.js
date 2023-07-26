@@ -44,12 +44,12 @@ const io = new Server(server, {
 	allowUpgrades: false
 });
 
-const pubClient = createClient({ url: 'redis://192.168.86.14:6379' });
+const pubClient = createClient({ url: 'redis://192.168.1.97:6379' });
 const subClient = pubClient.duplicate();
 
 const emitter = new Emitter(pubClient);
 
-const TICK_RATE = 10; // 0.1sec or 100ms
+const TICK_RATE = 20; // 0.1sec or 100ms
 
 const port = process.env.PORT || config.worldserver.port;
 
@@ -207,7 +207,7 @@ const update = () => {
 		});
 
 		// Remove after processing states
-		world[parseInt(mapID, 10)].characterStates = [];
+		// world[parseInt(mapID, 10)].characterStates = [];
 	});
 
 	// Run cleanup every minute to remove inactive maps from the world

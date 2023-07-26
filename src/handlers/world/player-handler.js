@@ -50,12 +50,6 @@ export default (io, socket, world, clients) => {
 			console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
 		}
 
-		// Simulate on the Server Side?
-		socket.character.location = data.location;
-		socket.character.rotation = data.rotation;
-		socket.character.velocity = data.velocity;
-		socket.character.action = parseInt(data.action, 10);
-
 		// console.log(data); // Check if client is sending independent of framerate
 	});
 
