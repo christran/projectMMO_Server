@@ -49,7 +49,7 @@ const subClient = pubClient.duplicate();
 
 const emitter = new Emitter(pubClient);
 
-const TICK_RATE = 20; // 0.1sec or 100ms
+// const TICK_RATE = 20; // 0.1sec or 100ms
 
 const port = process.env.PORT || config.worldserver.port;
 
@@ -220,7 +220,7 @@ const hrtimeMs = () => {
 	return time[0] * 1000 + time[1] / 1000000;
 };
 
-const tickLengthMs = 1000 / TICK_RATE;
+const tickLengthMs = 1000 / config.worldserver.updateRate;
 // eslint-disable-next-line no-unused-vars
 let tick = 0;
 let previous = hrtimeMs();
