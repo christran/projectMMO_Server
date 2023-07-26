@@ -347,6 +347,7 @@ export default (io, socket, world, clients) => {
 						characterInfo: character,
 					});
 
+					socket.emit('worldService', { type: 'updateRate', updateRate: config.worldserver.updateRate });
 					socket.emit('worldService', { type: 'server_message', message: serverMessage, update: false });
 					socket.emit('worldService', { type: 'billboardURL', billboardURL, update: false });
 
