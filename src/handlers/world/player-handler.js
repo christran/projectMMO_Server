@@ -14,8 +14,10 @@ import susLog from '../../models/susLogger.js';
 import PlayerHelper from '../../helpers/player-helper.js';
 import MapFactory from '../../world/MapFactory.js';
 import ItemFactory from '../../world/ItemFactory.js';
+import AbilityFactory from '../../world/AbilityFactory.js';
 
 const itemsDataTable = './game/items.json';
+const abilitiesDataTable = './game/abilities.json';
 
 const config = JSON.parse(fs.readFileSync('./_config.json'));
 const { serverMessage, billboardURL } = config.worldserver;
@@ -23,19 +25,20 @@ const { serverMessage, billboardURL } = config.worldserver;
 export default (io, socket, world, clients) => {
 	const Player = PlayerHelper(io, world);
 	const Map = MapFactory(io, world);
+	const Ability = AbilityFactory(io, world, socket);
 	// const Item = ItemFactory(io, socket, clients, world); // conflicting variable name
 
 	socket.on('characterState', (data) => {
 		if (!data.isAFK) {
-
+			// console.log(data.location)
 			const snapshot = {
 				_id: socket.character._id,
 				name: socket.character.name,
 				location: data.location,
 				rotation: data.rotation,
 				action: parseInt(data.action, 10),
-				velocity: data.velocity,
-				timestamp: Date.now().toString()
+				velocity: data.velocity
+				// timestamp: Date.now().toString()
 			};
 
 			if (world[socket.character.mapID]) {
@@ -52,8 +55,12 @@ export default (io, socket, world, clients) => {
 				console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
 			}
 
-			// console.log(data); // Check if client is sending independent of framerate
-		} else {
+			// Simulate on the Server Side?
+			socket.character.location = data.location;
+			socket.character.rotation = data.rotation;
+			socket.character.velocity = data.velocity;
+			socket.character.action = parseInt(data.action, 10);
+		} else if (data.isAFK) {
 			if (world[socket.character.mapID]) {
 				const characterIndex = world[socket.character.mapID].characterStates.findIndex((character) => character._id === socket.character._id);
 
@@ -222,6 +229,13 @@ export default (io, socket, world, clients) => {
 
 		// Update Character Appearance in Database
 		Character.saveCharacter(socket);
+	});
+
+
+	socket.on('player_UseAbility', (ability) => {
+		if (ability.id) {
+			Ability.useAbility(ability);
+		}
 	});
 
 	socket.on('player_PickUp', (data) => {

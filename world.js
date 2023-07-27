@@ -203,11 +203,8 @@ const update = () => {
 	Object.keys(world).forEach((mapID) => {
 		if (world[parseInt(mapID, 10)].characterStates.length > 0) {
 			io.to(parseInt(mapID, 10)).emit('snapshot', {
-				mapSnapshot: world[parseInt(parseInt(mapID, 10), 10)].characterStates,
-				timestamp: Date.now().toString()
+				mapSnapshot: world[parseInt(parseInt(mapID, 10), 10)].characterStates
 			});
-		} else {
-			console.log('nothing to send')
 		}
 	});
 
