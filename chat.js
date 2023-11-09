@@ -23,9 +23,9 @@ const PE = new PrettyError();
 const app = express();
 const server = config.dev ? http.createServer(app) : https.createServer({
 	// npm-5
-	key: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-5/privkey2.pem'),
-	cert: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-5/cert2.pem'),
-	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-5/chain2.pem')
+	key: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/live/npm-5/privkey.pem'),
+	cert: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/live/npm-5/cert.pem'),
+	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/live/npm-5/chain.pem')
 }, app);
 
 const io = new Server(server, {

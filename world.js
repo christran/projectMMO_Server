@@ -34,9 +34,9 @@ const app = express();
 
 const server = config.dev ? http.createServer(app) : https.createServer({
 	// npm-4
-	key: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-4/privkey3.pem'),
-	cert: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-4/cert3.pem'),
-	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/archive/npm-4/chain3.pem')
+	key: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/live/npm-4/privkey.pem'),
+	cert: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/live/npm-4/cert.pem'),
+	ca: fs.readFileSync('/root/opt/nginx-pm/letsencrypt/live/npm-4/chain.pem')
 }, app);
 
 const io = new Server(server, {
