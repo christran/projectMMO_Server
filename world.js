@@ -67,7 +67,7 @@ app.use(bodyParser.json());
 
 // Server Web Client
 app.get('/', (req, res) => {
-	res.status(403).end();
+	res.redirect('https://projectmmo.dev');
 });
 
 app.get('/status', (req, res) => {
@@ -151,13 +151,19 @@ const itemSpawnTest = () => {
 		Item.spawn(mapID, {
 			items: [
 				{
-					id: _.random(10, 14),
+					id: _.random(10, 16),
 					amount: _.random(0, 3)
 				},
 				{
 					id: _.random(10, 14),
 					amount: _.random(0, 3)
-				}],
+				},
+				{
+					id: _.random(15, 16),
+					amount: _.random(0, 3)
+				}
+				],
+	
 			x: -100,
 			y: 250,
 			z: 100,

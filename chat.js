@@ -42,7 +42,7 @@ app.use(bodyParser.json());
 
 // Server Web Client
 app.get('/', (req, res) => {
-	res.send('Chat Server');
+	res.redirect('https://projectmmo.dev');
 });
 
 const worldServerIP = config.dev ? 'http://192.168.1.97:7575' : 'https://world.projectmmo.dev';

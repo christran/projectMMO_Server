@@ -34,7 +34,9 @@
 			"Pitch": 0,
 			"Yaw": 0,
 			"Roll": 0
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "2",
@@ -45,7 +47,7 @@
 		"mesh": "None",
 		"skeletal_mesh": "None",
 		"animation_blueprint": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/PlainWhiteTShirt1/M_PlainWhiteTee.M_PlainWhiteTee'",
+		"material": "/Script/Engine.MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/PlainWhiteTShirt1/M_PlainWhiteTee.M_PlainWhiteTee'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -71,7 +73,9 @@
 			"Pitch": 0,
 			"Yaw": 0,
 			"Roll": 0
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "3",
@@ -82,7 +86,7 @@
 		"mesh": "None",
 		"skeletal_mesh": "None",
 		"animation_blueprint": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/BlackDetroitTShirt/M_DetroitTee.M_DetroitTee'",
+		"material": "/Script/Engine.MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/BlackDetroitTShirt/M_DetroitTee.M_DetroitTee'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -108,7 +112,9 @@
 			"Pitch": 0,
 			"Yaw": 0,
 			"Roll": 0
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "4",
@@ -119,7 +125,7 @@
 		"mesh": "None",
 		"skeletal_mesh": "None",
 		"animation_blueprint": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/Sakura/M_SakuraTee.M_SakuraTee'",
+		"material": "/Script/Engine.MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/Sakura/M_SakuraTee.M_SakuraTee'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -145,7 +151,9 @@
 			"Pitch": 0,
 			"Yaw": 0,
 			"Roll": 0
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "5",
@@ -156,7 +164,7 @@
 		"mesh": "None",
 		"skeletal_mesh": "None",
 		"animation_blueprint": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/HappySad/M_HappySadTee.M_HappySadTee'",
+		"material": "/Script/Engine.MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/HappySad/M_HappySadTee.M_HappySadTee'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -182,7 +190,9 @@
 			"Pitch": 0,
 			"Yaw": 0,
 			"Roll": 0
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "6",
@@ -193,7 +203,7 @@
 		"mesh": "None",
 		"skeletal_mesh": "None",
 		"animation_blueprint": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/SquidGameTShirt/M_SquidGameTee.M_SquidGameTee'",
+		"material": "/Script/Engine.MaterialInstanceConstant'/Game/Materials/Clothing/T-Shirts/SquidGameTShirt/M_SquidGameTee.M_SquidGameTee'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -219,7 +229,9 @@
 			"Pitch": 0,
 			"Yaw": 0,
 			"Roll": 0
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "7",
@@ -230,7 +242,7 @@
 		"mesh": "None",
 		"skeletal_mesh": "None",
 		"animation_blueprint": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeans/M_BlackJeans.M_BlackJeans'",
+		"material": "/Script/Engine.MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeans/M_BlackJeans2.M_BlackJeans2'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -256,7 +268,9 @@
 			"Pitch": 0,
 			"Yaw": 0,
 			"Roll": 0
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "8",
@@ -267,7 +281,7 @@
 		"mesh": "None",
 		"skeletal_mesh": "None",
 		"animation_blueprint": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeansVisibleAnkle/M_BlackJeansVisibleAnkle.M_BlackJeansVisibleAnkle'",
+		"material": "/Script/Engine.MaterialInstanceConstant'/Game/Materials/Clothing/Bottoms/Pants/BlackJeansVisibleAnkle/M_BlackJeansVisibleAnkle2.M_BlackJeansVisibleAnkle2'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -293,7 +307,9 @@
 			"Pitch": 0,
 			"Yaw": 0,
 			"Roll": 0
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "9",
@@ -304,7 +320,7 @@
 		"mesh": "None",
 		"skeletal_mesh": "None",
 		"animation_blueprint": "None",
-		"material": "MaterialInstanceConstant'/Game/Materials/Clothing/Shoes/Vans/M_Vans.M_Vans'",
+		"material": "/Script/Engine.MaterialInstanceConstant'/Game/Materials/Clothing/Shoes/Vans/M_Vans2.M_Vans2'",
 		"actor_ref": "None",
 		"stats": "",
 		"l_relative_location":
@@ -330,7 +346,9 @@
 			"Pitch": 0,
 			"Yaw": 0,
 			"Roll": 0
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "10",
@@ -338,7 +356,7 @@
 		"item_type": "hat",
 		"weapon_type": "None",
 		"icon": "None",
-		"mesh": "StaticMesh'/Game/Materials/Clothing/Hats/KonkonKityuneCasketHat/KonkonKityuneCasketHat.KonkonKityuneCasketHat'",
+		"mesh": "/Script/Engine.StaticMesh'/Game/Materials/Clothing/Hats/KonkonKityuneCasketHat/KonkonKityuneCasketHat.KonkonKityuneCasketHat'",
 		"skeletal_mesh": "None",
 		"animation_blueprint": "None",
 		"material": "None",
@@ -367,7 +385,9 @@
 			"Pitch": 0,
 			"Yaw": 0,
 			"Roll": 0
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "11",
@@ -375,9 +395,9 @@
 		"item_type": "hat",
 		"weapon_type": "None",
 		"icon": "None",
-		"mesh": "StaticMesh'/Game/Materials/Clothing/Hats/BunnyEars/SM_BunnyEars1.SM_BunnyEars1'",
-		"skeletal_mesh": "SkeletalMesh'/Game/Materials/Clothing/Hats/BunnyEars/insamoza.insamoza'",
-		"animation_blueprint": "AnimBlueprintGeneratedClass'/Game/Materials/Clothing/Hats/BunnyEars/ABP_BunnyEars.ABP_BunnyEars_C'",
+		"mesh": "/Script/Engine.StaticMesh'/Game/Materials/Clothing/Hats/BunnyEars/SM_BunnyEars1.SM_BunnyEars1'",
+		"skeletal_mesh": "/Script/Engine.SkeletalMesh'/Game/Materials/Clothing/Hats/BunnyEars/insamoza.insamoza'",
+		"animation_blueprint": "/Script/Engine.AnimBlueprintGeneratedClass'/Game/Materials/Clothing/Hats/BunnyEars/ABP_BunnyEars.ABP_BunnyEars_C'",
 		"material": "None",
 		"actor_ref": "None",
 		"stats": "",
@@ -404,7 +424,9 @@
 			"Pitch": 0,
 			"Yaw": 0,
 			"Roll": 0
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "12",
@@ -412,7 +434,7 @@
 		"item_type": "weapon",
 		"weapon_type": "None",
 		"icon": "None",
-		"mesh": "StaticMesh'/Game/Materials/Items/picopico/picohan.picohan'",
+		"mesh": "/Script/Engine.StaticMesh'/Game/Materials/Items/picopico/picohan.picohan'",
 		"skeletal_mesh": "None",
 		"animation_blueprint": "None",
 		"material": "None",
@@ -441,7 +463,9 @@
 			"Pitch": 11.341991,
 			"Yaw": -160.76457300000001,
 			"Roll": 179.40162699999999
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "13",
@@ -449,7 +473,7 @@
 		"item_type": "weapon",
 		"weapon_type": "None",
 		"icon": "None",
-		"mesh": "StaticMesh'/Game/Materials/Items/katana/katana_prototype2_katana.katana_prototype2_katana'",
+		"mesh": "/Script/Engine.StaticMesh'/Game/Materials/Items/katana/katana_prototype2_katana.katana_prototype2_katana'",
 		"skeletal_mesh": "None",
 		"animation_blueprint": "None",
 		"material": "None",
@@ -478,7 +502,9 @@
 			"Pitch": -85.020420000000001,
 			"Yaw": -169.06937099999999,
 			"Roll": -78.556353999999999
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
 	},
 	{
 		"Name": "14",
@@ -486,9 +512,9 @@
 		"item_type": "hat",
 		"weapon_type": "None",
 		"icon": "None",
-		"mesh": "StaticMesh'/Game/Materials/Clothing/Hats/ookamiboushi/ookami.ookami'",
-		"skeletal_mesh": "SkeletalMesh'/Game/Materials/Clothing/Hats/ookamiboushi/ookamiboushi.ookamiboushi'",
-		"animation_blueprint": "AnimBlueprintGeneratedClass'/Game/Materials/Clothing/Hats/ookamiboushi/ABP_Ookami.ABP_Ookami_C'",
+		"mesh": "/Script/Engine.StaticMesh'/Game/Materials/Clothing/Hats/ookamiboushi/ookami.ookami'",
+		"skeletal_mesh": "/Script/Engine.SkeletalMesh'/Game/Materials/Clothing/Hats/ookamiboushi/ookamiboushi.ookamiboushi'",
+		"animation_blueprint": "/Script/Engine.AnimBlueprintGeneratedClass'/Game/Materials/Clothing/Hats/ookamiboushi/ABP_Ookami.ABP_Ookami_C'",
 		"material": "None",
 		"actor_ref": "None",
 		"stats": "",
@@ -515,6 +541,86 @@
 			"Pitch": 0,
 			"Yaw": 0,
 			"Roll": 0
-		}
+		},
+		"stackable": false,
+		"maxStack": 1
+	},
+	{
+		"Name": "15",
+		"item_name": "Headband",
+		"item_type": "hat",
+		"weapon_type": "None",
+		"icon": "None",
+		"mesh": "/Script/Engine.StaticMesh'/Game/Materials/Clothing/Hats/Headband/SM_Headband.SM_Headband'",
+		"skeletal_mesh": "None",
+		"animation_blueprint": "None",
+		"material": "/Script/Engine.MaterialInstanceConstant'/Game/Materials/Clothing/Hats/Headband/M_Headband_001_Inst.M_Headband_001_Inst'",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"r_relative_location":
+		{
+			"X": 0,
+			"Y": 0,
+			"Z": 0
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": 0,
+			"Yaw": 0,
+			"Roll": 0
+		},
+		"stackable": false,
+		"maxStack": 1
+	},
+	{
+		"Name": "16",
+		"item_name": "Candy Cane",
+		"item_type": "weapon",
+		"weapon_type": "Sword",
+		"icon": "None",
+		"mesh": "/Script/Engine.StaticMesh'/Game/Materials/Items/CandyCane/SM_CandyCane.SM_CandyCane'",
+		"skeletal_mesh": "None",
+		"animation_blueprint": "None",
+		"material": "None",
+		"actor_ref": "None",
+		"stats": "",
+		"l_relative_location":
+		{
+			"X": 3.829488,
+			"Y": -1.529868,
+			"Z": -1.9798500000000001
+		},
+		"l_relative_rotation":
+		{
+			"Pitch": 66.072834,
+			"Yaw": 363.69759900000003,
+			"Roll": 30.242946
+		},
+		"r_relative_location":
+		{
+			"X": -4.1786490000000001,
+			"Y": -2.937214,
+			"Z": -8.6288129999999992
+		},
+		"r_relative_rotation":
+		{
+			"Pitch": -67.030308000000005,
+			"Yaw": 182.94732099999999,
+			"Roll": -162.337233
+		},
+		"stackable": false,
+		"maxStack": 1
 	}
 ]
