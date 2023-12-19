@@ -158,15 +158,13 @@ const itemSpawnTest = () => {
 					amount: _.random(0, 3)
 				},
 				{
-					id: _.random(10, 14),
+					id: _.random(10, 16),
 					amount: _.random(0, 3)
 				},
 				{
 					id: _.random(15, 16),
 					amount: _.random(0, 3)
-				}
-				],
-	
+				}],
 			x: -100,
 			y: 250,
 			z: 100,
