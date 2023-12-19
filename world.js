@@ -6,6 +6,7 @@ import https from 'https';
 
 import { Server } from 'socket.io';
 
+// eslint-disable-next-line no-unused-vars
 import { createAdapter } from '@socket.io/redis-adapter';
 import { Emitter } from '@socket.io/redis-emitter';
 import { createClient } from 'redis';
@@ -45,8 +46,10 @@ const io = new Server(server, {
 });
 
 const pubClient = createClient({ url: 'redis://192.168.1.97:6379' });
+// eslint-disable-next-line no-unused-vars
 const subClient = pubClient.duplicate();
 
+// eslint-disable-next-line no-unused-vars
 const emitter = new Emitter(pubClient);
 
 // const TICK_RATE = 20; // 0.1sec or 100ms
@@ -233,6 +236,7 @@ const gameLoop = () => {
 	setTimeout(gameLoop, tickLengthMs);
 
 	const now = hrtimeMs();
+	// eslint-disable-next-line no-unused-vars
 	const delta = (now - previous) / 1000;
 	// console.log('delta', delta)
 
@@ -272,7 +276,7 @@ server.listen(port, () => {
 // Redis
 // Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
 // 	io.adapter(createAdapter(pubClient, subClient));
-// 	httpsServer.listen(port, () => {
+// 	server.listen(port, () => {
 // 		// Register World Server to Master Server
 
 // 		// Connect to DB

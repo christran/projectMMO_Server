@@ -21,6 +21,7 @@ module.exports = {
 		'comma-dangle': 'off',
 		'max-len': 'off',
 		'arrow-body-style': 'off',
-		'import/extensions': 'off'
+		'import/extensions': 'off',
+		'prefer-promise-reject-errors': 'off'
 	}
 };

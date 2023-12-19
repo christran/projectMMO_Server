@@ -7,8 +7,9 @@ const itemSchema = new mongoose.Schema(
 		_id: String,
 		itemID: { type: Number, required: true },
 		characterID: { type: String, default: null },
-		lootable: { type: Boolean, default: false }
-
+		lootable: { type: Boolean, default: false },
+		stackable: { type: Boolean, default: false },
+		maxStack: { type: Number, default: 1 }
 		// stats: {
 		// 	level: { type: Number, default: 1 },
 		// 	job: Number,

@@ -2,7 +2,15 @@
 	{
 		"Name": "1",
 		"ability_name": "Teleport",
-		"mana_cost": 0,
-		"icon": "None"
+		"mana_cost": 10,
+		"icon": "None",
+		"function": "None"
+	},
+	{
+		"Name": "2",
+		"ability_name": "Flash Jump",
+		"mana_cost": 10,
+		"icon": "None",
+		"function": "None"
 	}
 ]

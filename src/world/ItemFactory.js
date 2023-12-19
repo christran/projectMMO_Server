@@ -23,6 +23,7 @@ export default (io, world) => {
 		spawn: async (mapID, data) => {
 			const itemsToSpawn = [];
 
+			// no logic for dropping stackable items like 3 potions
 			if (world[mapID]) {
 				await Promise.all(data.items.map(async (item) => {
 					// take into account amount of items to create
@@ -84,6 +85,7 @@ export default (io, world) => {
 					data: [{
 						_id: item._id,
 						itemID: item.itemID,
+						// should shoot upwards when dropped like maple
 						location: {
 							x: character.location.x,
 							y: character.location.y,

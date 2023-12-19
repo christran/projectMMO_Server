@@ -17,7 +17,7 @@ import ItemFactory from '../../world/ItemFactory.js';
 import AbilityFactory from '../../world/AbilityFactory.js';
 
 const itemsDataTable = './game/items.json';
-const abilitiesDataTable = './game/abilities.json';
+// const abilitiesDataTable = './game/abilities.json';
 
 const config = JSON.parse(fs.readFileSync('./_config.json'));
 const { serverMessage, billboardURL } = config.worldserver;
@@ -67,8 +67,6 @@ export default (io, socket, world, clients) => {
 				// if characterID exists in world remove it
 				if (characterIndex !== -1) {
 					world[socket.character.mapID].characterStates.splice(characterIndex, 1);
-				} else {
-
 				}
 			} else {
 				console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
@@ -231,10 +229,23 @@ export default (io, socket, world, clients) => {
 		Character.saveCharacter(socket);
 	});
 
-
-	socket.on('player_UseAbility', (ability) => {
+	socket.on('player_UseAbility', (ability, callback) => {
 		if (ability.id) {
-			Ability.useAbility(ability);
+			Ability.useAbility(ability)
+				.then((data) => {
+					callback({ id: 0, stats: socket.character.stats });
+					console.log(chalk.yellow(`[Ability Factory] ${socket.character.name} used Ability: ${data.ability} | MP: ${data.mp} | MP Cost ${data.mp_cost}`));
+				})
+				.catch((error) => {
+					if (error.id === 1) {
+						// Not Enough Mana
+						callback({ id: 1, stats: socket.character.stats });
+						console.log(chalk.yellow(`[Ability Factory] ${error.message}`));
+					} else if (error.id === 2) {
+						// Ability doesn't exist
+						console.log(chalk.yellow(`[Ability Factory] ${error.message}`));
+					}
+				});
 		}
 	});
 
