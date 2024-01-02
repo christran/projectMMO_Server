@@ -28,6 +28,25 @@ export default (io, socket, world, clients) => {
 	const Ability = AbilityFactory(io, world, socket);
 	// const Item = ItemFactory(io, socket, clients, world); // conflicting variable name
 
+	socket.on('saveUserSettings', async (data) => {
+		const account = await Account.getAccountByID(socket.character.accountID).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
+
+		switch (data.setting) {
+		case 'inventoryPos':
+			account.settings.inventoryPos.x = data.inventoryPos.x;
+			account.settings.inventoryPos.y = data.inventoryPos.y;
+			account.save();
+			break;
+		case 'chatPos':
+			account.settings.chatPos.x = data.chatPos.x;
+			account.settings.chatPos.y = data.chatPos.y;
+			account.save();
+			break;
+		default:
+			break;
+		}
+	});
+
 	socket.on('characterState', (data) => {
 		if (!data.isAFK) {
 			// console.log(data.location)
@@ -337,9 +356,12 @@ export default (io, socket, world, clients) => {
 			const players = Map.getAllPlayersInMap(socket.character.mapID);
 
 			_.forOwn(players, (value, name) => {
-				charactersInMap.push({
-					characterInfo: players[name]
-				});
+				// Check if it's the UE Server or Not
+				if (name !== 'undefined') {
+					charactersInMap.push({
+						characterInfo: players[name]
+					});
+				}
 			});
 
 			const mapState = {
@@ -350,7 +372,7 @@ export default (io, socket, world, clients) => {
 			callback(mapState);
 		} else {
 			// No other players in the map, don't do anything
-			// console.log('No other players in map to know about');
+			console.log('No other players in map to know about');
 		}
 	});
 

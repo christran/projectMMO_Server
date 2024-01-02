@@ -38,7 +38,8 @@ export default (io, socket, clients) => {
 						const response = {
 							result: 'success',
 							accountID: account._id,
-							lastLogin: moment(account.lastLoginDate, 'YYYY-MM-DD HH:mm:ss').fromNow() // Remove this later, only send necessary data
+							lastLogin: moment(account.lastLoginDate, 'YYYY-MM-DD HH:mm:ss').fromNow(), // Remove this later, only send necessary data
+							settings: account.settings // Send user settings
 						};
 
 						clients.push({

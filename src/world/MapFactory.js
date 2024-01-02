@@ -17,9 +17,9 @@ export default (io, world) => {
 					world[mapID].npcs = world[mapID].npcs.concat(mapData.npcs);
 					world[mapID].mobs = world[mapID].mobs.concat(mapData.mobs);
 					world[mapID].portals = world[mapID].portals.concat(mapData.portals);
-		
+
 					console.log(`[Map Factory] Loaded Map ID: ${chalk.green(mapID)}`);
-		
+
 					return world[mapID];
 				}).catch((err) => {
 					throw err;

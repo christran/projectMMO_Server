@@ -44,7 +44,17 @@ const accountSchema = new mongoose.Schema(
 		ip: {
 			type: String,
 			default: ''
-		}
+		},
+		settings: {
+			inventoryPos: {
+				x: { type: Number, default: 0 },
+				y: { type: Number, default: 0 }
+			},
+			chatPos: {
+				x: { type: Number, default: 0 },
+				y: { type: Number, default: 0 }
+			}
+		},
 	},
 	{
 		timestamps: true
@@ -65,4 +75,27 @@ accountSchema.statics.getCharacters = async function (accountID) {
 	return Character.model('characters').find({ accountID }).sort({ createdAt: 'asc' });
 };
 
-export default mongoose.model('accounts', accountSchema);
+const Account = mongoose.model('accounts', accountSchema);
+
+// // Delete Property from Collection
+// // Make sure to add it to the schema first
+// // After running this code, then delete it from the schema
+// Account.updateMany({}, { $unset: { 'settings.test': 1 } }, (err) => {
+// 	if (err) {
+// 		console.log(`Error: ${err}`);
+// 	} else {
+// 		console.log('Property deleted successfully');
+// 	}
+// });
+
+// // Add Property to Collection
+// // Make sure to add it to the schema first
+// Account.updateMany({}, { $set: { 'settings.test': 1 } }, (err) => {
+// 	if (err) {
+// 		console.log(`Error: ${err}`);
+// 	} else {
+// 		console.log('Property added successfully');
+// 	}
+// });
+
+export default Account;
