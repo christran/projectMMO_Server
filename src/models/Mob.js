@@ -1,6 +1,6 @@
 class Mob {
 	constructor(mob) {
-		this._id = '1232dsahi231'; // generate unique id that isnt in the mobs list for that mapID
+		this._id = mob._id; // generate unique id that isnt in the mobs list for that mapID
 		this.mobID = mob.mobID;
 		this.location = {
 			x: mob.location.x,

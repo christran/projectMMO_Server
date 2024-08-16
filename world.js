@@ -121,7 +121,6 @@ const mobSpawnTest = () => {
 			]
 		});
 	}
-
 	// setInterval(mobSpawnTest, 30 * 1000);
 };
 
@@ -195,10 +194,10 @@ io.on('connection', (socket) => {
 			chatHandler(io, socket, world, clients);
 
 			setTimeout(() => {
-				npcSpawnTest();
+				// npcSpawnTest();
 				// mobSpawnTest();
 				// io.emit('worldService', { type: 'billboardURL', billboardURL: 'https://reddit.com', update: true });
-				// io.emit('worldService', { type: 'server_message', message: 'the quick brown fox jumped of the lazy dog', update: true });
+				io.emit('worldService', { type: 'server_message', message: 'the quick brown fox jumped of the lazy dog', update: true });
 			}, 1000);
 		}
 	});
@@ -208,9 +207,17 @@ io.on('connection', (socket) => {
 const update = () => {
 	// Sent to (GameState_MMO)
 	Object.keys(world).forEach((mapID) => {
-		if (world[parseInt(mapID, 10)].characterStates.length > 0) {
-			io.to(parseInt(mapID, 10)).emit('snapshot', {
-				mapSnapshot: world[parseInt(parseInt(mapID, 10), 10)].characterStates
+		const parsedMapID = parseInt(mapID, 10);
+
+		if (world[parsedMapID].characterStates.length > 0) {
+			io.to(parsedMapID).emit('snapshot', {
+				mapSnapshot: world[parsedMapID].characterStates
+			});
+		}
+
+		if (world[parsedMapID].mobs.length > 0) {
+			world[parsedMapID].mobs.forEach((mob) => {
+				Mob.move(mob._id, parsedMapID, { x: 5, y: 5, z: 5 });
 			});
 		}
 	});

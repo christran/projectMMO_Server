@@ -3,20 +3,49 @@ import chalk from 'chalk';
 import _ from 'lodash';
 
 import Map from '../models/Map.js';
+import Mob from '../models/Mob.js';
 import Item from '../models/Item.js';
+
+import MobFactory from './MobFactory.js';
 
 export default (io, world) => {
 	const MapFactory = {
 		// eslint-disable-next-line consistent-return
 		loadMap: async (mapID) => {
+			const Mob2 = MobFactory(io, world); // conflicting variable name
+
 			if (!world[mapID]) {
 				await jsonfile.readFile(`game/maps/${mapID}.json`).then((mapData) => {
 					world[mapID] = new Map(mapID, mapData);
 
 					// Add pre-defined entities to the map
 					world[mapID].npcs = world[mapID].npcs.concat(mapData.npcs);
-					world[mapID].mobs = world[mapID].mobs.concat(mapData.mobs);
+					// world[mapID].mobs = world[mapID].mobs.concat(mapData.mobs);
 					world[mapID].portals = world[mapID].portals.concat(mapData.portals);
+
+					world[mapID].mobs.concat(mapData.mobs).forEach((mob) => {
+						const mobsToSpawn = [];
+
+						for (let i = 0; i < mob.amount; i += 1) {
+							const newMob = new Mob({
+								_id: Mob2.generateUniqueMobID(mapID),
+								mobID: mob.mobID,
+								location: {
+									x: mob.location.x,
+									y: mob.location.y,
+									z: mob.location.z
+								},
+								rotation: mob.rotation,
+								stats: {
+									hp: 100, // get from mob data table
+									maxHP: 100, // get from mob data table
+								}
+							});
+							mobsToSpawn.push(newMob);
+
+							world[mapID].mobs.push(newMob);
+						}
+					});
 
 					console.log(`[Map Factory] Loaded Map ID: ${chalk.green(mapID)}`);
 
