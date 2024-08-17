@@ -23,29 +23,29 @@ export default (io, world) => {
 					// world[mapID].mobs = world[mapID].mobs.concat(mapData.mobs);
 					world[mapID].portals = world[mapID].portals.concat(mapData.portals);
 
-					world[mapID].mobs.concat(mapData.mobs).forEach((mob) => {
-						const mobsToSpawn = [];
+					// world[mapID].mobs.concat(mapData.mobs).forEach((mob) => {
+					// 	const mobsToSpawn = [];
 
-						for (let i = 0; i < mob.amount; i += 1) {
-							const newMob = new Mob({
-								_id: Mob2.generateUniqueMobID(mapID),
-								mobID: mob.mobID,
-								location: {
-									x: mob.location.x,
-									y: mob.location.y,
-									z: mob.location.z
-								},
-								rotation: mob.rotation,
-								stats: {
-									hp: 100, // get from mob data table
-									maxHP: 100, // get from mob data table
-								}
-							});
-							mobsToSpawn.push(newMob);
+					// 	for (let i = 0; i < mob.amount; i += 1) {
+					// 		const newMob = new Mob({
+					// 			_id: Mob2.generateUniqueMobID(mapID),
+					// 			mobID: mob.mobID,
+					// 			location: {
+					// 				x: mob.location.x,
+					// 				y: mob.location.y,
+					// 				z: mob.location.z
+					// 			},
+					// 			rotation: mob.rotation,
+					// 			stats: {
+					// 				hp: 100, // get from mob data table
+					// 				maxHP: 100, // get from mob data table
+					// 			}
+					// 		});
+					// 		mobsToSpawn.push(newMob);
 
-							world[mapID].mobs.push(newMob);
-						}
-					});
+					// 		world[mapID].mobs.push(newMob);
+					// 	}
+					// });
 
 					console.log(`[Map Factory] Loaded Map ID: ${chalk.green(mapID)}`);
 
@@ -104,7 +104,8 @@ export default (io, world) => {
 				console.log(`Map: ${mapID} is empty`);
 			}
 
-			return _.keyBy(playersInMap, 'name');
+			// console.log(_.keyBy(playersInMap, 'id'));
+			return _.keyBy(playersInMap, 'id');
 		},
 
 		clearItemsOnTheGround: (mapID, secondsToKeepItemOnTheGround) => {

@@ -1,101 +1,57 @@
-/* eslint-disable func-names */
-import mongoose from 'mongoose';
-import uniqueValidator from 'mongoose-unique-validator';
+// Account.js
+import { sql } from '../../db.js';
 
-import Character from './Character.js';
-
-const accountSchema = new mongoose.Schema(
-	{
-		username: {
-			type: String,
-			required: true,
-			index: true,
-			unique: true,
-			uniqueCaseInsensitive: true
-		},
-		password: {
-			type: String,
-			required: true
-		},
-		email: {
-			type: String,
-			// Remind user to confirm their email ingame, don't force them confirm right after registering.
-			// required: true,
-			index: true,
-			unique: true,
-			uniqueCaseInsensitive: true,
-			default: ''
-		},
-		isOnline: {
-			type: Boolean,
-			default: false
-		},
-		isGM: {
-			type: Boolean,
-			default: false
-		},
-		ban: {
-			banType: { type: Number, default: 0 },
-			banReason: { type: String, default: 'No Reason' }
-		},
-		lastLoginDate: {
-			type: Date
-		},
-		ip: {
-			type: String,
-			default: ''
-		},
-		settings: {
-			inventoryPos: {
-				x: { type: Number, default: 0 },
-				y: { type: Number, default: 0 }
-			},
-			chatPos: {
-				x: { type: Number, default: 0 },
-				y: { type: Number, default: 0 }
-			}
-		},
+const Account = {
+	async getAccount(username) {
+		const result = await sql`
+            SELECT * FROM accounts
+            WHERE LOWER(username) = LOWER(${username})
+            LIMIT 1
+        `;
+		return result[0];
 	},
-	{
-		timestamps: true
+
+	async getAccountByID(accountID) {
+		const result = await sql`
+            SELECT * FROM accounts
+            WHERE id = ${accountID}
+            LIMIT 1
+        `;
+		return result[0];
+	},
+
+	async getCharacters(accountID) {
+		return sql`
+            SELECT * FROM characters
+            WHERE account_id = ${accountID}
+            ORDER BY created_at ASC
+        `;
+	},
+
+	async createAccount(username, password, email, ip) {
+		return sql`
+            INSERT INTO accounts (username, password, email, ip)
+            VALUES (${username}, ${password}, ${email}, ${ip})
+            RETURNING *
+        `;
+	},
+
+	async updateAccount(accountID, updates) {
+		const setClause = Object.entries(updates)
+			.map(([key, value], index) => `${key} = $${index + 2}`)
+			.join(', ');
+
+		const values = Object.values(updates);
+
+		const query = `
+            UPDATE accounts
+            SET ${setClause}
+            WHERE id = $1
+            RETURNING *
+        `;
+
+		return sql.unsafe(query, [accountID, ...values]);
 	}
-);
-
-accountSchema.plugin(uniqueValidator);
-
-accountSchema.statics.getAccount = async function (username) {
-	return this.model('accounts').findOne({ username: new RegExp(`^${username}$`, 'i') });
 };
-
-accountSchema.statics.getAccountByID = async function (accountID) {
-	return this.model('accounts').findOne({ _id: accountID });
-};
-
-accountSchema.statics.getCharacters = async function (accountID) {
-	return Character.model('characters').find({ accountID }).sort({ createdAt: 'asc' });
-};
-
-const Account = mongoose.model('accounts', accountSchema);
-
-// // Delete Property from Collection
-// // Make sure to add it to the schema first
-// // After running this code, then delete it from the schema
-// Account.updateMany({}, { $unset: { 'settings.test': 1 } }, (err) => {
-// 	if (err) {
-// 		console.log(`Error: ${err}`);
-// 	} else {
-// 		console.log('Property deleted successfully');
-// 	}
-// });
-
-// // Add Property to Collection
-// // Make sure to add it to the schema first
-// Account.updateMany({}, { $set: { 'settings.test': 1 } }, (err) => {
-// 	if (err) {
-// 		console.log(`Error: ${err}`);
-// 	} else {
-// 		console.log('Property added successfully');
-// 	}
-// });
 
 export default Account;

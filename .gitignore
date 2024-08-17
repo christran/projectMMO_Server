@@ -1,3 +1,4 @@
 node_modules
 .vs
 _config.json
+.env

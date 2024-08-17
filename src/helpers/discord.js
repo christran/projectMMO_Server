@@ -10,9 +10,9 @@ export default {
 	- Optional - Let player choose to opt out of this
 	*/
 	LoginNotify: async (character) => {
-		const account = await Account.getAccountByID(character.accountID).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
+		const account = await Account.getAccountByID(character.account_id).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
 
-		if (!moment(account.lastLoginDate).isSame(moment(), 'day')) {
+		if (!moment(account.last_login_date).isSame(moment(), 'day')) {
 			const newDiscordHook = new discordHook.Webhook('https://discord.com/api/webhooks/783926545558798356/FBSLgE0JkOHnqiWMYGXEcXFOcEgH8nACmHjpaAqP2gecgR-UOmCIxwYlKOvjTuldt5zz');
 
 			const discordMsg = new discordHook.MessageBuilder()

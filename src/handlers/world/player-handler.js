@@ -29,18 +29,20 @@ export default (io, socket, world, clients) => {
 	// const Item = ItemFactory(io, socket, clients, world); // conflicting variable name
 
 	socket.on('saveUserSettings', async (data) => {
-		const account = await Account.getAccountByID(socket.character.accountID).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
+		const account = await Account.getAccountByID(socket.character.account_id).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
 
 		switch (data.setting) {
 		case 'inventoryPos':
-			account.settings.inventoryPos.x = data.inventoryPos.x;
-			account.settings.inventoryPos.y = data.inventoryPos.y;
-			account.save();
+			await Account.updateAccount(account.id, {
+				inventory_pos_x: data.inventoryPos.x,
+				inventory_pos_y: data.inventoryPos.y
+			});
 			break;
 		case 'chatPos':
-			account.settings.chatPos.x = data.chatPos.x;
-			account.settings.chatPos.y = data.chatPos.y;
-			account.save();
+			await Account.updateAccount(account.id, {
+				chat_pos_x: data.chatPos.x,
+				chat_pos_y: data.chatPos.y
+			});
 			break;
 		default:
 			break;
@@ -49,9 +51,8 @@ export default (io, socket, world, clients) => {
 
 	socket.on('characterState', (data) => {
 		if (!data.isAFK) {
-			// console.log(data.location)
 			const snapshot = {
-				_id: socket.character._id,
+				id: socket.character.id,
 				name: socket.character.name,
 				location: data.location,
 				rotation: data.rotation,
@@ -60,18 +61,18 @@ export default (io, socket, world, clients) => {
 				// timestamp: Date.now().toString()
 			};
 
-			if (world[socket.character.mapID]) {
-				const characterIndex = world[socket.character.mapID].characterStates.findIndex((character) => character._id === socket.character._id);
+			if (world[socket.character.map_id]) {
+				const characterIndex = world[socket.character.map_id].characterStates.findIndex((character) => character.id === socket.character.id);
 
 				// if characterID exists in world, update it instead of pushing a new one
 				// bad workaround for now
 				if (characterIndex !== -1) {
-					world[socket.character.mapID].characterStates[characterIndex] = snapshot;
+					world[socket.character.map_id].characterStates[characterIndex] = snapshot;
 				} else {
-					world[socket.character.mapID].characterStates.push(snapshot);
+					world[socket.character.map_id].characterStates.push(snapshot);
 				}
 			} else {
-				console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
+				console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.map_id} was not found in world`));
 			}
 
 			// Simulate on the Server Side?
@@ -80,15 +81,15 @@ export default (io, socket, world, clients) => {
 			socket.character.velocity = data.velocity;
 			socket.character.action = parseInt(data.action, 10);
 		} else if (data.isAFK) {
-			if (world[socket.character.mapID]) {
-				const characterIndex = world[socket.character.mapID].characterStates.findIndex((character) => character._id === socket.character._id);
+			if (world[socket.character.map_id]) {
+				const characterIndex = world[socket.character.map_id].characterStates.findIndex((character) => character.id === socket.character.id);
 
 				// if characterID exists in world remove it
 				if (characterIndex !== -1) {
-					world[socket.character.mapID].characterStates.splice(characterIndex, 1);
+					world[socket.character.map_id].characterStates.splice(characterIndex, 1);
 				}
 			} else {
-				console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.mapID} was not found in world`));
+				console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.map_id} was not found in world`));
 			}
 		}
 	});
@@ -97,8 +98,8 @@ export default (io, socket, world, clients) => {
 	socket.on('player_UpdateApperance', (appearanceData) => {
 		socket.character.appearance = appearanceData;
 
-		socket.to(socket.character.mapID).emit('updateAppearance', {
-			_id: socket.character._id,
+		socket.to(socket.character.map_id).emit('updateAppearance', {
+			id: socket.character.id,
 			appearance: appearanceData
 		});
 
@@ -245,7 +246,17 @@ export default (io, socket, world, clients) => {
 		// });
 
 		// Update Character Appearance in Database
-		Character.saveCharacter(socket);
+		Character.updateCharacter(socket.character.id, {
+			gender: appearanceData.gender,
+			skin: appearanceData.skin,
+			hair: appearanceData.hair,
+			eyes: appearanceData.eyes,
+			top: appearanceData.top,
+			bottom: appearanceData.bottom,
+			shoes: appearanceData.shoes,
+			weapon_l: appearanceData.weapon_l,
+			weapon_r: appearanceData.weapon_r
+		});
 	});
 
 	socket.on('player_UseAbility', (ability, callback) => {
@@ -269,7 +280,7 @@ export default (io, socket, world, clients) => {
 	});
 
 	socket.on('player_PickUp', (data) => {
-		const itemsInMapID = world[socket.character.mapID].itemsOnTheGround;
+		const itemsInMapID = world[socket.character.map_id].itemsOnTheGround;
 		const findItemInMapID = _.find(itemsInMapID, { _id: data._id });
 
 		if (findItemInMapID) {
@@ -281,7 +292,7 @@ export default (io, socket, world, clients) => {
 
 					itemInDB.save().then(() => {
 						// Emit to all other clients in mapID that an item has been looted and to remove it
-						socket.to(socket.character.mapID).emit('removeEntity', {
+						socket.to(socket.character.map_id).emit('removeEntity', {
 							type: 'item',
 							data: [{ _id: data._id }]
 						});
@@ -304,7 +315,7 @@ export default (io, socket, world, clients) => {
 			}).catch((err) => {
 				// Remove Item from Client's map
 				// Tell client that item doesn't exist and they're hacking
-				io.to(socket.character.mapID).emit('removeEntity', {
+				io.to(socket.character.map_id).emit('removeEntity', {
 					type: 'item',
 					data: [{ _id: data._id }]
 				});
@@ -351,9 +362,9 @@ export default (io, socket, world, clients) => {
 		// Send client any other players in the map including themselves
 		// Portal logic runs before this? casuing the character to spawn at the wrong location
 
-		if (Map.getAllPlayersInMap(socket.character.mapID)) {
+		if (Map.getAllPlayersInMap(socket.character.map_id)) {
 			const charactersInMap = [];
-			const players = Map.getAllPlayersInMap(socket.character.mapID);
+			const players = Map.getAllPlayersInMap(socket.character.map_id);
 
 			_.forOwn(players, (value, name) => {
 				// Check if it's the UE Server or Not
@@ -366,7 +377,7 @@ export default (io, socket, world, clients) => {
 
 			const mapState = {
 				charactersInMap,
-				itemsOnTheGround: world[socket.character.mapID].itemsOnTheGround
+				itemsOnTheGround: world[socket.character.map_id].itemsOnTheGround
 			};
 
 			callback(mapState);
@@ -379,11 +390,11 @@ export default (io, socket, world, clients) => {
 	// Spawn Player after they select a character
 	socket.on('spawnRequest', async (data) => {
 		// Check if a character id already exists in the characters array in the world object
-		Player.checkIfAlreadySpawned(data._id).then(async () => {
-			const character = await Character.getCharacterByID(data._id).catch((err) => console.log(`[Player Handler] spawnPlayer | Error: ${err}`));
-			const account = await Account.getAccountByID(character.accountID).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
+		Player.checkIfAlreadySpawned(data.id).then(async () => {
+			const character = await Character.getCharacterByID(data.id).catch((err) => console.log(`[Player Handler] spawnPlayer | Error: ${err}`));
+			const account = await Account.getAccountByID(character.account_id).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
 
-			if (character) {
+			if (character && account) {
 				// const charWeakMap = new WeakMap();
 				// charWeakMap.set(socket, character);
 				// const clientCharacter = charWeakMap.get(socket);
@@ -393,10 +404,10 @@ export default (io, socket, world, clients) => {
 				io.sockets.sockets.get(socket.id).character = character;
 				socket.character.socketID = socket.id;
 
-				const spawnCharacter = () => {
+				const spawnCharacter = async () => {
 					// Add player to map and spawn them in the map
-					socket.join(character.mapID);
-					socket.emit('changeMap', character.mapID);
+					socket.join(character.map_id);
+					socket.emit('changeMap', character.map_id);
 
 					// Default velocity
 					character.velocity = {
@@ -406,7 +417,7 @@ export default (io, socket, world, clients) => {
 					};
 
 					// Send to other players in the map
-					socket.to(character.mapID).emit('addCharacter', {
+					socket.to(character.map_id).emit('addCharacter', {
 						characterInfo: character,
 					});
 
@@ -414,35 +425,36 @@ export default (io, socket, world, clients) => {
 					socket.emit('worldService', { type: 'server_message', message: serverMessage, update: false });
 					socket.emit('worldService', { type: 'billboardURL', billboardURL, update: false });
 
-					clients.push({ socketID: socket.id, characterID: character._id });
+					clients.push({ socketID: socket.id, characterID: character.id });
 
 					// Discord Login Message
 					Discord.LoginNotify(character);
 
-					account.lastLoginDate = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
-					account.save();
-
-					susLog.new({
-						socket,
-						reason: 'no reason xD',
+					await Account.updateAccount(account.id, {
+						last_login_date: new Date(),
 					});
 
-					console.log(`[World Server] ${character.name}${chalk.green(`#${character.tagline}`)} | Map ID: ${character.mapID} | Total Online: ${io.engine.clientsCount}`);
+					// susLog.new({
+					// 	socket,
+					// 	reason: 'no reason xD',
+					// });
+
+					console.log(`[World Server] ${character.name}${chalk.green(`#${character.tagline}`)} | Map ID: ${character.map_id} | Total Online: ${io.engine.clientsCount}`);
 				};
 
-				if (!world[socket.character.mapID]) {
+				if (!world[socket.character.map_id]) {
 					// eslint-disable-next-line no-unused-vars
-					Map.loadMap(socket.character.mapID).then((map) => {
-						world[socket.character.mapID].characters.push(socket.character);
+					Map.loadMap(socket.character.map_id).then((map) => {
+						world[socket.character.map_id].characters.push(socket.character);
 
 						spawnCharacter();
 					});
 				} else {
-					world[socket.character.mapID].characters.push(socket.character);
+					world[socket.character.map_id].characters.push(socket.character);
 					spawnCharacter();
 				}
 			} else {
-				socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a invaild Character ID (${data._id})`;
+				socket.dcReason = `[Player Handler] spawnPlayer | Trying to spawn a invaild Character ID (${data.id})`;
 				socket.emit('worldService', {
 					type: 'error',
 					reason: 'cheating'
@@ -454,35 +466,41 @@ export default (io, socket, world, clients) => {
 				reason: 'cheating'
 			});
 
-			console.log(`[Player Handler] Character ID (${data._id}) already exists in the world`);
+			console.log(`[Player Handler] Character ID (${data.id}) already exists in the world`);
 		});
 	});
 
 	socket.on('player_UsePortal', (data) => {
-		Map.getMap(socket.character.mapID).then((currentMap) => {
-			Map.getPortalByName(data.portalName, socket.character.mapID).then((currentPortal) => {
+		Map.getMap(socket.character.map_id).then((currentMap) => {
+			Map.getPortalByName(data.portalName, socket.character.map_id).then((currentPortal) => {
 				if (currentPortal.portalType === 1) {
 					Map.getMap(currentPortal.toMapID).then((targetMap) => {
 						Map.getPortalByName(currentPortal.toPortalName, currentPortal.toMapID).then((targetPortal) => {
-							socket.to(socket.character.mapID).emit('removeCharacter', {
-								_id: socket.character._id,
+							socket.to(socket.character.map_id).emit('removeCharacter', {
+								id: socket.character.id,
 							});
 
-							socket.leave(socket.character.mapID);
+							socket.leave(socket.character.map_id);
 							socket.join(currentPortal.toMapID);
 
-							_.remove(world[socket.character.mapID].characters, { name: socket.character.name });
+							_.remove(world[socket.character.map_id].characters, { name: socket.character.name });
 							world[currentPortal.toMapID].characters.push(socket.character);
 
-							socket.character.mapID = currentPortal.toMapID;
+							socket.character.map_id = currentPortal.toMapID;
 							socket.character.location = targetPortal.location;
 							socket.character.rotation = targetPortal.rotation;
 
-							Character.saveCharacter(socket);
+							Character.updateCharacter(socket.character.id, {
+								location_x: socket.character.location.x,
+								location_y: socket.character.location.y,
+								location_z: socket.character.location.z,
+								rotation: socket.character.rotation,
+								map_id: socket.character.map_id
+							});
 
 							socket.emit('changeMap', currentPortal.toMapID);
 
-							socket.to(socket.character.mapID).emit('addCharacter', {
+							socket.to(socket.character.map_id).emit('addCharacter', {
 								characterInfo: socket.character
 							});
 
@@ -492,7 +510,7 @@ export default (io, socket, world, clients) => {
 						console.log(err);
 					});
 				} else if (currentPortal.portalType === 2) {
-					Map.getPortalByName(currentPortal.toPortalName, socket.character.mapID).then((targetPortal) => {
+					Map.getPortalByName(currentPortal.toPortalName, socket.character.map_id).then((targetPortal) => {
 						const response = {
 							location: targetPortal.location,
 							rotation: targetPortal.rotation,
@@ -503,7 +521,13 @@ export default (io, socket, world, clients) => {
 						socket.character.rotation = targetPortal.rotation;
 						socket.character.action = 2;
 
-						Character.saveCharacter(socket);
+						Character.updateCharacter(socket.character.id, {
+							location_x: socket.character.location.x,
+							location_y: socket.character.location.y,
+							location_z: socket.character.location.z,
+							rotation: socket.character.rotation,
+							// map_id: socket.character.map_id
+						});
 
 						socket.emit('teleportCharacter', response);
 
@@ -522,14 +546,14 @@ export default (io, socket, world, clients) => {
 
 	// Disconnect a player with given name (GM Command - !dc {playername})
 	socket.on('player_DC', (data) => {
-		if (Player.getSocketByCharID(data._id)) {
-			const targetCharacter = Player.getSocketByCharID(data._id).character;
+		if (Player.getSocketByCharID(data.id)) {
+			const targetCharacter = Player.getSocketByCharID(data.id).character;
 
-			io.to(`${targetCharacter._id}`).emit('dc', 'D/Ced by a GM');
+			io.to(`${targetCharacter.id}`).emit('dc', 'D/Ced by a GM');
 
 			// Tell all clients in the map to remove the player that disconnected.
-			socket.to(targetCharacter.mapID).emit('removeCharacter', {
-				_id: targetCharacter._id
+			socket.to(targetCharacter.map_id).emit('removeCharacter', {
+				_id: targetCharacter.id
 			});
 
 			console.log(`[World Server] ${targetCharacter.name} was dced by a GM`);
@@ -539,15 +563,19 @@ export default (io, socket, world, clients) => {
 	});
 
 	// eslint-disable-next-line no-unused-vars
-	socket.on('disconnecting', (reason) => {
+	socket.on('disconnecting', async (reason) => {
 		// Save Character Data to Database on disconnection
 		if (socket.character) {
-			Character.saveCharacter(socket);
+			await Character.updateCharacter(socket.character.id, {
+				location_x: socket.character.location.x,
+				location_y: socket.character.location.y,
+				location_z: socket.character.location.z,
+				rotation: socket.character.rotation,
+				map_id: socket.character.map_id
+			});
 
-			// isOnline = false
-			Account.getAccountByID(socket.character.accountID, (err, account) => {
-				account.isOnline = false;
-				account.save();
+			await Account.updateAccount(socket.character.account_id, {
+				is_online: false
 			});
 		}
 	});
@@ -557,17 +585,17 @@ export default (io, socket, world, clients) => {
 		// Save Character Data to Database on disconnection
 		if (socket.character) {
 			// Tell all clients in the map to remove the player that disconnected.
-			socket.to(socket.character.mapID).emit('removeCharacter', {
-				_id: socket.character._id
+			socket.to(socket.character.map_id).emit('removeCharacter', {
+				id: socket.character.id
 			});
 
-			_.remove(world[socket.character.mapID].characters, { name: socket.character.name });
+			_.remove(world[socket.character.map_id].characters, { name: socket.character.name });
 
 			// bad workaround for now
-			_.remove(world[socket.character.mapID].characterStates, { _id: socket.character._id });
+			_.remove(world[socket.character.map_id].characterStates, { id: socket.character.id });
 
 			// Remove from clients list
-			_.remove(clients, { characterID: socket.character._id });
+			_.remove(clients, { characterID: socket.character.id });
 
 			console.log(`[World Server] ${socket.character.name}${chalk.green(`#${socket.character.tagline}`)} logged off`);
 		} else {
