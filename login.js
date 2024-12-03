@@ -41,7 +41,9 @@ app.get('/', (req, res) => {
 	res.redirect('https://projectmmo.dev');
 });
 
-const worldServerIP = config.dev ? 'http://192.168.1.97:7575' : 'https://world.projectmmo.dev';
+// const worldServerIP = config.dev ? 'http://192.168.1.97:7575' : 'https://world.projectmmo.dev';
+const worldServerIP = config.dev ? 'http://64.181.238.97:7575' : 'http://64.181.238.97:7575'; // TODO: remove this and update ssl and stuff
+// sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 7575 -j ACCEPT
 
 io.on('connection', (socket) => {
 	// eslint-disable-next-line no-unused-vars

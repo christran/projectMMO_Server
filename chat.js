@@ -45,7 +45,8 @@ app.get('/', (req, res) => {
 	res.redirect('https://projectmmo.dev');
 });
 
-const worldServerIP = config.dev ? 'http://192.168.1.97:7575' : 'https://world.projectmmo.dev';
+// const worldServerIP = config.dev ? 'http://192.168.1.97:7575' : 'https://world.projectmmo.dev';
+const worldServerIP = config.dev ? 'http://64.181.238.97:7575' : 'http://64.181.238.97:7575'; // TODO: remove this and update ssl and stuff
 
 const clientSocket = clientIO(worldServerIP, {
 	transports: ['websocket'],
