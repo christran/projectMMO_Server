@@ -23,29 +23,29 @@ export default (io, world) => {
 					// world[mapID].mobs = world[mapID].mobs.concat(mapData.mobs);
 					world[mapID].portals = world[mapID].portals.concat(mapData.portals);
 
-					world[mapID].mobs.concat(mapData.mobs).forEach((mob) => {
-						const mobsToSpawn = [];
+					// world[mapID].mobs.concat(mapData.mobs).forEach((mob) => {
+					// 	const mobsToSpawn = [];
 
-						for (let i = 0; i < mob.amount; i += 1) {
-							const newMob = new Mob({
-								_id: Mob2.generateUniqueMobID(mapID),
-								mobID: mob.mobID,
-								location: {
-									x: mob.location.x,
-									y: mob.location.y,
-									z: mob.location.z
-								},
-								rotation: mob.rotation,
-								stats: {
-									hp: 100, // get from mob data table
-									maxHP: 100, // get from mob data table
-								}
-							});
-							mobsToSpawn.push(newMob);
+					// 	for (let i = 0; i < mob.amount; i += 1) {
+					// 		const newMob = new Mob({
+					// 			_id: Mob2.generateUniqueMobID(mapID),
+					// 			mobID: mob.mobID,
+					// 			location: {
+					// 				x: mob.location.x,
+					// 				y: mob.location.y,
+					// 				z: mob.location.z
+					// 			},
+					// 			rotation: mob.rotation,
+					// 			stats: {
+					// 				hp: 100, // get from mob data table
+					// 				maxHP: 100, // get from mob data table
+					// 			}
+					// 		});
+					// 		mobsToSpawn.push(newMob);
 
-							world[mapID].mobs.push(newMob);
-						}
-					});
+					// 		world[mapID].mobs.push(newMob);
+					// 	}
+					// });
 
 					console.log(`[Map Factory] Loaded Map ID: ${chalk.green(mapID)}`);
 
@@ -104,7 +104,8 @@ export default (io, world) => {
 				console.log(`Map: ${mapID} is empty`);
 			}
 
-			return _.keyBy(playersInMap, 'name');
+			// console.log(_.keyBy(playersInMap, 'id'));
+			return _.keyBy(playersInMap, 'id');
 		},
 
 		clearItemsOnTheGround: (mapID, secondsToKeepItemOnTheGround) => {
@@ -114,9 +115,9 @@ export default (io, world) => {
 				const now = Date.now();
 
 				_.remove(world[mapID].itemsOnTheGround, (item) => {
-					return now - item.createdAt > secondsToKeepItemOnTheGround * 1000;
+					return now - item.created_at > secondsToKeepItemOnTheGround * 1000;
 				}).forEach((item) => {
-					Item.deleteByID(item._id);
+					Item.deleteByID(item.id);
 					itemsToRemove.push(item);
 				});
 
@@ -138,7 +139,7 @@ export default (io, world) => {
 					} else if (Date.now() - world[mapID].inactivity > maxInactiveTimeinMinutes * 60 * 1000) {
 						// remove the items from database before deleting the map
 						world[mapID].itemsOnTheGround.forEach((item) => {
-							Item.deleteByID(item._id);
+							Item.deleteByID(item.id);
 						});
 
 						// make sure this is garbage collected

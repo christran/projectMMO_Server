@@ -1,72 +1,70 @@
-/* eslint-disable func-names */
-import mongoose from 'mongoose';
+// Item.js
 import chalk from 'chalk';
+import { sql } from '../../db.js';
 
-const itemSchema = new mongoose.Schema(
-	{
-		_id: String,
-		itemID: { type: Number, required: true },
-		characterID: { type: String, default: null },
-		lootable: { type: Boolean, default: false },
-		stackable: { type: Boolean, default: false },
-		maxStack: { type: Number, default: 1 }
-		// stats: {
-		// 	level: { type: Number, default: 1 },
-		// 	job: Number,
-		// 	str: Number,
-		// 	dex: Number,
-		// 	int: Number,
-		// 	luk: Number,
-		// 	hp: Number,
-		// 	mhp: { type: Number, min: 1 },
-		// 	mp: Number,
-		// 	mmp: { type: Number, min: 1 },
-		// 	ap: Number,
-		// 	sp: Number,
-		// 	exp: { type: Number, default: 0 },
-		// 	fame: Number,
-		// },
+const Item = {
+	async createItem(item) {
+		const result = await sql`
+            INSERT INTO items (item_id, lootable, stackable, max_stack)
+            VALUES (${item.item_id}, ${item.lootable}, ${item.stackable || false}, ${item.maxStack || 1})
+            RETURNING *
+        `;
+
+		const newItem = result[0];
+		console.log(chalk.yellow(`[Item Factory] New Item Created | ID: ${newItem.id} | Item ID: ${newItem.item_id} ${newItem.character_id ? `| Character ID: ${newItem.character_id}` : ''}`));
+
+		return newItem;
 	},
-	{
-		timestamps: true
+
+	async updateItemOwner(item_uuid, characterId) {
+		return sql`
+            UPDATE items
+            SET character_id = ${characterId}
+            WHERE id = ${item_uuid}
+            RETURNING *
+        `;
+	},
+
+	async updateItem(id, updates) {
+		const setClause = Object.entries(updates)
+			.map(([key, value], index) => `${key} = $${index + 2}`)
+			.join(', ');
+
+		const values = Object.values(updates);
+
+		const query = `
+            UPDATE items
+            SET ${setClause}
+            WHERE id = $1
+            RETURNING *
+        `;
+
+		return sql.unsafe(query, [id, ...values]);
+	},
+
+	async deleteByID(item_uuid) {
+		return sql`
+            DELETE FROM items
+            WHERE id = ${item_uuid}
+        `;
+	},
+
+	async findItemByID(item_uuid) {
+		const result = await sql`
+            SELECT * FROM items
+            WHERE id = ${item_uuid}
+            LIMIT 1
+        `;
+		return result[0];
+	},
+
+	async getCharacterItems(character_id) {
+		return sql`
+            SELECT * FROM items
+            WHERE character_id = ${character_id}
+            ORDER BY created_at ASC
+        `;
 	}
-);
-
-itemSchema.statics.createItem = async function (item) {
-	const newItem = new this({
-		_id: new mongoose.Types.ObjectId().toHexString(),
-		itemID: item.itemID,
-		characterID: item.characterID,
-		lootable: item.lootable
-		// stats: item.stats,
-	});
-
-	try {
-		// eslint-disable-next-line no-await-in-loop
-		await newItem.save();
-
-		console.log(chalk.yellow(`[Item Factory] New Item Created | ID: ${newItem._id} | Item ID: ${newItem.itemID} ${newItem.characterID ? `| Character ID: ${newItem.characterID}` : ''}`));
-	} catch (err) {
-		console.log(err);
-	}
-
-	return newItem;
 };
 
-itemSchema.statics.updateItemOwner = async function (_id, characterID) {
-	return this.model('items').updateOne({ _id }, { characterID });
-};
-
-itemSchema.statics.deleteByID = async function (_id) {
-	return this.model('items').deleteOne({ _id });
-};
-
-itemSchema.statics.findItemByID = async function (_id) {
-	return this.model('items').findOne({ _id });
-};
-
-itemSchema.statics.getCharacterItems = async function (characterID) {
-	return this.model('items').find({ characterID }).sort({ createdAt: 'asc' });
-};
-
-export default mongoose.model('items', itemSchema);
+export default Item;

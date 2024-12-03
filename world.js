@@ -18,7 +18,7 @@ import chalk from 'chalk';
 import * as fs from 'fs';
 import pm2IO from '@pm2/io';
 
-import db from './db.js';
+import { connect } from './db.js';
 import MapFactory from './src/world/MapFactory.js';
 import ItemFactory from './src/world/ItemFactory.js';
 import MobFactory from './src/world/MobFactory.js';
@@ -102,10 +102,10 @@ setInterval((() => {
 // Mob Spawning Test
 // eslint-disable-next-line no-unused-vars
 const mobSpawnTest = () => {
-	const mapID = 1;
+	const map_id = 1;
 
-	if (world[mapID]) {
-		Mob.spawn(mapID, {
+	if (world[map_id]) {
+		Mob.spawn(map_id, {
 			mobs:
 			[
 				{
@@ -125,10 +125,10 @@ const mobSpawnTest = () => {
 };
 
 const npcSpawnTest = () => {
-	const mapID = 1;
+	const map_id = 1;
 
-	if (world[mapID]) {
-		NPC.spawn(mapID, {
+	if (world[map_id]) {
+		NPC.spawn(map_id, {
 			npcs:
 			[
 				{
@@ -147,21 +147,21 @@ const npcSpawnTest = () => {
 
 // Item Spawning Test
 const itemSpawnTest = () => {
-	const mapID = 1;
+	const map_id = 1;
 
-	if (world[mapID]) {
-		Item.spawn(mapID, {
+	if (world[map_id]) {
+		Item.spawn(map_id, {
 			items: [
 				{
-					id: _.random(10, 16),
+					item_id: _.random(10, 16),
 					amount: _.random(0, 3)
 				},
 				{
-					id: _.random(10, 16),
+					item_id: _.random(10, 16),
 					amount: _.random(0, 3)
 				},
 				{
-					id: _.random(15, 16),
+					item_id: _.random(15, 16),
 					amount: _.random(0, 3)
 				}],
 			x: -100,
@@ -197,7 +197,7 @@ io.on('connection', (socket) => {
 				// npcSpawnTest();
 				// mobSpawnTest();
 				// io.emit('worldService', { type: 'billboardURL', billboardURL: 'https://reddit.com', update: true });
-				io.emit('worldService', { type: 'server_message', message: 'the quick brown fox jumped of the lazy dog', update: true });
+				io.emit('worldService', { type: 'server_message', message: 'Welcome to the Pre Pre Alpha Test!', update: true });
 			}, 1000);
 		}
 	});
@@ -206,8 +206,8 @@ io.on('connection', (socket) => {
 // Game Logic
 const update = () => {
 	// Sent to (GameState_MMO)
-	Object.keys(world).forEach((mapID) => {
-		const parsedMapID = parseInt(mapID, 10);
+	Object.keys(world).forEach((map_id) => {
+		const parsedMapID = parseInt(map_id, 10);
 
 		if (world[parsedMapID].characterStates.length > 0) {
 			io.to(parsedMapID).emit('snapshot', {
@@ -215,11 +215,11 @@ const update = () => {
 			});
 		}
 
-		if (world[parsedMapID].mobs.length > 0) {
-			world[parsedMapID].mobs.forEach((mob) => {
-				Mob.move(mob._id, parsedMapID, { x: 5, y: 5, z: 5 });
-			});
-		}
+		// if (world[parsedMapID].mobs.length > 0) {
+		// 	world[parsedMapID].mobs.forEach((mob) => {
+		// 		Mob.move(mob._id, parsedMapID, { x: 5, y: 5, z: 5 });
+		// 	});
+		// }
 	});
 
 	// Run cleanup every minute to remove inactive maps from the world
@@ -254,13 +254,13 @@ const gameLoop = () => {
 
 // Run Item Cleanup every 30 seconds
 // Remove items that have been on the ground for more than 60 seconds
-setInterval(() => {
-	Object.keys(world).forEach((mapID) => {
-		if (world[mapID].itemsOnTheGround.length > 0) {
-			Map.clearItemsOnTheGround(mapID, 60);
-		}
-	});
-}, 30000);
+// setInterval(() => {
+// 	Object.keys(world).forEach((map_id) => {
+// 		if (world[map_id].itemsOnTheGround.length > 0) {
+// 			Map.clearItemsOnTheGround(map_id, 60);
+// 		}
+// 	});
+// }, 30000);
 
 pubClient.on('error', (err) => {
 	console.log(err);
@@ -270,7 +270,7 @@ server.listen(port, () => {
 	// Register World Server to Master Server
 
 	// Connect to DB
-	db.connect();
+	connect();
 
 	// Start the Game LOop
 	gameLoop();

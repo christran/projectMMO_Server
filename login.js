@@ -10,7 +10,7 @@ import request from 'request';
 import chalk from 'chalk';
 import * as fs from 'fs';
 
-import db from './db.js';
+import { connect } from './db.js';
 import loginHandler from './src/handlers/login/login-handler.js';
 
 const config = JSON.parse(fs.readFileSync('./_config.json'));
@@ -92,7 +92,7 @@ io.on('connection', (socket) => {
 });
 
 server.listen(port, () => {
-	db.connect();
+	connect();
 
 	console.log(chalk.yellow('[Login Server] Starting Login Server... Port:', port));
 });

@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import moment from 'moment';
 import chalk from 'chalk';
 
-import db from '../../../db.js';
+import { sql } from '../../../db.js';
 
 import Account from '../../models/Account.js';
 import Character from '../../models/Character.js';
@@ -12,60 +12,76 @@ export default (io, socket, clients) => {
 		const account = await Account.getAccount(data.username).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
 
 		if (account) {
-			bcrypt.compare(data.password, account.password, (err, bcryptRes) => {
-				if (bcryptRes && !err) {
-					if (account.ban.banType > 0) {
-						// Account is banned
-						const response = {
-							result: 'banned',
-							banType: account.ban.banType,
-							reason: account.ban.banReason
-						};
-
-						console.log(chalk.yellow('[Login Server]'), `${socket.id} tried to log in but is banned. | IP: ${socket.handshake.address}`);
-						callback(response);
-					} else if (account.isOnline === true) {
-						// } else if (account.isOnline == true || _.find(clients, {username: account.username})) {
-						// Account is already online
-						const response = {
-							result: 'alreadyOnline',
-							reason: 'This account is already logged in.'
-						};
-
-						console.log(chalk.yellow('[Login Server]'), `${socket.id} tried to login into an account that is already online. | IP: ${socket.handshake.address}`);
-						callback(response);
-					} else {
-						const response = {
-							result: 'success',
-							accountID: account._id,
-							lastLogin: moment(account.lastLoginDate, 'YYYY-MM-DD HH:mm:ss').fromNow(), // Remove this later, only send necessary data
-							settings: account.settings // Send user settings
-						};
-
-						clients.push({
-							username: account.username,
-							socketID: socket.id,
-							ip: socket.handshake.address
-						});
-
-						socket.username = account.username;
-
-						// account.isOnline = true;
-						// account.lastLoginDate = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
-						account.ip = socket.handshake.address;
-						account.save();
-
-						callback(response);
-						console.log(chalk.yellow('[Login Server]'), `${account.username} has logged in. | IP: ${socket.handshake.address}`);
-					}
-				} else {
+			const bcryptRes = await bcrypt.compare(data.password, account.password);
+			if (bcryptRes) {
+				if (account.banType > 0) {
+					// Account is banned
 					const response = {
-						result: 'invalidPW',
-						reason: 'Incorrect Password'
+						result: 'banned',
+						banType: account.banType,
+						reason: account.banReason
 					};
+
+					console.log(chalk.yellow('[Login Server]'), `${socket.id} tried to log in but is banned. | IP: ${socket.handshake.address}`);
 					callback(response);
+				} else if (account.is_online === true) {
+					// } else if (account.isOnline == true || _.find(clients, {username: account.username})) {
+					// Account is already online
+					const response = {
+						result: 'alreadyOnline',
+						reason: 'This account is already logged in.'
+					};
+
+					console.log(chalk.yellow('[Login Server]'), `${socket.id} tried to login into an account that is already online. | IP: ${socket.handshake.address}`);
+					callback(response);
+				} else {
+					const lastLoginDate = account.last_login_date
+						? moment(account.last_login_date).fromNow()
+						: 'First login';
+
+					const response = {
+						result: 'success',
+						accountID: account.id,
+						lastLogin: lastLoginDate, // Remove this later, only send necessary data
+						settings: {
+							inventoryPos: {
+								x: account.inventory_pos_x,
+								y: account.inventory_pos_y
+							},
+							chatPos: {
+								x: account.chat_pos_x,
+								y: account.chat_pos_y
+							}
+						},
+					};
+
+					clients.push({
+						username: account.username,
+						socketID: socket.id,
+						ip: socket.handshake.address
+					});
+
+					socket.username = account.username;
+
+					// account.isOnline = true;
+					// account.lastLoginDate = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
+
+					await Account.updateAccount(account.id, {
+						// is_online: true,
+						last_login_date: new Date(),
+						ip: socket.handshake.address
+					});
+
+					callback(response);
+					console.log(chalk.yellow('[Login Server]'), `${account.username} has logged in. | IP: ${socket.handshake.address}`);
 				}
-			});
+			} else {
+				const response = {
+					result: 'invalidPW',
+					reason: 'Incorrect Password'
+				};
+				callback(response);
+			}
 		} else {
 			const response = {
 				result: 'invalidUser',
@@ -78,25 +94,32 @@ export default (io, socket, clients) => {
 	});
 
 	socket.on('createCharacter', async (data, callback) => {
-		const tagline = await Character.generateTagline(data.name);
+		try {
+			const tagline = await Character.generateTagline(data.name);
 
-		if (tagline) {
-			const newChar = new Character({
+			if (!tagline) {
+				throw new Error('Failed to generate tagline');
+			}
+
+			const newCharData = {
 				accountID: data.accountID,
-				_id: new db.mongoose.Types.ObjectId().toHexString(),
+				worldID: 0,
 				name: data.name,
 				tagline,
-				gender: 0,
-				skin: 1,
-				hair: 1,
-				eyes: 1,
-				top: 1,
-				bottom: 1,
-				shoes: 1,
-				mapID: 1,
-				location: { x: 0, y: 0, z: 25 }, // z: 25 is the ground level
+				appearance: {
+					gender: 1,
+					skin: 1,
+					hair: 1,
+					eyes: 1,
+					top: 2,
+					bottom: 2,
+					shoes: 2,
+					weapon_L: 1,
+					weapon_R: 1
+				},
+				map_id: 1,
+				location: { x: 0, y: 0, z: 25 },
 				rotation: 90,
-
 				stats: {
 					level: 1,
 					job: 100,
@@ -105,53 +128,50 @@ export default (io, socket, clients) => {
 					int: 5,
 					luk: 5,
 					hp: 50,
-					mhp: 50,
+					max_hp: 50,
 					mp: 100,
-					mmp: 100,
+					max_mp: 100,
+					ap: 0,
+					sp: 0,
+					exp: 0,
+					fame: 0
 				},
+				mesos: 0,
+			};
 
-				inventory: {
-					mesos: 0,
-					maxSlots: [96, 96, 96, 96, 96]
-				}
-			});
+			const savedCharacter = await Character.create(newCharData);
 
-			try {
-				const saveChar = await newChar.save();
-
-				const response = {
-					result: 'success'
-				};
-
-				callback(response);
-				console.log(chalk.yellow('[Login Server]'), `New Character | Name: ${saveChar.name}`);
-			} catch (err) {
-				console.log(err);
-				// players can have the same charcater name with a unique tagline
-				if (err.name === 'ValidationError') {
-					// Name taken
-					const response = {
-						result: 'nameTaken',
-						reason: 'charcater name is already taken'
-					};
-
-					callback(response);
-				} else {
-					console.log(`[Login Server] createCharacter | Error: ${err}`);
-				}
+			if (savedCharacter) {
+				callback({ result: 'success' });
+				console.log(chalk.yellow('[Login Server]'), `New Character | Name: ${savedCharacter.name}`);
+			} else {
+			// Handle cases where character creation might fail for other reasons
+				console.error('[Login Server] Character creation failed for unknown reason');
+				callback({ result: 'error', reason: 'Character creation failed' });
+			}
+		} catch (err) {
+			console.error('[Login Server] createCharacter | Error:', err);
+			if (err.code === '23505' && err.detail.includes('name')) {
+			// PostgreSQL unique constraint violation (error code 23505) for 'name'
+				callback({ result: 'nameTaken', reason: 'Character name is already taken' });
+			} else {
+				callback({ result: 'error', reason: 'Failed to create character' });
 			}
 		}
 	});
 
 	socket.on('deleteCharacter', async (data, callback) => {
-		const deleteChar = await Character.deleteOne({ _id: data._id }).catch((err) => {
-			callback('ERROR');
-			console.log(`[Login Server] deleteCharacter | Error: ${err}`);
-		});
+		try {
+			const deleted = await Character.delete(data._id); // client side error _id is probably a int in ue5
 
-		if (deleteChar.deletedCount === 1) {
-			callback('OK');
-		} else {
+			if (deleted) {
+				callback('OK');
+			} else {
+				console.error('[Login Server] deleteCharacter | Character not found or not deleted');
+				callback('ERROR');
+			}
+		} catch (err) {
+			console.error('[Login Server] deleteCharacter | Error:', err);
 			callback('ERROR');
 		}
 	});
@@ -173,19 +193,15 @@ export default (io, socket, clients) => {
 		}
 	});
 
-	socket.on('disconnect', () => {
+	socket.on('disconnect', async () => {
 		const socketIndex = clients.findIndex((item) => item.socketID === socket.id);
+		const account = await Account.getAccount(socket.username).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
 
 		// Check if user was logged in and set isOnline to false.
 		if (!socket.handoffToWorldServer && socket.username) {
-			Account.getAccount(socket.username)
-				.then((account) => {
-					account.isOnline = false;
-					account.save();
-				})
-				.catch((err) => {
-					console.log(`[Login Server] ${err}`);
-				});
+			await Account.updateAccount(account.id, {
+				is_online: false
+			});
 
 			clients.splice(socketIndex, 1);
 

@@ -1,106 +1,226 @@
-/* eslint-disable func-names */
-import mongoose from 'mongoose';
-import uniqueValidator from 'mongoose-unique-validator';
+import { sql } from '../../db.js';
 
-const characterSchema = new mongoose.Schema(
-	{
-		accountID: { type: String, required: true },
-		_id: String,
-		worldId: Number,
-		name: {
-			type: String,
-			required: true
-		},
-		tagline: {
-			type: String,
-			required: true
-		},
+const formatCharacter = (character) => {
+	return {
+		id: character.id,
+		account_id: character.account_id,
+		world_id: character.world_id,
+		name: character.name,
+		tagline: character.tagline,
 		location: {
-			x: Number,
-			y: Number,
-			z: Number
+			x: character.location_x,
+			y: character.location_y,
+			z: character.location_z
 		},
-		rotation: Number,
-
+		rotation: character.rotation,
 		appearance: {
-			gender: { type: Number, default: 1 },
-			skin: { type: Number, default: 1 },
-			hair: { type: Number, default: 1 },
-			eyes: { type: Number, default: 1 },
-			top: { type: Number, default: 2 },
-			bottom: { type: Number, default: 2 },
-			shoes: { type: Number, default: 2 },
-
-			weapon_L: { type: Number, default: 0 },
-			weapon_R: { type: Number, default: 0 },
+			gender: character.gender,
+			skin: character.skin,
+			hair: character.hair,
+			eyes: character.eyes,
+			top: character.top,
+			bottom: character.bottom,
+			shoes: character.shoes,
+			weapon_l: character.weapon_l,
+			weapon_r: character.weapon_r
 		},
-
-		mapID: { type: Number, default: 1 },
+		map_id: character.map_id,
+		level: character.level,
+		job: character.job,
 		stats: {
-			level: { type: Number, default: 1 },
-			job: Number,
-			str: Number,
-			dex: Number,
-			int: Number,
-			luk: Number,
-			hp: Number,
-			mhp: { type: Number, min: 1 },
-			mp: Number,
-			mmp: { type: Number, min: 1 },
-			ap: Number,
-			sp: Number,
-			exp: { type: Number, default: 0 },
-			fame: Number,
+			str: character.str,
+			dex: character.dex,
+			int: character.int,
+			luk: character.luk,
+			hp: character.hp,
+			max_hp: character.max_hp,
+			mp: character.mp,
+			max_mp: character.max_mp,
+			ap: character.ap,
+			sp: character.sp,
+			exp: character.exp,
+			fame: character.fame,
 		},
-
 		inventory: {
-			mesos: { type: Number, default: 0 },
-			maxSlots: Array
+			mesos: character.mesos,
+		}
+	};
+};
+
+// Character model using async/await for database operations
+const Character = {
+	async create(characterData) {
+		try {
+			const result = await sql`
+        INSERT INTO characters (
+          account_id, 
+          world_id, 
+          name, 
+          tagline, 
+          location_x, 
+          location_y, 
+          location_z, 
+          rotation, 
+          gender, 
+          skin, 
+          hair, 
+          eyes, 
+          top, 
+          bottom, 
+          shoes, 
+          weapon_l, 
+          weapon_r, 
+          map_id, 
+          level, 
+          job, 
+          str, 
+          dex, 
+          int, 
+          luk, 
+          hp, 
+          max_hp, 
+          mp, 
+          max_mp, 
+          ap, 
+          sp, 
+          exp, 
+          fame, 
+          mesos
+        ) VALUES (
+          ${characterData.accountID},
+          ${characterData.worldID},
+          ${characterData.name},
+          ${characterData.tagline},
+          ${characterData.location.x},
+          ${characterData.location.y},
+          ${characterData.location.z},
+          ${characterData.rotation},
+          ${characterData.appearance.gender},
+          ${characterData.appearance.skin},
+          ${characterData.appearance.hair},
+          ${characterData.appearance.eyes},
+          ${characterData.appearance.top},
+          ${characterData.appearance.bottom},
+          ${characterData.appearance.shoes},
+          ${characterData.appearance.weapon_L},
+          ${characterData.appearance.weapon_R},
+          ${characterData.map_id},
+          ${characterData.stats.level},
+          ${characterData.stats.job},
+          ${characterData.stats.str},
+          ${characterData.stats.dex},
+          ${characterData.stats.int},
+          ${characterData.stats.luk},
+          ${characterData.stats.hp},
+          ${characterData.stats.max_hp},
+          ${characterData.stats.mp},
+          ${characterData.stats.max_mp},
+          ${characterData.stats.ap},
+          ${characterData.stats.sp},
+          ${characterData.stats.exp},
+          ${characterData.stats.fame},
+          ${characterData.mesos}
+        ) RETURNING *
+      `;
+			return result[0];
+		} catch (error) {
+			console.error('Error creating character:', error);
+			throw error;
 		}
 	},
-	{
-		timestamps: true
+
+	async getCharacterByID(id) {
+		try {
+			const character = await sql`
+        SELECT * FROM characters WHERE id = ${id}
+      `;
+			return formatCharacter(character[0]);
+		} catch (error) {
+			console.error('Error finding character by ID:', error);
+			throw error;
+		}
+	},
+
+	async findByName(name) {
+		try {
+			const character = await sql`
+        SELECT * FROM characters WHERE name ILIKE ${name}
+      `;
+			return formatCharacter(character[0]);
+		} catch (error) {
+			console.error('Error finding character by name:', error);
+			throw error;
+		}
+	},
+
+	async updateCharacter(id, updates) {
+		const setClause = Object.entries(updates)
+			.map(([key, value], index) => `${key} = $${index + 2}`)
+			.join(', ');
+
+		const values = Object.values(updates);
+
+		const query = `
+            UPDATE characters
+            SET ${setClause}
+            WHERE id = $1
+            RETURNING *
+        `;
+
+		return sql.unsafe(query, [id, ...values]);
+	},
+
+	async delete(id) {
+		try {
+			await sql`
+        DELETE FROM characters WHERE id = ${id}
+      `;
+			return true;
+		} catch (error) {
+			console.error('Error deleting character:', error);
+			throw error;
+		}
+	},
+
+	async generateTagline(name) {
+		try {
+			// Function to check if a character with the given name exists
+			const nameExists = async () => {
+				try {
+					const character = await sql`
+						SELECT * FROM characters WHERE name ILIKE ${name}
+					`;
+					return character.length > 0; // Return true if character exists
+				} catch (error) {
+					console.error('Error finding character by name:', error);
+					throw error;
+				}
+			};
+
+			// Check if the name exists
+			const exists = await nameExists();
+
+			if (!exists) {
+				return 'NA1'; // Return 'NA1' if the name does not exist
+			}
+
+			let randomNumber;
+			let findACharacter;
+
+			// Generate a unique tagline
+			do {
+				randomNumber = Math.floor(Math.random() * 9000) + 1000;
+				findACharacter = await sql`
+					SELECT 1 FROM characters WHERE name = ${name} AND tagline = ${randomNumber}
+				`;
+			} while (findACharacter.length > 0);
+
+			return randomNumber;
+		} catch (error) {
+			console.error('Error generating tagline:', error);
+			throw error;
+		}
 	}
-);
-
-characterSchema.plugin(uniqueValidator);
-
-characterSchema.statics.getCharacter = async function (name) {
-	return this.model('characters').findOne({ name: new RegExp(`^${name}$`, 'i') });
 };
 
-characterSchema.statics.getCharacterByID = async function (charID) {
-	return this.model('characters').findOne({ _id: charID });
-};
-
-characterSchema.statics.saveCharacter = async function (socket) {
-	try {
-		await socket.character.save();
-	} catch (err) {
-		// socket.disconnect();
-		socket.emit('dc', 'Character Error');
-		console.log(`[World Server] Saving Character | Error: ${err}`);
-	}
-};
-
-characterSchema.statics.generateTagline = async function (name) {
-	const nameExists = await this.findOne({ name });
-
-	if (!nameExists) {
-		console.log('name doesnt exist yet setting tagline to NA1');
-		// Set tagline to country code
-		return 'NA1';
-	}
-
-	// Random number with a max length of 4
-	const randomNumber = Math.floor(Math.random() * 9000) + 1000;
-	// const randomNumber = Math.floor(Math.random() * 10000);
-	const findACharacter = await this.findOne({ name, tagline: randomNumber });
-
-	if (findACharacter) {
-		return randomNumber;
-	}
-	return randomNumber;
-};
-
-export default mongoose.model('characters', characterSchema);
+export default Character;
