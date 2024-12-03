@@ -9,7 +9,7 @@ const sql = postgres({
 	user: process.env.PGUSER,
 	password: process.env.PGPASSWORD,
 	port: process.env.PGPORT || 5432,
-	ssl: 'require',
+	// ssl: 'require',
 });
 
 const connect = () => {
@@ -94,11 +94,54 @@ async function createTables() {
 		`;
 		console.log('Characters table created successfully');
 
+		// Create items table
+		await sql`
+			CREATE TABLE IF NOT EXISTS items (
+    			id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				item_id INTEGER NOT NULL,
+				character_id UUID REFERENCES characters(id),
+				lootable BOOLEAN DEFAULT false,
+				stackable BOOLEAN DEFAULT false,
+				max_stack INTEGER DEFAULT 1,
+				created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+			)
+		`;
+		console.log('Items table created successfully');
+
+		// Create chats table
+		await sql`
+			CREATE TABLE IF NOT EXISTS chats (
+    			id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				account_id UUID REFERENCES accounts(id),
+				character_id UUID REFERENCES characters(id),
+				type VARCHAR(50) NOT NULL,
+				message TEXT,
+				created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+
+			)
+		`;
+		console.log('Chats table created successfully');
+
+		// Create susLog table
+		await sql`
+			CREATE TABLE IF NOT EXISTS sus_log (
+    			id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+				account_id UUID REFERENCES accounts(id),
+				character_id UUID REFERENCES characters(id),
+				reason TEXT,
+				ip VARCHAR(45),
+				created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+
+			)
+		`;
+		console.log('susLog table created successfully');
+
 		// Create indexes
 		await sql`CREATE INDEX IF NOT EXISTS idx_accounts_username ON accounts(username)`;
 		await sql`CREATE INDEX IF NOT EXISTS idx_accounts_email ON accounts(email)`;
 		await sql`CREATE INDEX IF NOT EXISTS idx_characters_account_id ON characters(account_id)`;
 		await sql`CREATE INDEX IF NOT EXISTS idx_characters_name ON characters(name)`;
+		await sql`CREATE INDEX IF NOT EXISTS idx_items_character_id ON items(character_id)`;
 		console.log('Indexes created successfully');
 
 		console.log('All tables and indexes created successfully');
@@ -107,6 +150,6 @@ async function createTables() {
 	}
 }
 
-// createTables().catch(console.error);
+createTables().catch(console.error);
 
 export { sql, connect };

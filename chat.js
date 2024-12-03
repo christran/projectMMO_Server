@@ -11,7 +11,7 @@ import jwt from 'jsonwebtoken';
 import chalk from 'chalk';
 import * as fs from 'fs';
 
-import db from './db.js';
+import { connect } from './db.js';
 
 import Character from './src/models/Character.js';
 import chatHandler from './src/handlers/chat/chat-handler.js';
@@ -96,7 +96,7 @@ io.on('connection', (socket) => {
 });
 
 server.listen(port, () => {
-	db.connect();
+	connect();
 
 	console.log(chalk.greenBright(`[Chat Server] Starting Chat Server... Port: ${port}`));
 

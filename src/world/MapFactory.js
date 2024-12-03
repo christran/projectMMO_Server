@@ -115,9 +115,9 @@ export default (io, world) => {
 				const now = Date.now();
 
 				_.remove(world[mapID].itemsOnTheGround, (item) => {
-					return now - item.createdAt > secondsToKeepItemOnTheGround * 1000;
+					return now - item.created_at > secondsToKeepItemOnTheGround * 1000;
 				}).forEach((item) => {
-					Item.deleteByID(item._id);
+					Item.deleteByID(item.id);
 					itemsToRemove.push(item);
 				});
 
@@ -139,7 +139,7 @@ export default (io, world) => {
 					} else if (Date.now() - world[mapID].inactivity > maxInactiveTimeinMinutes * 60 * 1000) {
 						// remove the items from database before deleting the map
 						world[mapID].itemsOnTheGround.forEach((item) => {
-							Item.deleteByID(item._id);
+							Item.deleteByID(item.id);
 						});
 
 						// make sure this is garbage collected

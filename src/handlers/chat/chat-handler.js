@@ -62,9 +62,11 @@ export default (io, socket, clients, clientSocket) => {
 		} else {
 			// Add message to database
 			Chat.new({
+				account_id: character.account_id,
+				character_id: character.id,
 				type: data.type,
 				message: data.message,
-			}, character);
+			});
 
 			switch (data.type) {
 			case 'all':

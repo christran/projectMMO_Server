@@ -153,15 +153,15 @@ const itemSpawnTest = () => {
 		Item.spawn(map_id, {
 			items: [
 				{
-					id: _.random(10, 16),
+					item_id: _.random(10, 16),
 					amount: _.random(0, 3)
 				},
 				{
-					id: _.random(10, 16),
+					item_id: _.random(10, 16),
 					amount: _.random(0, 3)
 				},
 				{
-					id: _.random(15, 16),
+					item_id: _.random(15, 16),
 					amount: _.random(0, 3)
 				}],
 			x: -100,
@@ -175,7 +175,7 @@ const itemSpawnTest = () => {
 	setTimeout(itemSpawnTest, _.random(3, 10) * 1000);
 };
 
-// itemSpawnTest();
+itemSpawnTest();
 
 io.on('connection', (socket) => {
 	// eslint-disable-next-line no-unused-vars
@@ -197,7 +197,7 @@ io.on('connection', (socket) => {
 				// npcSpawnTest();
 				// mobSpawnTest();
 				// io.emit('worldService', { type: 'billboardURL', billboardURL: 'https://reddit.com', update: true });
-				io.emit('worldService', { type: 'server_message', message: 'the quick brown fox jumped of the lazy dog', update: true });
+				io.emit('worldService', { type: 'server_message', message: 'Welcome to the Pre Pre Alpha Test!', update: true });
 			}, 1000);
 		}
 	});

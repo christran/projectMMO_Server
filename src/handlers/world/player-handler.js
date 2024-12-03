@@ -281,48 +281,51 @@ export default (io, socket, world, clients) => {
 
 	socket.on('player_PickUp', (data) => {
 		const itemsInMapID = world[socket.character.map_id].itemsOnTheGround;
-		const findItemInMapID = _.find(itemsInMapID, { _id: data._id });
+		const findItemInMapID = _.find(itemsInMapID, { id: data.id });
 
 		if (findItemInMapID) {
 			// Update item's owner with socket.characterID in the Items database
-			Item.findItemByID(data._id).then((itemInDB) => {
+
+			Item.findItemByID(data.id).then((itemInDB) => {
 				if (itemInDB.lootable === true) {
-					itemInDB.characterID = socket.character.id;
-					itemInDB.lootable = false;
-
-					itemInDB.save().then(() => {
-						// Emit to all other clients in mapID that an item has been looted and to remove it
-						socket.to(socket.character.map_id).emit('removeEntity', {
-							type: 'item',
-							data: [{ _id: data._id }]
-						});
-
-						// Remove Item from worldSnapshotByID.itemsOnTheGround
-						_.remove(itemsInMapID, { _id: data._id });
-
-						jsonfile.readFile(itemsDataTable)
-							.then((fileData) => {
-								const itemsKeyByID = _.keyBy(fileData, 'Name');
-
-								if (itemsKeyByID[itemInDB.itemID]) {
-									console.log(chalk.yellow(`[Item Factory] ${socket.character.name} picked up: ${itemsKeyByID[itemInDB.itemID].item_name}`));
-								} else {
-									console.log(chalk.yellow(`[Item Factory] ${socket.character.name} picked up Item ID: ${itemInDB.itemID} | No item name was found in the Items Data Table`));
-								}
-							}).catch((err) => console.log(err));
+					Item.updateItem(data.id, {
+						character_id: socket.character.id,
+						lootable: false
 					});
+
+					// Emit to all other clients in mapID that an item has been looted and to remove it
+					socket.to(socket.character.map_id).emit('removeEntity', {
+						type: 'item',
+						data: [{ id: data.id }]
+					});
+
+					// Remove Item from worldSnapshotByID.itemsOnTheGround
+					_.remove(itemsInMapID, { id: data.id });
+
+					jsonfile.readFile(itemsDataTable)
+						.then((fileData) => {
+							const itemsKeyByID = _.keyBy(fileData, 'Name');
+
+							if (itemsKeyByID[itemInDB.item_id]) {
+								console.log(chalk.yellow(`[Item Factory] ${socket.character.name} picked up: ${itemsKeyByID[itemInDB.item_id].item_name}`));
+							} else {
+								console.log(chalk.yellow(`[Item Factory] ${socket.character.name} picked up Item ID: ${itemInDB.item_id} | No item name was found in the Items Data Table`));
+							}
+						}).catch((err) => console.log(err));
 				}
 			}).catch((err) => {
 				// Remove Item from Client's map
 				// Tell client that item doesn't exist and they're hacking
 				io.to(socket.character.map_id).emit('removeEntity', {
 					type: 'item',
-					data: [{ _id: data._id }]
+					data: [{ id: data.id }]
 				});
 
 				susLog.new({
-					character: socket.character,
+					account_id: socket.character.account_id,
+					character_id: socket.character.id,
 					reason: 'Tried to loot an item that does not exist in the database.',
+					ip: socket.handshake.address
 				});
 
 				console.log(err);
@@ -332,7 +335,7 @@ export default (io, socket, world, clients) => {
 			// Tell the client to remove that item because it doesn't exist on the server
 			socket.emit('removeEntity', {
 				type: 'item',
-				data: [{ _id: data._id }]
+				data: [{ id: data.id }]
 			});
 
 			console.log(chalk.yellow(`[Item Factory] ID: ${socket.character.id} | Name : ${socket.character.name} | tried to loot an item: ${findItemInMapID}`));
@@ -435,8 +438,10 @@ export default (io, socket, world, clients) => {
 					});
 
 					// susLog.new({
-					// 	socket,
-					// 	reason: 'no reason xD',
+					// 	account_id: socket.character.account_id,
+					// 	character_id: socket.character.id,
+					// 	reason: 'no reason xd',
+					// 	ip: socket.handshake.address
 					// });
 
 					console.log(`[World Server] ${character.name}${chalk.green(`#${character.tagline}`)} | Map ID: ${character.map_id} | Total Online: ${io.engine.clientsCount}`);
