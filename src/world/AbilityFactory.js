@@ -35,10 +35,10 @@ export default (io, world, socket) => {
 								socket.character.stats.mp -= abilitiesKeyByID[ability.id].mana_cost;
 
 								if (ability.id === 1) {
-									const characterIndex = world[socket.character.mapID].characterStates.findIndex((character) => character._id === socket.character._id);
-									world[socket.character.mapID].characterStates.splice(characterIndex, 1);
+									const characterIndex = world[socket.character.map_id].characterStates.findIndex((character) => character._id === socket.character._id);
+									world[socket.character.map_id].characterStates.splice(characterIndex, 1);
 
-									socket.to(socket.character.mapID).emit('player_UseAbility', {
+									socket.to(socket.character.map_id).emit('player_UseAbility', {
 										_id: socket.character._id,
 										abilityID: ability.id
 									});
@@ -49,7 +49,7 @@ export default (io, world, socket) => {
 										z: 0
 									};
 								} else if (ability.id === 2) {
-									socket.to(socket.character.mapID).emit('player_UseAbility', {
+									socket.to(socket.character.map_id).emit('player_UseAbility', {
 										_id: socket.character._id,
 										abilityID: ability.id
 									});

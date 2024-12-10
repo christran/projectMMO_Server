@@ -81,7 +81,7 @@ export default (io, world) => {
 				});
 
 				// no logic for dropping stackable items like 3 potions
-				io.to(character.mapID).emit('spawnEntity', {
+				io.to(character.map_id).emit('spawnEntity', {
 					type: 'item',
 					data: [{
 						id: item.id,
@@ -100,7 +100,7 @@ export default (io, world) => {
 					amount
 				});
 
-				world[character.mapID].itemsOnTheGround.push({
+				world[character.map_id].itemsOnTheGround.push({
 					id: item.id,
 					item_id: item.item_id,
 					location: {

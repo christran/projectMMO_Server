@@ -26,17 +26,17 @@ export default (io, socket, world, clients) => {
 			Map.getMap(mapID).then((targetMap) => {
 				const targetSocket = io.sockets.sockets.get(socketID);
 
-				targetSocket.to(targetSocket.character.mapID).emit('removeCharacter', {
+				targetSocket.to(targetSocket.character.map_id).emit('removeCharacter', {
 					_id: targetSocket.character._id,
 				});
 
-				targetSocket.leave(targetSocket.character.mapID);
+				targetSocket.leave(targetSocket.character.map_id);
 				targetSocket.join(mapID);
 
-				_.remove(world[targetSocket.character.mapID].characters, { name: targetSocket.character.name });
+				_.remove(world[targetSocket.character.map_id].characters, { name: targetSocket.character.name });
 
 				targetSocket.character.socketID = socketID;
-				targetSocket.character.mapID = mapID;
+				targetSocket.character.map_id = mapID;
 				targetSocket.character.location = { x: 0, y: 0, z: 25 };
 				targetSocket.character.rotation = 0;
 
@@ -46,7 +46,7 @@ export default (io, socket, world, clients) => {
 
 				// socket.emit('changeMap', mapID);
 
-				targetSocket.to(targetSocket.character.mapID).emit('addCharacter', {
+				targetSocket.to(targetSocket.character.map_id).emit('addCharacter', {
 					characterInfo: targetSocket.character
 				});
 

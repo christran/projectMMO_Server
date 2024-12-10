@@ -172,7 +172,7 @@ const itemSpawnTest = () => {
 		});
 	}
 
-	setTimeout(itemSpawnTest, _.random(3, 10) * 1000);
+	setTimeout(itemSpawnTest, _.random(3, 10) * 3000);
 };
 
 itemSpawnTest();
@@ -203,26 +203,47 @@ io.on('connection', (socket) => {
 	});
 });
 
-// Game Logic
+// Server Game Loop
 const update = () => {
-	// Sent to (GameState_MMO)
 	Object.keys(world).forEach((map_id) => {
 		const parsedMapID = parseInt(map_id, 10);
+		const currentMap = world[parsedMapID];
+		
+		if (currentMap.characterStates) {
+			// Process physics updates as before
+			Object.values(currentMap.characterStates).forEach(character => {
+				// Update position based on velocity and deltaTime
+				const currentTime = Date.now();
+				const deltaTime = (currentTime - character.lastInputTimestamp) / 1000; 
 
-		if (world[parsedMapID].characterStates.length > 0) {
-			io.to(parsedMapID).emit('snapshot', {
-				mapSnapshot: world[parsedMapID].characterStates
+				console.log(currentTime, character.lastInputTimestamp, deltaTime);
+
+				character.location.x += character.velocity.x * deltaTime;
+				character.location.y += character.velocity.y * deltaTime;
+				character.location.z = 90; // hardcoded for now
+				
+				// character.location.z += character.velocity.z * deltaTime;
+
+				// // Basic ground collision (assuming ground is at z=0)
+				// if (character.location.z <= 0) {
+				// 	character.location.z = 0;
+				// 	character.velocity.z = 0;
+				// } else {
+				// 	// Apply gravity
+				// 	character.velocity.z -= 980 * deltaTime; // approximate gravity
+				// }
 			});
-		}
 
-		// if (world[parsedMapID].mobs.length > 0) {
-		// 	world[parsedMapID].mobs.forEach((mob) => {
-		// 		Mob.move(mob._id, parsedMapID, { x: 5, y: 5, z: 5 });
-		// 	});
-		// }
+			// console.log(world[parsedMapID].characterStates);
+			io.to(parsedMapID).emit('snapshot', {
+				mapSnapshot: world[parsedMapID].characterStates,
+				timestamp: Date.now()
+			});
+
+		}
 	});
 
-	// Run cleanup every minute to remove inactive maps from the world
+	// Run cleanup every minute
 	Map.removeInactiveMaps(1);
 };
 

@@ -49,50 +49,82 @@ export default (io, socket, world, clients) => {
 		}
 	});
 
+
 	socket.on('characterState', (data) => {
-		if (!data.isAFK) {
-			const snapshot = {
+		// Movement Constants 
+		const MAX_WALK_SPEED = 600;
+		const MAX_VELOCITY = {
+			x: MAX_WALK_SPEED,
+			y: MAX_WALK_SPEED,
+			z: 1600
+		};
+
+		// Get current state and time
+		if (!world[socket.character.map_id].characterStates) {
+			world[socket.character.map_id].characterStates = [];
+		}
+
+		let character = world[socket.character.map_id].characterStates.find(
+			char => char.id === socket.character.id
+		);
+
+		// If character doesn't exist in states, initialize it
+		if (!character) {
+			character = {
 				id: socket.character.id,
-				name: socket.character.name,
-				location: data.location,
-				rotation: data.rotation,
-				action: parseInt(data.action, 10),
-				velocity: data.velocity
-				// timestamp: Date.now().toString()
+				location: socket.character.location || { x: 0, y: 0, z: 0 },
+				velocity: { x: 0, y: 0, z: 0 },
+				lastInputTimestamp: 0
 			};
+			world[socket.character.map_id].characterStates.push(character);
+		}
 
-			if (world[socket.character.map_id]) {
-				const characterIndex = world[socket.character.map_id].characterStates.findIndex((character) => character.id === socket.character.id);
+		const timestamp = Number(data.timestamp);
 
-				// if characterID exists in world, update it instead of pushing a new one
-				// bad workaround for now
-				if (characterIndex !== -1) {
-					world[socket.character.map_id].characterStates[characterIndex] = snapshot;
-				} else {
-					world[socket.character.map_id].characterStates.push(snapshot);
-				}
-			} else {
-				console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.map_id} was not found in world`));
-			}
+		if (timestamp < character.lastInputTimestamp) {
+			return; // Ignore outdated input
+		}
 
-			// Simulate on the Server Side?
-			socket.character.location = data.location;
-			socket.character.rotation = data.rotation;
-			socket.character.velocity = data.velocity;
-			socket.character.action = parseInt(data.action, 10);
-		} else if (data.isAFK) {
-			if (world[socket.character.map_id]) {
-				const characterIndex = world[socket.character.map_id].characterStates.findIndex((character) => character.id === socket.character.id);
+		// Sanitize and validate input direction
+		const inputDirection = {
+			x: data.left === "left" ? -1 : (data.left === "right" ? 1 : 0),
+			y: data.up === "up" ? -1 : (data.up === "down" ? 1 : 0)
+		};
 
-				// if characterID exists in world remove it
-				if (characterIndex !== -1) {
-					world[socket.character.map_id].characterStates.splice(characterIndex, 1);
-				}
-			} else {
-				console.log(chalk.yellow(`[Player Handler] Map ID: ${socket.character.map_id} was not found in world`));
-			}
+		// Normalize diagonal movement
+		const magnitude = Math.sqrt(inputDirection.x * inputDirection.x + inputDirection.y * inputDirection.y);
+		if (magnitude > 0) {
+			inputDirection.x /= magnitude;
+			inputDirection.y /= magnitude;
+		}
+
+		// Calculate new velocity with constraints
+		const velocity = {
+			x: inputDirection.x * MAX_WALK_SPEED,
+			y: inputDirection.y * MAX_WALK_SPEED,
+			z: 0 // hardcoded for now
+			// x: Math.max(-MAX_VELOCITY.x, Math.min(MAX_VELOCITY.x, inputDirection.x * MAX_WALK_SPEED)),
+			// y: Math.max(-MAX_VELOCITY.y, Math.min(MAX_VELOCITY.y, inputDirection.y * MAX_WALK_SPEED)), 
+			// z: Math.max(-MAX_VELOCITY.z, Math.min(MAX_VELOCITY.z, character.velocity.z))
+		};
+
+		const snapshot = {
+			id: socket.character.id,
+			location: character.location,
+			velocity: velocity,
+			lastInputTimestamp: timestamp
+		};
+
+		// Update world state
+		const characterIndex = world[socket.character.map_id].characterStates.findIndex(
+			char => char.id === socket.character.id
+		);
+
+		if (characterIndex !== -1) {
+			world[socket.character.map_id].characterStates[characterIndex] = snapshot;
 		}
 	});
+	
 
 	// Client sends data to server to update character appearance/clothing
 	socket.on('player_UpdateApperance', (appearanceData) => {
@@ -112,7 +144,7 @@ export default (io, socket, world, clients) => {
 
 		// 					socket.character.appearance.top = id;
 
-		// 					socket.to(socket.character.mapID).emit('updateAppearance', {
+		// 					socket.to(socket.character.map_id).emit('updateAppearance', {
 		// 						name: socket.character.name,
 		// 						type: 'top',
 		// 						id
@@ -132,7 +164,7 @@ export default (io, socket, world, clients) => {
 		// 			// 			socket.character.appearance.top = id;
 
 		// 			// 			// Tell other clients to update this character top
-		// 			// 			socket.to(socket.character.mapID).emit('updateAppearance', {
+		// 			// 			socket.to(socket.character.map_id).emit('updateAppearance', {
 		// 			// 				name: socket.character.name,
 		// 			// 				type: 'top',
 		// 			// 				id
@@ -185,7 +217,7 @@ export default (io, socket, world, clients) => {
 		// 			// 			socket.character.appearance.weapon_R = id;
 
 		// 			// 			// Tell other clients to update this character top
-		// 			// 			socket.to(socket.character.mapID).emit('updateAppearance', {
+		// 			// 			socket.to(socket.character.map_id).emit('updateAppearance', {
 		// 			// 				name: socket.character.name,
 		// 			// 				type: 'weapon_R',
 		// 			// 				id,
@@ -209,7 +241,7 @@ export default (io, socket, world, clients) => {
 		// 						socket.character.appearance.weapon_L = id;
 
 		// 						// Tell other clients to update this character top
-		// 						socket.to(socket.character.mapID).emit('updateAppearance', {
+		// 						socket.to(socket.character.map_id).emit('updateAppearance', {
 		// 							name: socket.character.name,
 		// 							type: 'weapon_L',
 		// 							id,
@@ -228,7 +260,7 @@ export default (io, socket, world, clients) => {
 		// 						socket.character.appearance.weapon_R = id;
 
 		// 						// Tell other clients to update this character top
-		// 						socket.to(socket.character.mapID).emit('updateAppearance', {
+		// 						socket.to(socket.character.map_id).emit('updateAppearance', {
 		// 							name: socket.character.name,
 		// 							type: 'weapon_R',
 		// 							id,
@@ -401,7 +433,7 @@ export default (io, socket, world, clients) => {
 				// const charWeakMap = new WeakMap();
 				// charWeakMap.set(socket, character);
 				// const clientCharacter = charWeakMap.get(socket);
-				// console.log(clientCharacter.mapID);
+				// console.log(clientcharacter.map_id);
 
 				// io.of('/').connected[socket.id].character = character;
 				io.sockets.sockets.get(socket.id).character = character;

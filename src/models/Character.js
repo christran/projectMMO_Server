@@ -172,9 +172,17 @@ const Character = {
 
 	async delete(id) {
 		try {
-			await sql`
-        DELETE FROM characters WHERE id = ${id}
-      `;
+			// Begin transaction
+			await sql.begin(async sql => {
+				// First delete all related items
+				// TODO: don't delete items or chats...
+				await sql`DELETE FROM items WHERE character_id = ${id}`;
+				await sql`DELETE FROM chats WHERE character_id = ${id}`;
+				
+				// Then delete the character
+				await sql`DELETE FROM characters WHERE id = ${id}`;
+			});
+			
 			return true;
 		} catch (error) {
 			console.error('Error deleting character:', error);

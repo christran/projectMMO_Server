@@ -76,7 +76,7 @@ io.on('connection', (socket) => {
 			if (character) {
 				socket.character = character;
 
-				socket.join(parseInt(character.mapID, 10));
+				socket.join(parseInt(character.map_id, 10));
 
 				socket.emit('chatService', {
 					type: 'connected'

@@ -38,10 +38,10 @@ export default (io, socket, clients, clientSocket) => {
 				}
 				break;
 			case 'spawn':
-				console.log(`[GM Command] Spawning Mob ID: ${args[0]} | Amount: ${args[1]} | Map ID: ${socket.character.mapID}`);
+				console.log(`[GM Command] Spawning Mob ID: ${args[0]} | Amount: ${args[1]} | Map ID: ${socket.character.map_id}`);
 				break;
 			case 'item':
-				console.log(`[GM Command] Spawning Item ID: ${args[0]} | Amount: ${args[1]} | Map ID: ${socket.character.mapID}`);
+				console.log(`[GM Command] Spawning Item ID: ${args[0]} | Amount: ${args[1]} | Map ID: ${socket.character.map_id}`);
 				break;
 			case 'dc':
 				console.log(`[GM Command] Disconnecting Character: ${args[0]}`);
@@ -79,13 +79,13 @@ export default (io, socket, clients, clientSocket) => {
 				console.log(`[All Chat] ${combinedMsg}`);
 				break;
 			case 'local':
-				socket.to(socket.character.mapID).emit('newMessage', {
+				socket.to(socket.character.map_id).emit('newMessage', {
 					type: 'local',
 					name: character.name,
 					tagline: character.tagline,
 					message: data.message
 				});
-				console.log(`[Local Chat | MapID: ${character.mapID}] ${combinedMsg}`);
+				console.log(`[Local Chat | MapID: ${character.map_id}] ${combinedMsg}`);
 				break;
 			case 'party':
 				// send to partty members
@@ -95,7 +95,7 @@ export default (io, socket, clients, clientSocket) => {
 					tagline: character.tagline,
 					message: data.message
 				});
-				console.log(`[Party Chat | Party ID: ${character.mapID}] ${combinedMsg}`);
+				console.log(`[Party Chat | Party ID: ${character.map_id}] ${combinedMsg}`);
 				break;
 			case 'guild':
 				// send to guild members
@@ -105,17 +105,17 @@ export default (io, socket, clients, clientSocket) => {
 					tagline: character.tagline,
 					message: data.message
 				});
-				console.log(`[Guild Chat | Guild ID: ${character.mapID}] ${combinedMsg}`);
+				console.log(`[Guild Chat | Guild ID: ${character.map_id}] ${combinedMsg}`);
 				break;
 			case 'private':
 				// send to private chat id
-				socket.to(socket.character.mapID).emit('newMessage', {
+				socket.to(socket.character.map_id).emit('newMessage', {
 					type: 'private',
 					name: character.name,
 					tagline: character.tagline,
 					message: data.message
 				});
-				console.log(`[Private Chat | Chat ID: ${character.mapID}] ${combinedMsg}`);
+				console.log(`[Private Chat | Chat ID: ${character.map_id}] ${combinedMsg}`);
 				break;
 			default:
 				break;
@@ -126,9 +126,9 @@ export default (io, socket, clients, clientSocket) => {
 	socket.on('setMapID', (mapID) => {
 		const newMapID = parseInt(mapID, 10);
 
-		socket.leave(socket.character.mapID);
+		socket.leave(socket.character.map_id);
 		socket.join(newMapID);
-		socket.character.mapID = newMapID;
+		socket.character.map_id = newMapID;
 		console.log(`[Chat Server] ${socket.character.name} ${chalk.green(`#${socket.character.tagline}`)} moved to Map ID: ${mapID}`);
 	});
 
