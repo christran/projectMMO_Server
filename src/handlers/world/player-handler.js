@@ -53,12 +53,7 @@ export default (io, socket, world, clients) => {
 	socket.on('characterState', (data) => {
 		// Movement Constants 
 		const MAX_WALK_SPEED = 600;
-		const MAX_VELOCITY = {
-			x: MAX_WALK_SPEED,
-			y: MAX_WALK_SPEED,
-			z: 1600
-		};
-
+		
 		// Get current state and time
 		if (!world[socket.character.map_id].characterStates) {
 			world[socket.character.map_id].characterStates = [];
@@ -72,7 +67,9 @@ export default (io, socket, world, clients) => {
 		if (!character) {
 			character = {
 				id: socket.character.id,
-				location: socket.character.location || { x: 0, y: 0, z: 0 },
+				location: socket.character.location,
+				rotation: socket.character.rotation,
+				action: 0,
 				velocity: { x: 0, y: 0, z: 0 },
 				lastInputTimestamp: 0
 			};
@@ -100,18 +97,27 @@ export default (io, socket, world, clients) => {
 
 		// Calculate new velocity with constraints
 		const velocity = {
-			x: inputDirection.x * MAX_WALK_SPEED,
-			y: inputDirection.y * MAX_WALK_SPEED,
+			x: Math.round(inputDirection.x * MAX_WALK_SPEED),
+			y: Math.round(inputDirection.y * MAX_WALK_SPEED),
 			z: 0 // hardcoded for now
 			// x: Math.max(-MAX_VELOCITY.x, Math.min(MAX_VELOCITY.x, inputDirection.x * MAX_WALK_SPEED)),
 			// y: Math.max(-MAX_VELOCITY.y, Math.min(MAX_VELOCITY.y, inputDirection.y * MAX_WALK_SPEED)), 
 			// z: Math.max(-MAX_VELOCITY.z, Math.min(MAX_VELOCITY.z, character.velocity.z))
 		};
 
+		// const snapshot = {
+		// 	id: socket.character.id,
+		// 	location: character.location,
+		// 	velocity: velocity,
+		// 	lastInputTimestamp: timestamp
+		// };
+
 		const snapshot = {
 			id: socket.character.id,
-			location: character.location,
-			velocity: velocity,
+			location: data.location,
+			rotation: data.rotation,
+			action: parseInt(data.action, 10),
+			velocity: data.velocity,
 			lastInputTimestamp: timestamp
 		};
 

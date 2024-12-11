@@ -12,7 +12,11 @@ export default {
 	LoginNotify: async (character) => {
 		const account = await Account.getAccountByID(character.account_id).catch((err) => console.log(`[Login Server] Login | Error: ${err}`));
 
-		if (!moment(account.last_login_date).isSame(moment(), 'day')) {
+		// Convert ISO timestamp to moment and compare dates
+		const lastLogin = moment(account.last_login_date);
+		const now = moment();
+
+		if (!lastLogin.isSame(now, 'day')) {
 			const newDiscordHook = new discordHook.Webhook('https://discord.com/api/webhooks/783926545558798356/FBSLgE0JkOHnqiWMYGXEcXFOcEgH8nACmHjpaAqP2gecgR-UOmCIxwYlKOvjTuldt5zz');
 
 			const discordMsg = new discordHook.MessageBuilder()

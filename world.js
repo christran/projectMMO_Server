@@ -209,37 +209,43 @@ const update = () => {
 		const parsedMapID = parseInt(map_id, 10);
 		const currentMap = world[parsedMapID];
 		
-		if (currentMap.characterStates) {
-			// Process physics updates as before
-			Object.values(currentMap.characterStates).forEach(character => {
-				// Update position based on velocity and deltaTime
-				const currentTime = Date.now();
-				const deltaTime = (currentTime - character.lastInputTimestamp) / 1000; 
+		if (currentMap.characterStates) {			// Process physics updates as before
+			// Object.values(currentMap.characterStates).forEach(character => {
+			// 	// Update position based on velocity and deltaTime
+			// 	if (character.lastInputTimestamp) { // TODO: fix this
+			// 		const currentTime = Date.now();
+			// 		const deltaTime = (currentTime - character.lastInputTimestamp) / 1000; 
 
-				console.log(currentTime, character.lastInputTimestamp, deltaTime);
+			// 		// console.log(currentTime, character.lastInputTimestamp, deltaTime);
 
-				character.location.x += character.velocity.x * deltaTime;
-				character.location.y += character.velocity.y * deltaTime;
-				character.location.z = 90; // hardcoded for now
-				
-				// character.location.z += character.velocity.z * deltaTime;
+			// 		// character.location.x = Math.round(character.location.x + character.velocity.x * deltaTime);
+			// 		// character.location.y = Math.round(character.location.y + character.velocity.y * deltaTime);
+			// 		// character.location.z = 90; // hardcoded for now
 
-				// // Basic ground collision (assuming ground is at z=0)
-				// if (character.location.z <= 0) {
-				// 	character.location.z = 0;
-				// 	character.velocity.z = 0;
-				// } else {
-				// 	// Apply gravity
-				// 	character.velocity.z -= 980 * deltaTime; // approximate gravity
-				// }
-			});
+					
+					
+			// 		// console.log(character.location.x, character.location.y, character.location.z);
+			// 		// character.location.z += character.velocity.z * deltaTime;
+
+			// 		// // Basic ground collision (assuming ground is at z=0)
+			// 		// if (character.location.z <= 0) {
+			// 		// 	character.location.z = 0;
+			// 		// 	character.velocity.z = 0;
+			// 		// } else {
+			// 		// 	// Apply gravity
+			// 		// 	character.velocity.z -= 980 * deltaTime; // approximate gravity
+			// 		// }
+			// 	}
+			// });
 
 			// console.log(world[parsedMapID].characterStates);
+			
 			io.to(parsedMapID).emit('snapshot', {
 				mapSnapshot: world[parsedMapID].characterStates,
 				timestamp: Date.now()
 			});
 
+			// console.log(world[parsedMapID].characterStates);
 		}
 	});
 

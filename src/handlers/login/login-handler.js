@@ -68,7 +68,7 @@ export default (io, socket, clients) => {
 
 					await Account.updateAccount(account.id, {
 						// is_online: true,
-						last_login_date: new Date(),
+						// last_login_date: new Date(),
 						ip: socket.handshake.address
 					});
 
