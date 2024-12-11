@@ -8,7 +8,7 @@ module.exports = {
 			],
 		},
 	},
-	extends: 'airbnb',
+	// extends: 'airbnb',
 	rules: {
 		indent: [2, 'tab'],
 		'no-tabs': 0,
