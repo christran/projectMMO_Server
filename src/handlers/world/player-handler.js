@@ -126,6 +126,7 @@ export default (io, socket, world, clients) => {
 			char => char.id === socket.character.id
 		);
 
+		// TODO: Fix player not getting removed from array when using portals
 		if (characterIndex !== -1) {
 			world[socket.character.map_id].characterStates[characterIndex] = snapshot;
 		}

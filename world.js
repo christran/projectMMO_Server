@@ -240,6 +240,7 @@ const update = () => {
 
 			// console.log(world[parsedMapID].characterStates);
 			
+			// TODO: Fix player not getting removed from array when using portals
 			io.to(parsedMapID).emit('snapshot', {
 				mapSnapshot: world[parsedMapID].characterStates,
 				timestamp: Date.now()
